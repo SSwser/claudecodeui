@@ -52,7 +52,13 @@
 8. User can switch between single-view and dual-view layout modes
 9. Layout mode switcher is accessible from any view
 
-**Plans:** TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md - Home-state contracts, persistence, and LayoutContext foundation
+- [ ] 01-02-PLAN.md - Workspace creation modes and wizard contract update
+- [ ] 01-03-PLAN.md - Landing page UI, favorites, recent activity, and startup routing
+- [ ] 01-04-PLAN.md - Browser-style tabs and single/dual-pane shell behaviors
 
 **UI hint:** yes
 
@@ -82,10 +88,6 @@
 
 **Plans:** TBD
 
-**UI hint:** yes
-
----
-
 ### Phase 3: Virtual Sessions
 
 **Goal:** Users experience uninterrupted conversation flow while the system transparently manages context limits through intelligent branching and compression.
@@ -108,8 +110,6 @@
 
 **Plans:** TBD
 
----
-
 ### Phase 4: UI Migration
 
 **Goal:** Application adopts a modern, consistent component library with proper internationalization support.
@@ -129,10 +129,6 @@
 
 **Plans:** TBD
 
-**UI hint:** yes
-
----
-
 ### Phase 5: Multi-Pane + Kanban (v2 Transition)
 
 **Goal:** Multi-window session monitoring and Kanban-style session management are introduced as a foundation for v2.
@@ -151,8 +147,6 @@
 7. Cards can be dragged between lanes to change session status
 
 **Plans:** TBD
-
-**UI hint:** yes
 
 ---
 
@@ -188,7 +182,7 @@ Phase 1 (Foundation)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Not started | - |
+| 1. Foundation | 0/4 | Not started | - |
 | 2. Core Sessions | 0/3 | Not started | - |
 | 3. Virtual Sessions | 0/3 | Not started | - |
 | 4. UI Migration | 0/3 | Not started | - |

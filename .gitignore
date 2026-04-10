@@ -117,6 +117,7 @@ CLAUDE.md
 
 logs
 dev-debug.log
+
 # Editor directories and files
 .idea
 .vscode
@@ -125,6 +126,10 @@ dev-debug.log
 *.njsproj
 *.sln
 *.sw?
+
+# Bash stack dumps
+*.stackdump
+
 # OS specific
 
 # Task files
