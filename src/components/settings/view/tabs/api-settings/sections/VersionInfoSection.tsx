@@ -34,9 +34,11 @@ export default function VersionInfoSection({
             href={releasesUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-full bg-green-500/10 px-2 py-0.5 font-medium not-italic text-green-600 transition-colors hover:bg-green-500/20 dark:text-green-400"
+            className="bg-brand/8 hover:bg-brand/12 dark:bg-brand/12 flex items-center gap-1.5 rounded-full border border-brand/20 px-2 py-0.5 font-medium not-italic text-foreground transition-colors dark:border-brand/30"
           >
-            <span className="text-[10px]">{t('apiKeys.version.updateAvailable', { version: latestVersion })}</span>
+            <span className="text-[10px]">
+              {t('apiKeys.version.updateAvailable', { version: latestVersion })}
+            </span>
             <ExternalLink className="h-2.5 w-2.5" />
           </a>
         )}

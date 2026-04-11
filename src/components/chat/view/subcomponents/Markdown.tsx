@@ -32,8 +32,9 @@ const CodeBlock = ({ node, inline, className, children, ...props }: CodeBlockPro
   if (shouldInline) {
     return (
       <code
-        className={`whitespace-pre-wrap break-words rounded-md border border-gray-200 bg-gray-100 px-1.5 py-0.5 font-mono text-[0.9em] text-gray-900 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-100 ${className || ''
-          }`}
+        className={`font-code whitespace-pre-wrap break-words rounded-md border border-border bg-muted px-1.5 py-0.5 text-[0.9em] text-foreground ${
+          className || ''
+        }`}
         {...props}
       >
         {children}
@@ -45,9 +46,11 @@ const CodeBlock = ({ node, inline, className, children, ...props }: CodeBlockPro
   const language = match ? match[1] : 'text';
 
   return (
-    <div className="group relative my-2">
+    <div className="group relative my-3 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
       {language && language !== 'text' && (
-        <div className="absolute left-3 top-2 z-10 text-xs font-medium uppercase text-gray-400">{language}</div>
+        <div className="absolute left-4 top-3 z-10 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {language}
+        </div>
       )}
 
       <button
@@ -60,7 +63,7 @@ const CodeBlock = ({ node, inline, className, children, ...props }: CodeBlockPro
             }
           })
         }
-        className="absolute right-2 top-2 z-10 rounded-md border border-gray-600 bg-gray-700/80 px-2 py-1 text-xs text-white opacity-0 transition-opacity hover:bg-gray-700 focus:opacity-100 active:opacity-100 group-hover:opacity-100"
+        className="absolute right-3 top-3 z-10 rounded-md border border-border/80 bg-background/90 px-2 py-1 text-xs text-foreground opacity-0 shadow-sm transition-opacity hover:bg-background focus:opacity-100 active:opacity-100 group-hover:opacity-100"
         title={copied ? t('codeBlock.copied') : t('codeBlock.copyCode')}
         aria-label={copied ? t('codeBlock.copied') : t('codeBlock.copyCode')}
       >
@@ -99,9 +102,9 @@ const CodeBlock = ({ node, inline, className, children, ...props }: CodeBlockPro
         style={oneDark}
         customStyle={{
           margin: 0,
-          borderRadius: '0.5rem',
+          borderRadius: '1rem',
           fontSize: '0.875rem',
-          padding: language && language !== 'text' ? '2rem 1rem 1rem 1rem' : '1rem',
+          padding: language && language !== 'text' ? '2.25rem 1rem 1rem 1rem' : '1rem',
         }}
         codeTagProps={{
           style: {
@@ -119,27 +122,42 @@ const CodeBlock = ({ node, inline, className, children, ...props }: CodeBlockPro
 const markdownComponents = {
   code: CodeBlock,
   blockquote: ({ children }: { children?: React.ReactNode }) => (
-    <blockquote className="my-2 border-l-4 border-gray-300 pl-4 italic text-gray-600 dark:border-gray-600 dark:text-gray-400">
+    <blockquote className="my-3 rounded-r-xl border-l-4 border-brand/40 bg-brand/5 px-4 py-3 italic text-muted-foreground">
       {children}
     </blockquote>
   ),
   a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
-    <a href={href} className="text-blue-600 hover:underline dark:text-blue-400" target="_blank" rel="noopener noreferrer">
+    <a
+      href={href}
+      className="text-brand underline decoration-brand/40 underline-offset-4 hover:decoration-brand"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       {children}
     </a>
   ),
-  p: ({ children }: { children?: React.ReactNode }) => <div className="mb-2 last:mb-0">{children}</div>,
+  p: ({ children }: { children?: React.ReactNode }) => (
+    <div className="mb-2 last:mb-0">{children}</div>
+  ),
   table: ({ children }: { children?: React.ReactNode }) => (
     <div className="my-2 overflow-x-auto">
-      <table className="min-w-full border-collapse border border-gray-200 dark:border-gray-700">{children}</table>
+      <table className="min-w-full border-collapse overflow-hidden rounded-xl border border-border/80">
+        {children}
+      </table>
     </div>
   ),
-  thead: ({ children }: { children?: React.ReactNode }) => <thead className="bg-gray-50 dark:bg-gray-800">{children}</thead>,
+  thead: ({ children }: { children?: React.ReactNode }) => (
+    <thead className="bg-muted/70">{children}</thead>
+  ),
   th: ({ children }: { children?: React.ReactNode }) => (
-    <th className="border border-gray-200 px-3 py-2 text-left text-sm font-semibold dark:border-gray-700">{children}</th>
+    <th className="border border-border/80 px-3 py-2 text-left text-sm font-semibold text-foreground">
+      {children}
+    </th>
   ),
   td: ({ children }: { children?: React.ReactNode }) => (
-    <td className="border border-gray-200 px-3 py-2 align-top text-sm dark:border-gray-700">{children}</td>
+    <td className="border border-border/80 px-3 py-2 align-top text-sm text-muted-foreground">
+      {children}
+    </td>
   ),
 };
 
@@ -150,7 +168,11 @@ export function Markdown({ children, className }: MarkdownProps) {
 
   return (
     <div className={className}>
-      <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={markdownComponents as any}>
+      <ReactMarkdown
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
+        components={markdownComponents as any}
+      >
         {content}
       </ReactMarkdown>
     </div>

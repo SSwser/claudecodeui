@@ -173,7 +173,7 @@ export function Select({
           openDropdown();
         }}
         onKeyDown={handleKeyDown}
-        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-10 w-full items-center justify-between rounded-medium border border-input bg-background px-3 py-2 text-sm font-medium tracking-body text-foreground shadow-subtle ring-offset-background transition-opacity focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="truncate">{selectedOption?.label ?? value}</span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -182,7 +182,7 @@ export function Select({
       {open ? (
         <div
           role="listbox"
-          className="absolute z-50 mt-2 min-w-32 overflow-hidden rounded-md border border-border bg-surface-elevated p-1 shadow-md"
+          className="absolute z-50 mt-2 min-w-40 overflow-hidden rounded-large border border-border/70 bg-card p-1 shadow-ring"
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
@@ -198,8 +198,8 @@ export function Select({
                 onMouseEnter={() => setHighlightedIndex(index)}
                 onClick={() => selectOption(option, index)}
                 className={cn(
-                  'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-foreground outline-none',
-                  isHighlighted && 'bg-accent text-accent-foreground',
+                  'relative flex w-full cursor-default select-none items-center rounded-small py-2 pl-8 pr-3 text-sm font-medium tracking-body text-foreground outline-none transition-opacity',
+                  isHighlighted && 'bg-surface-3 text-foreground',
                   option.disabled && 'pointer-events-none opacity-50'
                 )}
               >

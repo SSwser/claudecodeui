@@ -176,17 +176,20 @@ export default function Shell({
     (data: string) => {
       sendSocketMessage(wsRef.current, { type: 'input', data });
     },
-    [wsRef],
+    [wsRef]
   );
 
-  const sessionDisplayName = useMemo(() => getSessionDisplayName(selectedSession), [selectedSession]);
+  const sessionDisplayName = useMemo(
+    () => getSessionDisplayName(selectedSession),
+    [selectedSession]
+  );
   const sessionDisplayNameShort = useMemo(
     () => (sessionDisplayName ? sessionDisplayName.slice(0, 30) : null),
-    [sessionDisplayName],
+    [sessionDisplayName]
   );
   const sessionDisplayNameLong = useMemo(
     () => (sessionDisplayName ? sessionDisplayName.slice(0, 50) : null),
-    [sessionDisplayName],
+    [sessionDisplayName]
   );
 
   const handleRestartShell = useCallback(() => {
@@ -243,11 +246,18 @@ export default function Shell({
       })
     : t('shell.startCli', { projectName: selectedProject.displayName });
 
-  const overlayMode = !isInitialized ? 'loading' : isConnecting ? 'connecting' : !isConnected ? 'connect' : null;
-  const overlayDescription = overlayMode === 'connecting' ? connectingDescription : readyDescription;
+  const overlayMode = !isInitialized
+    ? 'loading'
+    : isConnecting
+      ? 'connecting'
+      : !isConnected
+        ? 'connect'
+        : null;
+  const overlayDescription =
+    overlayMode === 'connecting' ? connectingDescription : readyDescription;
 
   return (
-    <div className="flex h-full w-full flex-col bg-gray-900">
+    <div className="bg-sidebar-bg text-sidebar-fg flex h-full w-full flex-col">
       <ShellHeader
         isConnected={isConnected}
         isInitialized={isInitialized}
@@ -287,7 +297,7 @@ export default function Shell({
 
         {cliPromptOptions && isConnected && (
           <div
-            className="absolute inset-x-0 bottom-0 z-10 border-t border-gray-700/80 bg-gray-800/95 px-3 py-2 backdrop-blur-sm"
+            className="absolute inset-x-0 bottom-0 z-10 border-t border-border/70 bg-surface-2/95 px-3 py-2 backdrop-blur-sm"
             onMouseDown={(e) => e.preventDefault()}
           >
             <div className="flex flex-wrap items-center gap-2">
@@ -299,7 +309,7 @@ export default function Shell({
                     sendInput(opt.number);
                     setCliPromptOptions(null);
                   }}
-                  className="max-w-36 truncate rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700"
+                  className="max-w-36 truncate rounded-pill border border-brand/20 bg-brand px-3 py-1.5 text-xs font-medium text-brand-foreground transition-colors hover:bg-brand/90"
                   title={`${opt.number}. ${opt.label}`}
                 >
                   {opt.number}. {opt.label}
@@ -311,7 +321,7 @@ export default function Shell({
                   sendInput('\x1b');
                   setCliPromptOptions(null);
                 }}
-                className="rounded bg-gray-700 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors hover:bg-gray-600"
+                className="rounded-pill border border-border/70 bg-surface-3 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-2"
               >
                 Esc
               </button>
@@ -320,12 +330,7 @@ export default function Shell({
         )}
       </div>
 
-      <TerminalShortcutsPanel
-        wsRef={wsRef}
-        terminalRef={terminalRef}
-        isConnected={isConnected}
-      />
-
+      <TerminalShortcutsPanel wsRef={wsRef} terminalRef={terminalRef} isConnected={isConnected} />
     </div>
   );
 }

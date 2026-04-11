@@ -10,22 +10,27 @@ type ThinkingModeSelectorProps = {
   className?: string;
 };
 
-function ThinkingModeSelector({ selectedMode, onModeChange, onClose, className = '' }: ThinkingModeSelectorProps) {
+function ThinkingModeSelector({
+  selectedMode,
+  onModeChange,
+  onClose,
+  className = '',
+}: ThinkingModeSelectorProps) {
   const { t } = useTranslation('chat');
 
   // Mapping from mode ID to translation key
   const modeKeyMap: Record<string, string> = {
     'think-hard': 'thinkHard',
-    'think-harder': 'thinkHarder'
+    'think-harder': 'thinkHarder',
   };
   // Create translated modes for display
-  const translatedModes = thinkingModes.map(mode => {
+  const translatedModes = thinkingModes.map((mode) => {
     const modeKey = modeKeyMap[mode.id] || mode.id;
     return {
       ...mode,
       name: t(`thinkingMode.modes.${modeKey}.name`),
       description: t(`thinkingMode.modes.${modeKey}.description`),
-      prefix: t(`thinkingMode.modes.${modeKey}.prefix`)
+      prefix: t(`thinkingMode.modes.${modeKey}.prefix`),
     };
   });
 
@@ -44,7 +49,8 @@ function ThinkingModeSelector({ selectedMode, onModeChange, onClose, className =
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
-  const currentMode = translatedModes.find(mode => mode.id === selectedMode) || translatedModes[0];
+  const currentMode =
+    translatedModes.find((mode) => mode.id === selectedMode) || translatedModes[0];
   const IconComponent = currentMode.icon || Brain;
 
   return (
@@ -52,20 +58,21 @@ function ThinkingModeSelector({ selectedMode, onModeChange, onClose, className =
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 sm:h-10 sm:w-10 ${selectedMode === 'none'
-            ? 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600'
-            : 'bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800'
-          }`}
+        className={`flex h-10 w-10 items-center justify-center rounded-pill border transition-opacity sm:h-10 sm:w-10 ${
+          selectedMode === 'none'
+            ? 'border-border/60 bg-surface-2 hover:opacity-60'
+            : 'border-brand/35 bg-brand/10 hover:opacity-60'
+        }`}
         title={t('thinkingMode.buttonTitle', { mode: currentMode.name })}
       >
         <IconComponent className={`h-5 w-5 ${currentMode.color}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-full right-0 mb-2 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
-          <div className="border-b border-gray-200 p-3 dark:border-gray-700">
+        <div className="absolute bottom-full right-0 mb-2 w-64 overflow-hidden rounded-large border border-border/70 bg-card shadow-ring">
+          <div className="border-b border-border/60 p-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-sm font-semibold tracking-ui text-foreground">
                 {t('thinkingMode.selector.title')}
               </h3>
               <button
@@ -73,12 +80,12 @@ function ThinkingModeSelector({ selectedMode, onModeChange, onClose, className =
                   setIsOpen(false);
                   if (onClose) onClose();
                 }}
-                className="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="rounded-small p-1 transition-opacity hover:opacity-60"
               >
-                <X className="h-4 w-4 text-gray-500" />
+                <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-xs tracking-body text-muted-foreground">
               {t('thinkingMode.selector.description')}
             </p>
           </div>
@@ -96,30 +103,34 @@ function ThinkingModeSelector({ selectedMode, onModeChange, onClose, className =
                     setIsOpen(false);
                     if (onClose) onClose();
                   }}
-                  className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${isSelected ? 'bg-gray-50 dark:bg-gray-700' : ''
-                    }`}
+                  className={`w-full px-4 py-3 text-left transition-opacity hover:opacity-60 ${
+                    isSelected ? 'bg-surface-2' : ''
+                  }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`mt-0.5 ${mode.icon ? mode.color : 'text-gray-400'}`}>
+                    <div className={`mt-0.5 ${mode.icon ? mode.color : 'text-muted-foreground'}`}>
                       {ModeIcon ? <ModeIcon className="h-5 w-5" /> : <div className="h-5 w-5" />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-medium ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'
-                          }`}>
+                        <span
+                          className={`text-sm font-medium tracking-ui ${
+                            isSelected ? 'text-foreground' : 'text-muted-foreground'
+                          }`}
+                        >
                           {mode.name}
                         </span>
                         {isSelected && (
-                          <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                          <span className="rounded-small border border-brand/25 bg-brand/10 px-2 py-0.5 text-xs text-brand">
                             {t('thinkingMode.selector.active')}
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      <p className="mt-0.5 text-xs tracking-body text-muted-foreground">
                         {mode.description}
                       </p>
                       {mode.prefix && (
-                        <code className="mt-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-gray-700">
+                        <code className="rounded-small mt-1 inline-block border border-border/60 bg-surface-2 px-1.5 py-0.5 text-xs text-foreground">
                           {mode.prefix}
                         </code>
                       )}
@@ -130,8 +141,8 @@ function ThinkingModeSelector({ selectedMode, onModeChange, onClose, className =
             })}
           </div>
 
-          <div className="border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900">
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="border-t border-border/60 bg-surface-2 p-3">
+            <p className="text-xs tracking-body text-muted-foreground">
               <strong>Tip:</strong> {t('thinkingMode.selector.tip')}
             </p>
           </div>

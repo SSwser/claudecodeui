@@ -126,7 +126,7 @@ export function DialogContent({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 bg-background/75 p-4 backdrop-blur-md"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onOpenChange(false);
@@ -141,14 +141,14 @@ export function DialogContent({
         aria-labelledby={titleId}
         tabIndex={-1}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-surface-elevated p-6 text-foreground shadow-xl transition-all duration-200',
+          'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-large border border-border/70 bg-card p-6 text-foreground shadow-ring transition-opacity',
           className
         )}
       >
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-small absolute right-4 top-4 p-2 text-muted-foreground transition-opacity hover:text-foreground hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Close dialog"
         >
           <X className="h-4 w-4" />

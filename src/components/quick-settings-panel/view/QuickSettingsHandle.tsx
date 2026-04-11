@@ -1,12 +1,5 @@
-import type {
-  MouseEvent as ReactMouseEvent,
-  TouchEvent as ReactTouchEvent,
-} from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  GripVertical,
-} from 'lucide-react';
+import type { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent } from 'react';
+import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { QuickSettingsHandleStyle } from '../types';
 
@@ -30,12 +23,8 @@ export default function QuickSettingsHandle({
   const { t } = useTranslation('settings');
 
   const placementClass = isOpen ? 'right-64' : 'right-0';
-  const borderClass = isDragging
-    ? 'border-blue-500 dark:border-blue-400'
-    : 'border-gray-200 dark:border-gray-700';
-  const transitionClass = isDragging
-    ? ''
-    : 'transition-all duration-150 ease-out';
+  const borderClass = isDragging ? 'border-brand/60' : 'border-border/70';
+  const transitionClass = isDragging ? '' : 'transition-all duration-150 ease-out';
   const cursorClass = isDragging ? 'cursor-grabbing' : 'cursor-pointer';
   const ariaLabel = isDragging
     ? t('quickSettings.dragHandle.dragging')
@@ -52,7 +41,7 @@ export default function QuickSettingsHandle({
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
-      className={`fixed ${placementClass} z-50 ${transitionClass} border bg-white dark:bg-gray-800 ${borderClass} rounded-l-md p-2 shadow-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${cursorClass} touch-none`}
+      className={`fixed ${placementClass} z-50 ${transitionClass} touch-none rounded-l-medium border bg-surface-2/95 p-2 shadow-ring transition-colors hover:bg-surface-3 ${borderClass} ${cursorClass}`}
       style={{
         ...style,
         touchAction: 'none',
@@ -63,11 +52,11 @@ export default function QuickSettingsHandle({
       title={title}
     >
       {isDragging ? (
-        <GripVertical className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+        <GripVertical className="h-5 w-5 text-brand" />
       ) : isOpen ? (
-        <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+        <ChevronRight className="h-5 w-5 text-muted-foreground" />
       ) : (
-        <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+        <ChevronLeft className="h-5 w-5 text-muted-foreground" />
       )}
     </button>
   );

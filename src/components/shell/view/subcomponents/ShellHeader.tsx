@@ -34,31 +34,42 @@ export default function ShellHeader({
   disableRestart,
 }: ShellHeaderProps) {
   return (
-    <div className="flex-shrink-0 border-b border-gray-700 bg-gray-800 px-4 py-2">
+    <div className="flex-shrink-0 border-b border-border/70 bg-surface-2/95 px-4 py-2 text-foreground shadow-subtle">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+          <div
+            className={`h-2 w-2 rounded-full ${isConnected ? 'bg-[hsl(var(--success))]' : 'bg-destructive'}`}
+          />
 
           {hasSession && sessionDisplayNameShort && (
-            <span className="text-xs text-blue-300">({sessionDisplayNameShort}...)</span>
+            <span className="text-xs text-brand">({sessionDisplayNameShort}...)</span>
           )}
 
-          {!hasSession && <span className="text-xs text-gray-400">{statusNewSessionText}</span>}
+          {!hasSession && (
+            <span className="text-xs text-muted-foreground">{statusNewSessionText}</span>
+          )}
 
-          {!isInitialized && <span className="text-xs text-yellow-400">{statusInitializingText}</span>}
+          {!isInitialized && (
+            <span className="text-xs text-[hsl(var(--warning))]">{statusInitializingText}</span>
+          )}
 
-          {isRestarting && <span className="text-xs text-blue-400">{statusRestartingText}</span>}
+          {isRestarting && <span className="text-xs text-brand">{statusRestartingText}</span>}
         </div>
 
         <div className="flex items-center space-x-3">
           {isConnected && (
             <button
               onClick={onDisconnect}
-              className="flex items-center space-x-1 rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
+              className="flex items-center space-x-1 rounded-pill border border-destructive/30 bg-destructive/10 px-3 py-1 text-xs text-destructive transition-colors hover:bg-destructive/15"
               title={disconnectTitle}
             >
               <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
               <span>{disconnectLabel}</span>
             </button>
@@ -67,7 +78,7 @@ export default function ShellHeader({
           <button
             onClick={onRestart}
             disabled={disableRestart}
-            className="flex items-center space-x-1 text-xs text-gray-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-1 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             title={restartTitle}
           >
             <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

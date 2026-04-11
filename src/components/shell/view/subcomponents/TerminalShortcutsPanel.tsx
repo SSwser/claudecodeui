@@ -45,11 +45,11 @@ type TerminalShortcutsPanelProps = {
 const preventFocusSteal = (e: React.PointerEvent) => e.preventDefault();
 
 const KEY_BTN =
-  'shrink-0 rounded-md border border-gray-600 bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-gray-100 transition-colors select-none active:bg-blue-600 active:text-white active:border-blue-600 disabled:cursor-not-allowed disabled:opacity-40';
+  'shrink-0 select-none rounded-medium border border-border/70 bg-surface-3 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors active:border-brand/30 active:bg-brand active:text-brand-foreground disabled:cursor-not-allowed disabled:opacity-40';
 const KEY_BTN_ACTIVE =
-  'shrink-0 rounded-md border border-blue-500 bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white transition-colors select-none disabled:cursor-not-allowed disabled:opacity-40';
+  'shrink-0 select-none rounded-medium border border-brand/30 bg-brand px-2.5 py-1.5 text-xs font-medium text-brand-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-40';
 const ICON_BTN =
-  'shrink-0 rounded-md border border-gray-600 bg-gray-700 p-1.5 text-gray-100 transition-colors select-none active:bg-blue-600 active:text-white active:border-blue-600 disabled:cursor-not-allowed disabled:opacity-40';
+  'shrink-0 select-none rounded-medium border border-border/70 bg-surface-3 p-1.5 text-foreground transition-colors active:border-brand/30 active:bg-brand active:text-brand-foreground disabled:cursor-not-allowed disabled:opacity-40';
 
 export default function TerminalShortcutsPanel({
   wsRef,
@@ -65,7 +65,7 @@ export default function TerminalShortcutsPanel({
     (data: string) => {
       sendSocketMessage(wsRef.current, { type: 'input', data });
     },
-    [wsRef],
+    [wsRef]
   );
 
   const scrollToBottom = useCallback(() => {
@@ -103,12 +103,12 @@ export default function TerminalShortcutsPanel({
       }
       sendInput(finalSeq);
     },
-    [ctrlActive, altActive, sendInput],
+    [ctrlActive, altActive, sendInput]
   );
 
   return (
     <div className={`pointer-events-none fixed inset-x-0 ${bottomOffset} z-20 px-2 md:hidden`}>
-      <div className="pointer-events-auto flex items-center gap-1 overflow-x-auto rounded-lg border border-gray-700/80 bg-gray-900/95 px-1.5 py-1.5 shadow-lg backdrop-blur-sm [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="pointer-events-auto flex items-center gap-1 overflow-x-auto rounded-large border border-border/70 bg-surface-2/95 px-1.5 py-1.5 text-foreground shadow-ring backdrop-blur-sm [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           onPointerDown={preventFocusSteal}

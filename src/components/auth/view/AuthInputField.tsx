@@ -1,3 +1,5 @@
+import { Input } from '../../ui/input';
+
 type AuthInputFieldProps = {
   id: string;
   label: string;
@@ -29,17 +31,20 @@ export default function AuthInputField({
 }: AuthInputFieldProps) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-sm font-medium text-foreground">
+      <label
+        htmlFor={id}
+        className="mb-2 block text-sm font-medium tracking-ui text-muted-foreground"
+      >
         {label}
       </label>
-      <input
+      <Input
         id={id}
         type={type}
         name={name ?? id}
         autoComplete={autoComplete}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full"
         placeholder={placeholder}
         required
         disabled={isDisabled}

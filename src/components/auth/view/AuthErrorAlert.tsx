@@ -8,8 +8,8 @@ export default function AuthErrorAlert({ errorMessage }: AuthErrorAlertProps) {
   }
 
   return (
-    <div className="rounded-md border border-red-300 bg-red-100 p-3 dark:border-red-800 dark:bg-red-900/20">
-      <p className="text-sm text-red-700 dark:text-red-400">{errorMessage}</p>
+    <div className="rounded-medium border border-destructive/35 bg-destructive/10 p-3 shadow-subtle">
+      <p className="text-sm tracking-body text-destructive">{errorMessage}</p>
     </div>
   );
 }

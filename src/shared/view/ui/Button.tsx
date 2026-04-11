@@ -4,27 +4,29 @@ import { cn } from '../../../lib/utils';
 
 // Keep visual variants centralized so all button usages stay consistent.
 const buttonVariants = cva(
-  'inline-flex touch-manipulation items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex touch-manipulation items-center justify-center gap-2 whitespace-nowrap rounded-medium border border-transparent text-sm font-semibold tracking-ui text-foreground shadow-subtle transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow hover:bg-primary/90 active:bg-primary/80',
+          'rounded-pill border-border/60 bg-card/80 text-foreground shadow-button hover:opacity-60',
         destructive:
-          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:bg-destructive/80',
+          'rounded-pill border-destructive/35 bg-destructive/10 text-destructive shadow-subtle hover:opacity-60',
         outline:
-          'border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground active:bg-accent/80',
+          'rounded-small border-border/80 bg-surface-2/70 text-foreground shadow-subtle hover:opacity-60',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 active:bg-secondary/70',
-        ghost: 'hover:bg-accent hover:text-accent-foreground active:bg-accent/80',
-        surface: 'border border-border bg-surface-2 text-foreground hover:bg-surface-3',
-        link: 'h-auto p-0 text-primary underline-offset-4 hover:underline',
+          'rounded-small border-border/70 bg-transparent text-foreground shadow-subtle hover:opacity-60',
+        ghost:
+          'rounded-pill border-transparent bg-transparent text-muted-foreground shadow-none hover:text-foreground hover:opacity-60',
+        surface:
+          'rounded-large border-border/70 bg-surface-2 text-foreground shadow-ring hover:opacity-60',
+        link: 'h-auto rounded-none border-transparent bg-transparent p-0 text-ring underline-offset-4 shadow-none hover:underline hover:opacity-60',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-md px-3 text-sm',
-        lg: 'h-11 rounded-md px-8',
-        icon: 'h-10 w-10',
+        default: 'h-10 px-5 py-2',
+        sm: 'h-9 px-3 text-sm',
+        lg: 'h-11 px-6 text-base',
+        icon: 'h-10 w-10 p-0',
       },
     },
     defaultVariants: {
@@ -40,7 +42,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, ...props }, ref) => {
     return (
-      <button className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <button className={cn(buttonVariants({ variant, size }), className)} ref={ref} {...props} />
     );
   }
 );

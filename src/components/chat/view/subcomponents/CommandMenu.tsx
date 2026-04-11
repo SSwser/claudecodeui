@@ -24,8 +24,8 @@ type CommandMenuProps = {
 const menuBaseStyle: CSSProperties = {
   maxHeight: '300px',
   overflowY: 'auto',
-  borderRadius: '8px',
-  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  borderRadius: '16px',
+  boxShadow: 'var(--shadow-ring)',
   zIndex: 1000,
   padding: '8px',
   transition: 'opacity 150ms ease-in-out, transform 150ms ease-in-out',
@@ -52,7 +52,11 @@ const getCommandKey = (command: CommandMenuCommand) =>
 
 const getNamespace = (command: CommandMenuCommand) => command.namespace || command.type || 'other';
 
-const getMenuPosition = (position: { top: number; left: number; bottom?: number }): CSSProperties => {
+const getMenuPosition = (position: {
+  top: number;
+  left: number;
+  bottom?: number;
+}): CSSProperties => {
   if (typeof window === 'undefined') {
     return { position: 'fixed', top: '16px', left: '16px' };
   }
@@ -123,17 +127,20 @@ export default function CommandMenu({
 
   const hasFrequentCommands = frequentCommands.length > 0;
   const frequentCommandKeys = new Set(frequentCommands.map(getCommandKey));
-  const groupedCommands = commands.reduce<Record<string, CommandMenuCommand[]>>((groups, command) => {
-    if (hasFrequentCommands && frequentCommandKeys.has(getCommandKey(command))) {
+  const groupedCommands = commands.reduce<Record<string, CommandMenuCommand[]>>(
+    (groups, command) => {
+      if (hasFrequentCommands && frequentCommandKeys.has(getCommandKey(command))) {
+        return groups;
+      }
+      const namespace = getNamespace(command);
+      if (!groups[namespace]) {
+        groups[namespace] = [];
+      }
+      groups[namespace].push(command);
       return groups;
-    }
-    const namespace = getNamespace(command);
-    if (!groups[namespace]) {
-      groups[namespace] = [];
-    }
-    groups[namespace].push(command);
-    return groups;
-  }, {});
+    },
+    {}
+  );
   if (hasFrequentCommands) {
     groupedCommands.frequent = frequentCommands;
   }
@@ -141,8 +148,12 @@ export default function CommandMenu({
   const preferredOrder = hasFrequentCommands
     ? ['frequent', 'builtin', 'project', 'user', 'other']
     : ['builtin', 'project', 'user', 'other'];
-  const extraNamespaces = Object.keys(groupedCommands).filter((namespace) => !preferredOrder.includes(namespace));
-  const orderedNamespaces = [...preferredOrder, ...extraNamespaces].filter((namespace) => groupedCommands[namespace]);
+  const extraNamespaces = Object.keys(groupedCommands).filter(
+    (namespace) => !preferredOrder.includes(namespace)
+  );
+  const orderedNamespaces = [...preferredOrder, ...extraNamespaces].filter(
+    (namespace) => groupedCommands[namespace]
+  );
 
   const commandIndexByKey = new Map<string, number>();
   commands.forEach((command, index) => {
@@ -156,8 +167,16 @@ export default function CommandMenu({
     return (
       <div
         ref={menuRef}
-        className="command-menu command-menu-empty border border-gray-200 bg-white text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-        style={{ ...menuPosition, ...menuBaseStyle, overflowY: 'hidden', padding: '20px', opacity: 1, transform: 'translateY(0)', textAlign: 'center' }}
+        className="command-menu command-menu-empty border border-border/70 bg-card text-muted-foreground"
+        style={{
+          ...menuPosition,
+          ...menuBaseStyle,
+          overflowY: 'hidden',
+          padding: '20px',
+          opacity: 1,
+          transform: 'translateY(0)',
+          textAlign: 'center',
+        }}
       >
         No commands available
       </div>
@@ -169,13 +188,13 @@ export default function CommandMenu({
       ref={menuRef}
       role="listbox"
       aria-label="Available commands"
-      className="command-menu border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+      className="command-menu border border-border/70 bg-card"
       style={{ ...menuPosition, ...menuBaseStyle, opacity: 1, transform: 'translateY(0)' }}
     >
       {orderedNamespaces.map((namespace) => (
         <div key={namespace} className="command-group">
           {orderedNamespaces.length > 1 && (
-            <div className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            <div className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-ui text-muted-foreground">
               {namespaceLabels[namespace] || namespace}
             </div>
           )}
@@ -190,30 +209,42 @@ export default function CommandMenu({
                 ref={isSelected ? selectedItemRef : null}
                 role="option"
                 aria-selected={isSelected}
-                className={`command-item mb-0.5 flex cursor-pointer items-start rounded-md px-3 py-2.5 transition-colors ${
-                  isSelected ? 'bg-blue-50 dark:bg-blue-900' : 'bg-transparent'
+                className={`command-item rounded-small mb-0.5 flex cursor-pointer items-start px-3 py-2.5 transition-opacity ${
+                  isSelected ? 'bg-surface-3' : 'bg-transparent hover:opacity-60'
                 }`}
-                onMouseEnter={() => onSelect && commandIndex >= 0 && onSelect(command, commandIndex, true)}
-                onClick={() => onSelect && commandIndex >= 0 && onSelect(command, commandIndex, false)}
+                onMouseEnter={() =>
+                  onSelect && commandIndex >= 0 && onSelect(command, commandIndex, true)
+                }
+                onClick={() =>
+                  onSelect && commandIndex >= 0 && onSelect(command, commandIndex, false)
+                }
                 onMouseDown={(event) => event.preventDefault()}
               >
                 <div className="min-w-0 flex-1">
-                  <div className={`flex items-center gap-2 ${command.description ? 'mb-1' : 'mb-0'}`}>
-                    <span className="shrink-0 text-xs text-gray-500 dark:text-gray-300">{namespaceIcons[namespace] || namespaceIcons.other}</span>
-                    <span className="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">{command.name}</span>
+                  <div
+                    className={`flex items-center gap-2 ${command.description ? 'mb-1' : 'mb-0'}`}
+                  >
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {namespaceIcons[namespace] || namespaceIcons.other}
+                    </span>
+                    <span className="font-mono text-sm font-semibold text-foreground">
+                      {command.name}
+                    </span>
                     {command.metadata?.type && (
-                      <span className="command-metadata-badge rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                      <span className="command-metadata-badge rounded-small border border-border/60 bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                         {command.metadata.type}
                       </span>
                     )}
                   </div>
                   {command.description && (
-                    <div className="ml-6 truncate whitespace-nowrap text-[13px] text-gray-500 dark:text-gray-300">
+                    <div className="ml-6 truncate whitespace-nowrap text-[13px] text-muted-foreground">
                       {command.description}
                     </div>
                   )}
                 </div>
-                {isSelected && <span className="ml-2 text-xs font-semibold text-blue-500 dark:text-blue-300">{'<-'}</span>}
+                {isSelected && (
+                  <span className="ml-2 text-xs font-semibold text-brand">{'<-'}</span>
+                )}
               </div>
             );
           })}

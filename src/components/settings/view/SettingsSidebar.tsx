@@ -31,7 +31,7 @@ export default function SettingsSidebar({ activeTab, onChange }: SettingsSidebar
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden w-56 flex-shrink-0 border-r border-border bg-muted/30 md:flex md:flex-col">
+      <aside className="hidden w-56 flex-shrink-0 border-r border-border/60 bg-card/90 md:flex md:flex-col">
         <nav className="flex flex-col gap-1 p-3">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -42,10 +42,10 @@ export default function SettingsSidebar({ activeTab, onChange }: SettingsSidebar
                 key={item.id}
                 onClick={() => onChange(item.id)}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors duration-150',
+                  'flex items-center gap-3 rounded-small border px-3 py-2.5 text-left text-sm font-medium tracking-ui transition-opacity',
                   isActive
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground active:bg-accent/50',
+                    ? 'border-border/60 bg-surface-2 text-foreground shadow-subtle'
+                    : 'border-transparent text-muted-foreground hover:opacity-60 hover:text-foreground'
                 )}
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />

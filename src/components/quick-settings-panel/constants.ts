@@ -1,18 +1,5 @@
-import {
-  ArrowDown,
-  Brain,
-  Eye,
-  FileText,
-  Languages,
-  Maximize2,
-  Mic,
-  Sparkles,
-} from 'lucide-react';
-import type {
-  PreferenceToggleItem,
-  WhisperMode,
-  WhisperOption,
-} from './types';
+import { ArrowDown, Brain, Eye, FileText, Languages, Maximize2, Mic, Sparkles } from 'lucide-react';
+import type { PreferenceToggleItem, WhisperMode, WhisperOption } from './types';
 
 export const HANDLE_POSITION_STORAGE_KEY = 'quickSettingsHandlePosition';
 export const WHISPER_MODE_STORAGE_KEY = 'whisperMode';
@@ -24,12 +11,12 @@ export const HANDLE_POSITION_MAX = 90;
 export const DRAG_THRESHOLD_PX = 5;
 
 export const SETTING_ROW_CLASS =
-  'flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-gray-300 dark:hover:border-gray-600';
+  'flex items-center justify-between rounded-large border border-border/60 bg-surface-2/90 p-3 text-foreground shadow-subtle transition-colors hover:border-brand/20 hover:bg-surface-3/75 dark:border-border/70 dark:bg-surface-2';
 
 export const TOGGLE_ROW_CLASS = `${SETTING_ROW_CLASS} cursor-pointer`;
 
 export const CHECKBOX_CLASS =
-  'h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 focus:ring-2 dark:focus:ring-blue-400 bg-gray-100 dark:bg-gray-800 checked:bg-blue-600 dark:checked:bg-blue-600';
+  'h-4 w-4 rounded border-border bg-surface-1 text-brand focus:ring-2 focus:ring-ring dark:border-border dark:bg-surface-1 dark:text-brand';
 
 export const TOOL_DISPLAY_TOGGLES: PreferenceToggleItem[] = [
   {
@@ -86,8 +73,4 @@ export const WHISPER_OPTIONS: WhisperOption[] = [
   },
 ];
 
-export const VIBE_MODE_ALIASES: WhisperMode[] = [
-  'vibe',
-  'instructions',
-  'architect',
-];
+export const VIBE_MODE_ALIASES: WhisperMode[] = ['vibe', 'instructions', 'architect'];

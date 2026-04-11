@@ -116,7 +116,7 @@ export default function DesignModeOverlay({ onCapture, onClose }: DesignModeOver
         });
         overlay.style.display = '';
         const blob = await new Promise<Blob | null>((resolve) =>
-          canvas.toBlob(resolve, 'image/png'),
+          canvas.toBlob(resolve, 'image/png')
         );
         if (blob) {
           screenshot = new File([blob], 'design-capture.png', { type: 'image/png' });
@@ -151,10 +151,8 @@ export default function DesignModeOverlay({ onCapture, onClose }: DesignModeOver
       style={{ cursor: isCapturing ? 'wait' : 'crosshair', pointerEvents: 'auto' }}
     >
       {/* Top banner */}
-      <div className="pointer-events-none fixed left-0 right-0 top-0 z-[9999] bg-blue-500/90 py-1.5 text-center text-xs font-medium text-white">
-        {isCapturing
-          ? 'Capturing…'
-          : 'Design Mode — Click any element to capture · Esc to cancel'}
+      <div className="pointer-events-none fixed left-0 right-0 top-0 z-[9999] border-b border-brand/20 bg-brand/90 py-1.5 text-center text-xs font-medium text-brand-foreground shadow-sm backdrop-blur-sm">
+        {isCapturing ? 'Capturing…' : 'Design Mode — Click any element to capture · Esc to cancel'}
       </div>
 
       {/* Element highlight box */}
@@ -166,7 +164,7 @@ export default function DesignModeOverlay({ onCapture, onClose }: DesignModeOver
             left: hoveredInfo.rect.left - 2,
             width: hoveredInfo.rect.width + 4,
             height: hoveredInfo.rect.height + 4,
-            border: '2px dashed #3b82f6',
+            border: '2px dashed hsl(var(--brand))',
             borderRadius: 3,
             boxShadow: '0 0 0 2px rgba(59,130,246,0.20)',
             backgroundColor: 'rgba(59,130,246,0.06)',

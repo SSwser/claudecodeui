@@ -11,9 +11,9 @@ export default function SettingsCard({ children, className, divided }: SettingsC
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-card/50',
-        divided && 'divide-y divide-border',
-        className,
+        'rounded-large border border-border/70 bg-card/95 shadow-ring',
+        divided && 'divide-y divide-border/60',
+        className
       )}
     >
       {children}

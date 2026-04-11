@@ -22,7 +22,14 @@ const ACTION_KEYS = [
   'claudeStatus.actions.computing',
   'claudeStatus.actions.reasoning',
 ];
-const DEFAULT_ACTION_WORDS = ['Thinking', 'Processing', 'Analyzing', 'Working', 'Computing', 'Reasoning'];
+const DEFAULT_ACTION_WORDS = [
+  'Thinking',
+  'Processing',
+  'Analyzing',
+  'Working',
+  'Computing',
+  'Reasoning',
+];
 const ANIMATION_STEPS = 40;
 
 const PROVIDER_LABEL_KEYS: Record<string, string> = {
@@ -32,7 +39,10 @@ const PROVIDER_LABEL_KEYS: Record<string, string> = {
   gemini: 'messageTypes.gemini',
 };
 
-function formatElapsedTime(totalSeconds: number, t: (key: string, options?: Record<string, unknown>) => string) {
+function formatElapsedTime(
+  totalSeconds: number,
+  t: (key: string, options?: Record<string, unknown>) => string
+) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 
@@ -90,7 +100,9 @@ export default function ClaudeStatus({
     return null;
   }
 
-  const actionWords = ACTION_KEYS.map((key, index) => t(key, { defaultValue: DEFAULT_ACTION_WORDS[index] }));
+  const actionWords = ACTION_KEYS.map((key, index) =>
+    t(key, { defaultValue: DEFAULT_ACTION_WORDS[index] })
+  );
   const actionIndex = Math.floor(elapsedTime / 3) % actionWords.length;
   const statusText = status?.text || actionWords[actionIndex];
   const cleanStatusText = statusText.replace(/[.]+$/, '');
@@ -110,13 +122,13 @@ export default function ClaudeStatus({
 
   return (
     <div className="animate-in slide-in-from-bottom mb-3 w-full duration-300 sm:mb-6">
-      <div className="relative mx-auto max-w-4xl overflow-hidden rounded-2xl border border-border/70 bg-card/90 shadow-md backdrop-blur-md">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-sky-500/10 dark:from-primary/20 dark:to-sky-400/20" />
+      <div className="relative mx-auto max-w-4xl overflow-hidden rounded-large border border-border/70 bg-card/95 shadow-ring backdrop-blur-md">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_left,_rgba(255,99,99,0.08),_transparent_30%),radial-gradient(circle_at_right,_rgba(85,179,255,0.08),_transparent_24%)]" />
 
         <div className="relative px-3 py-3 sm:px-4 sm:py-3.5">
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3" role="status" aria-live="polite">
-              <div className="relative mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10">
+              <div className="relative mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-medium border border-border/60 bg-surface-2 shadow-subtle">
                 <SessionProviderLogo provider={provider} className="h-5 w-5" />
                 <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
                   {isLoading && (
@@ -125,7 +137,7 @@ export default function ClaudeStatus({
                   <span
                     className={cn(
                       'relative inline-flex h-2.5 w-2.5 rounded-full',
-                      isLoading ? 'bg-emerald-400' : 'bg-amber-400',
+                      isLoading ? 'bg-emerald-400' : 'bg-amber-400'
                     )}
                   />
                 </span>
@@ -136,10 +148,10 @@ export default function ClaudeStatus({
                   <span>{providerLabel}</span>
                   <span
                     className={cn(
-                      'rounded-full px-2 py-0.5 text-[9px] tracking-[0.14em]',
+                      'rounded-pill px-2 py-0.5 text-[9px] tracking-[0.14em]',
                       isLoading
-                        ? 'bg-emerald-500/15 text-emerald-500 dark:text-emerald-400'
-                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                        ? 'bg-success/15 text-success'
+                        : 'bg-warning/15 text-warning-foreground'
                     )}
                   >
                     {isLoading
@@ -151,7 +163,7 @@ export default function ClaudeStatus({
                 <p className="truncate text-sm font-semibold text-foreground sm:text-[15px]">
                   {cleanStatusText}
                   {isLoading && (
-                    <span aria-hidden="true" className="text-primary">
+                    <span aria-hidden="true" className="text-brand">
                       {animatedDots}
                     </span>
                   )}
@@ -173,19 +185,33 @@ export default function ClaudeStatus({
                 <button
                   type="button"
                   onClick={onAbort}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-destructive px-3.5 py-2 text-sm font-semibold text-destructive-foreground shadow-sm ring-1 ring-destructive/40 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/70 active:opacity-90 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-pill border border-destructive/35 bg-destructive/10 px-3.5 py-2 text-sm font-semibold text-destructive shadow-subtle transition-opacity hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/70 sm:w-auto"
                 >
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
-                  <span>{t('claudeStatus.controls.stopGeneration', { defaultValue: 'Stop Generation' })}</span>
-                  <span className="rounded-md bg-black/20 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-destructive-foreground/95">
+                  <span>
+                    {t('claudeStatus.controls.stopGeneration', { defaultValue: 'Stop Generation' })}
+                  </span>
+                  <span className="rounded-small bg-destructive/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-destructive">
                     Esc
                   </span>
                 </button>
 
                 <p className="mt-1 hidden text-[11px] text-muted-foreground sm:block">
-                  {t('claudeStatus.controls.pressEscToStop', { defaultValue: 'Press Esc anytime to stop' })}
+                  {t('claudeStatus.controls.pressEscToStop', {
+                    defaultValue: 'Press Esc anytime to stop',
+                  })}
                 </p>
               </div>
             )}

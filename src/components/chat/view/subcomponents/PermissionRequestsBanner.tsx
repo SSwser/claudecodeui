@@ -1,8 +1,14 @@
 import React from 'react';
 import type { PendingPermissionRequest } from '../../types/types';
-import { buildClaudeToolPermissionEntry, formatToolInputForDisplay } from '../../utils/chatPermissions';
+import {
+  buildClaudeToolPermissionEntry,
+  formatToolInputForDisplay,
+} from '../../utils/chatPermissions';
 import { getClaudeSettings } from '../../utils/chatStorage';
-import { getPermissionPanel, registerPermissionPanel } from '../../tools/configs/permissionPanelRegistry';
+import {
+  getPermissionPanel,
+  registerPermissionPanel,
+} from '../../tools/configs/permissionPanelRegistry';
 import { AskUserQuestionPanel } from '../../tools/components/InteractiveRenderers';
 
 registerPermissionPanel('AskUserQuestion', AskUserQuestionPanel);
@@ -11,9 +17,16 @@ interface PermissionRequestsBannerProps {
   pendingPermissionRequests: PendingPermissionRequest[];
   handlePermissionDecision: (
     requestIds: string | string[],
-    decision: { allow?: boolean; message?: string; rememberEntry?: string | null; updatedInput?: unknown },
+    decision: {
+      allow?: boolean;
+      message?: string;
+      rememberEntry?: string | null;
+      updatedInput?: unknown;
+    }
   ) => void;
-  handleGrantToolPermission: (suggestion: { entry: string; toolName: string }) => { success: boolean };
+  handleGrantToolPermission: (suggestion: { entry: string; toolName: string }) => {
+    success: boolean;
+  };
 }
 
 export default function PermissionRequestsBanner({
@@ -42,13 +55,18 @@ export default function PermissionRequestsBanner({
         const rawInput = formatToolInputForDisplay(request.input);
         const permissionEntry = buildClaudeToolPermissionEntry(request.toolName, rawInput);
         const settings = getClaudeSettings();
-        const alreadyAllowed = permissionEntry ? settings.allowedTools.includes(permissionEntry) : false;
+        const alreadyAllowed = permissionEntry
+          ? settings.allowedTools.includes(permissionEntry)
+          : false;
         const rememberLabel = alreadyAllowed ? 'Allow (saved)' : 'Allow & remember';
         const matchingRequestIds = permissionEntry
           ? pendingPermissionRequests
               .filter(
                 (item) =>
-                  buildClaudeToolPermissionEntry(item.toolName, formatToolInputForDisplay(item.input)) === permissionEntry,
+                  buildClaudeToolPermissionEntry(
+                    item.toolName,
+                    formatToolInputForDisplay(item.input)
+                  ) === permissionEntry
               )
               .map((item) => item.requestId)
           : [request.requestId];
@@ -56,17 +74,17 @@ export default function PermissionRequestsBanner({
         return (
           <div
             key={request.requestId}
-            className="rounded-lg border border-amber-200 bg-amber-50 p-3 shadow-sm dark:border-amber-800 dark:bg-amber-900/20"
+            className="rounded-2xl border border-warning/25 bg-warning/10 p-4 shadow-sm"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-amber-900 dark:text-amber-100">Permission required</div>
-                <div className="text-xs text-amber-800 dark:text-amber-200">
+                <div className="text-sm font-semibold text-foreground">Permission required</div>
+                <div className="text-xs text-muted-foreground">
                   Tool: <span className="font-mono">{request.toolName}</span>
                 </div>
               </div>
               {permissionEntry && (
-                <div className="text-xs text-amber-700 dark:text-amber-300">
+                <div className="text-xs text-muted-foreground">
                   Allow rule: <span className="font-mono">{permissionEntry}</span>
                 </div>
               )}
@@ -74,10 +92,10 @@ export default function PermissionRequestsBanner({
 
             {rawInput && (
               <details className="mt-2">
-                <summary className="cursor-pointer text-xs text-amber-800 hover:text-amber-900 dark:text-amber-200 dark:hover:text-amber-100">
+                <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
                   View tool input
                 </summary>
-                <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-amber-200/60 bg-white/80 p-2 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-gray-900/60 dark:text-amber-100">
+                <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-xl border border-border/80 bg-background/90 p-3 text-xs text-foreground shadow-inner">
                   {rawInput}
                 </pre>
               </details>
@@ -87,7 +105,7 @@ export default function PermissionRequestsBanner({
               <button
                 type="button"
                 onClick={() => handlePermissionDecision(request.requestId, { allow: true })}
-                className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-amber-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand px-3 py-1.5 text-xs font-medium text-brand-foreground shadow-sm transition-opacity hover:opacity-90"
               >
                 Allow once
               </button>
@@ -95,14 +113,20 @@ export default function PermissionRequestsBanner({
                 type="button"
                 onClick={() => {
                   if (permissionEntry && !alreadyAllowed) {
-                    handleGrantToolPermission({ entry: permissionEntry, toolName: request.toolName });
+                    handleGrantToolPermission({
+                      entry: permissionEntry,
+                      toolName: request.toolName,
+                    });
                   }
-                  handlePermissionDecision(matchingRequestIds, { allow: true, rememberEntry: permissionEntry });
+                  handlePermissionDecision(matchingRequestIds, {
+                    allow: true,
+                    rememberEntry: permissionEntry,
+                  });
                 }}
                 className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
                   permissionEntry
-                    ? 'border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-100 dark:hover:bg-amber-900/30'
-                    : 'cursor-not-allowed border-gray-300 text-gray-400'
+                    ? 'border-border bg-background/90 text-foreground hover:bg-muted'
+                    : 'cursor-not-allowed border-border text-muted-foreground opacity-60'
                 }`}
                 disabled={!permissionEntry}
               >
@@ -110,8 +134,13 @@ export default function PermissionRequestsBanner({
               </button>
               <button
                 type="button"
-                onClick={() => handlePermissionDecision(request.requestId, { allow: false, message: 'User denied tool use' })}
-                className="inline-flex items-center gap-2 rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/30"
+                onClick={() =>
+                  handlePermissionDecision(request.requestId, {
+                    allow: false,
+                    message: 'User denied tool use',
+                  })
+                }
+                className="inline-flex items-center gap-2 rounded-md border border-destructive/25 bg-background/80 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
               >
                 Deny
               </button>

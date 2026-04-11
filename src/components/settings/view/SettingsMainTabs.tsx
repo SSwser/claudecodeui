@@ -28,8 +28,12 @@ export default function SettingsMainTabs({ activeTab, onChange }: SettingsMainTa
   const { t } = useTranslation('settings');
 
   return (
-    <div className="border-b border-border">
-       <div className="flex px-4 md:px-6 overflow-x-auto scrollbar-hide" role="tablist" aria-label={t('mainTabs.label', { defaultValue: 'Settings' })}>
+    <div className="border-b border-border/60 px-4 md:px-6">
+      <div
+        className="scrollbar-hide flex gap-2 overflow-x-auto py-3"
+        role="tablist"
+        aria-label={t('mainTabs.label', { defaultValue: 'Settings' })}
+      >
         {TAB_CONFIG.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -40,10 +44,10 @@ export default function SettingsMainTabs({ activeTab, onChange }: SettingsMainTa
               role="tab"
               aria-selected={isActive}
               onClick={() => onChange(tab.id)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`rounded-small whitespace-nowrap border px-4 py-2.5 text-sm font-medium tracking-ui transition-opacity ${
                 isActive
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'border-border/70 bg-surface-2 text-foreground shadow-subtle'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:opacity-60'
               }`}
             >
               {Icon && <Icon className="mr-2 inline h-4 w-4" />}

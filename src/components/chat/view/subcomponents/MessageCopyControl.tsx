@@ -32,7 +32,10 @@ const convertMarkdownToPlainText = (markdown: string): string => {
   plainText = plainText.replace(/~~(.*?)~~/g, '$1');
   plainText = plainText.replace(/<\/?[^>]+(>|$)/g, '');
   plainText = plainText.replace(/\n{3,}/g, '\n\n');
-  plainText = plainText.replace(/@@CODEBLOCK(\d+)@@/g, (_match, index: string) => codeBlocks[Number(index)] ?? '');
+  plainText = plainText.replace(
+    /@@CODEBLOCK(\d+)@@/g,
+    (_match, index: string) => codeBlocks[Number(index)] ?? ''
+  );
   return plainText.trim();
 };
 
@@ -66,9 +69,10 @@ const MessageCopyControl = ({
     [t]
   );
 
-  const selectedFormatTag = selectedFormat === 'markdown'
-    ? t('copyMessage.markdownShort', { defaultValue: 'MD' })
-    : t('copyMessage.textShort', { defaultValue: 'TXT' });
+  const selectedFormatTag =
+    selectedFormat === 'markdown'
+      ? t('copyMessage.markdownShort', { defaultValue: 'MD' })
+      : t('copyMessage.textShort', { defaultValue: 'TXT' });
 
   const copyPayload = useMemo(() => {
     if (selectedFormat === 'markdown') {
@@ -125,9 +129,10 @@ const MessageCopyControl = ({
     setIsDropdownOpen(false);
   };
 
-  const toneClass = messageType === 'user'
-    ? 'text-blue-100 hover:text-white'
-    : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300';
+  const toneClass =
+    messageType === 'user'
+      ? 'text-brand-foreground/75 hover:text-brand-foreground'
+      : 'text-muted-foreground hover:text-foreground';
   const copyTitle = copied ? t('copyMessage.copied') : t('copyMessage.copy');
   const rootClassName = canSelectCopyFormat
     ? 'relative flex min-w-0 flex-1 items-center gap-0.5 sm:min-w-max sm:flex-none sm:w-auto'
@@ -164,7 +169,9 @@ const MessageCopyControl = ({
             <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
           </svg>
         )}
-        <span className="text-[10px] font-semibold uppercase tracking-wide">{selectedFormatTag}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wide">
+          {selectedFormatTag}
+        </span>
       </button>
 
       {canSelectCopyFormat && (
@@ -182,12 +189,17 @@ const MessageCopyControl = ({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute left-auto top-full z-30 mt-1 min-w-36 rounded-md border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+            <div className="absolute left-auto top-full z-30 mt-1 min-w-36 rounded-xl border border-border/80 bg-background p-1 shadow-lg">
               {copyFormatOptions.map((option) => {
                 const isSelected = option.format === selectedFormat;
                 return (
@@ -195,10 +207,11 @@ const MessageCopyControl = ({
                     key={option.format}
                     type="button"
                     onClick={() => handleFormatChange(option.format)}
-                    className={`block w-full rounded px-2 py-1.5 text-left transition-colors ${isSelected
-                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
-                      : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60'
-                      }`}
+                    className={`block w-full rounded px-2 py-1.5 text-left transition-colors ${
+                      isSelected
+                        ? 'bg-muted text-foreground'
+                        : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                    }`}
                   >
                     <span className="block text-xs font-medium">{option.label}</span>
                   </button>

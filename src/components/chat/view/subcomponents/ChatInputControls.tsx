@@ -47,14 +47,14 @@ export default function ChatInputControls({
       <button
         type="button"
         onClick={onModeSwitch}
-        className={`rounded-lg border px-2.5 py-1 text-sm font-medium transition-all duration-200 sm:px-3 sm:py-1.5 ${
+        className={`rounded-small border px-2.5 py-1 text-sm font-medium tracking-ui shadow-subtle transition-opacity sm:px-3 sm:py-1.5 ${
           permissionMode === 'default'
-            ? 'border-border/60 bg-muted/50 text-muted-foreground hover:bg-muted'
+            ? 'border-border/60 bg-surface-2 text-muted-foreground hover:text-foreground hover:opacity-60'
             : permissionMode === 'acceptEdits'
-              ? 'border-green-300/60 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-600/40 dark:bg-green-900/15 dark:text-green-300 dark:hover:bg-green-900/25'
+              ? 'border-success/35 bg-success/10 text-success hover:opacity-60'
               : permissionMode === 'bypassPermissions'
-                ? 'border-orange-300/60 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-600/40 dark:bg-orange-900/15 dark:text-orange-300 dark:hover:bg-orange-900/25'
-                : 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'
+                ? 'border-warning/35 bg-warning/10 text-warning-foreground hover:opacity-60'
+                : 'border-brand/35 bg-brand/10 text-brand hover:opacity-60'
         }`}
         title={t('input.clickToChangeMode')}
       >
@@ -80,10 +80,18 @@ export default function ChatInputControls({
       </button>
 
       {provider === 'claude' && (
-        <ThinkingModeSelector selectedMode={thinkingMode} onModeChange={setThinkingMode} onClose={() => {}} className="" />
+        <ThinkingModeSelector
+          selectedMode={thinkingMode}
+          onModeChange={setThinkingMode}
+          onClose={() => {}}
+          className=""
+        />
       )}
 
-      <TokenUsagePie used={tokenBudget?.used || 0} total={tokenBudget?.total || parseInt(import.meta.env.VITE_CONTEXT_WINDOW) || 160000} />
+      <TokenUsagePie
+        used={tokenBudget?.used || 0}
+        total={tokenBudget?.total || parseInt(import.meta.env.VITE_CONTEXT_WINDOW) || 160000}
+      />
 
       <button
         type="button"
@@ -91,7 +99,12 @@ export default function ChatInputControls({
         className="relative flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground sm:h-8 sm:w-8"
         title={t('input.showAllCommands')}
       >
-        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="h-4 w-4 sm:h-5 sm:w-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -100,9 +113,7 @@ export default function ChatInputControls({
           />
         </svg>
         {slashCommandsCount > 0 && (
-          <span
-            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground sm:h-5 sm:w-5"
-          >
+          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-brand-foreground sm:h-5 sm:w-5">
             {slashCommandsCount}
           </span>
         )}
@@ -111,10 +122,10 @@ export default function ChatInputControls({
       <button
         type="button"
         onClick={onToggleDesignMode}
-        className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors sm:h-8 sm:w-8 ${
+        className={`rounded-small flex h-7 w-7 items-center justify-center border transition-opacity sm:h-8 sm:w-8 ${
           isDesignMode
-            ? 'bg-blue-500 text-white hover:bg-blue-600'
-            : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+            ? 'border-brand/35 bg-brand text-brand-foreground shadow-button hover:opacity-60'
+            : 'border-transparent text-muted-foreground hover:text-foreground hover:opacity-60'
         }`}
         title="Design Mode — click any element to capture it into chat"
       >
@@ -125,7 +136,7 @@ export default function ChatInputControls({
         <button
           type="button"
           onClick={onClearInput}
-          className="group flex h-7 w-7 items-center justify-center rounded-lg border border-border/50 bg-card shadow-sm transition-all duration-200 hover:bg-accent/60 sm:h-8 sm:w-8"
+          className="rounded-small group flex h-7 w-7 items-center justify-center border border-border/50 bg-card shadow-subtle transition-opacity hover:opacity-60 sm:h-8 sm:w-8"
           title={t('input.clearInput', { defaultValue: 'Clear input' })}
         >
           <svg
@@ -134,7 +145,12 @@ export default function ChatInputControls({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       )}
@@ -142,11 +158,21 @@ export default function ChatInputControls({
       {isUserScrolledUp && hasMessages && (
         <button
           onClick={onScrollToBottom}
-          className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:scale-105 hover:bg-primary/90 sm:h-8 sm:w-8"
+          className="rounded-small flex h-7 w-7 items-center justify-center border border-border/60 bg-card text-foreground shadow-button transition-opacity hover:opacity-60 sm:h-8 sm:w-8"
           title={t('input.scrollToBottom', { defaultValue: 'Scroll to bottom' })}
         >
-          <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          <svg
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            />
           </svg>
         </button>
       )}
