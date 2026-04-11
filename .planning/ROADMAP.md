@@ -144,7 +144,13 @@ Plans:
 - [ ] Add CI-friendly checklist verification note for UI PR template
 - [ ] Add component mapping starter list for Code Connect high-frequency primitives
 
-**Plans:** TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — CSS token foundation and primitive alignment (Button, Badge, Input)
+- [ ] 04-02-PLAN.md — i18n key convention, mapping document, and CI hardcoded string gate
+- [ ] 04-03-PLAN.md — Dialog and Select component migration (portal, keyboard accessibility)
+- [ ] 04-04-PLAN.md — Playwright visual regression setup and Figma pilot roundtrip record
 
 ### Phase 5: Multi-Pane + Kanban (v2 Transition)
 
@@ -250,3 +256,4 @@ Plans:
 Plans:
 
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
