@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: executing
-last_updated: "2026-04-11T06:04:11.747Z"
+last_updated: "2026-04-11T06:11:19.675Z"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 7
+  percent: 88
 ---
 
 # State: CloudCLI UI - Desktop UX Enhancement
@@ -35,15 +35,15 @@ progress:
 ## Current Position
 
 Phase: 04 (ui-migration) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 **Phase:** Phase 4 - UI Migration
-**Plan:** 04-03 execution
-**Status:** Executing Phase 04; 04-01 and 04-02 complete
+**Plan:** 04-04 execution
+**Status:** Executing Phase 04; Wave 1 complete and Wave 2 pending verification
 
 ### Progress Bar
 
 ```
-[============              ] Phase 4 execution in progress (2/4 plans complete)
+[==================        ] Phase 4 execution in progress (3/4 plans complete)
 ```
 
 ---
@@ -60,6 +60,7 @@ Plan: 3 of 4
 ---
 | Phase 04 P01 | 1500 | 2 tasks | 5 files |
 | Phase 04 P02 | 1800 | 2 tasks | 3 files |
+| Phase 04 P03 | 2100 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Plan: 3 of 4
 - [Phase 04]: Kept shared primitive APIs stable while aligning Button, Badge, and Input to semantic tokens.
 - [Phase 04]: Documented the new i18n namespace.section.key convention and grouped migration mapping for all 7 namespaces.
 - [Phase 04]: Added a dependency-free lint:i18n gate that reports hardcoded JSX strings with configurable allowlist support.
+- [Phase 04]: Upgraded Dialog to a portal-mounted primitive with focus and Escape handling while keeping the exported API stable.
+- [Phase 04]: Replaced Select with a controlled combobox/listbox implementation for keyboard accessibility and semantic token styling.
 
 ### Research Flags (need deeper research during planning)
 
@@ -91,7 +94,7 @@ Plan: 3 of 4
 
 - [x] Complete 04-01 token foundation and primitive alignment
 - [x] Complete 04-02 i18n key convention and hardcoded string gate
-- [ ] Complete 04-03 Dialog and Select migration
+- [x] Complete 04-03 Dialog and Select migration
 - [ ] Complete 04-04 visual regression setup and Figma pilot roundtrip
 
 ---
@@ -100,7 +103,7 @@ Plan: 3 of 4
 
 **Session started:** 2026-04-10
 **Last updated:** 2026-04-11
-**Roadmap status:** Active - Phase 4 execution underway; 04-01 and 04-02 complete, 04-03 next
+**Roadmap status:** Active - Phase 4 Wave 1 complete; 04-04 remains for visual regression and Figma roundtrip
 
 ---
 
