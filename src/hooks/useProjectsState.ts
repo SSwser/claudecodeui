@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import { api } from '../utils/api';
+import { useHomePreferences } from './useHomePreferences';
 import type {
   AppSocketMessage,
   AppTab,
@@ -9,6 +10,7 @@ import type {
   ProjectSession,
   ProjectsUpdatedMessage,
 } from '../types/app';
+import type { LandingPageData } from '../components/main-content/types/types';
 
 type UseProjectsStateArgs = {
   sessionId?: string;
@@ -72,6 +74,54 @@ const getProjectSessions = (project: Project): ProjectSession[] => {
   ];
 };
 
+const getSessionDisplayName = (session: ProjectSession): string =>
+  String(session.summary || session.name || session.title || 'Untitled Session');
+
+const getSessionActivityDate = (session: ProjectSession): Date => {
+  const candidates = [session.lastActivity, session.updated_at, session.createdAt, session.created_at];
+  const first = candidates.find((value) => typeof value === 'string' && value.length > 0);
+  const parsed = first ? new Date(first) : new Date(0);
+  return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
+};
+
+const splitPathSegments = (pathValue?: string): string[] => {
+  if (!pathValue) {
+    return [];
+  }
+
+  return pathValue
+    .replace(/\\/g, '/')
+    .split('/')
+    .filter(Boolean);
+};
+
+const getWorkspaceLabel = (project: Project): string => {
+  const segments = splitPathSegments(project.fullPath || project.path);
+  return segments[segments.length - 1] || project.displayName || project.name;
+};
+
+const getProjectGroupLabel = (project: Project): string => {
+  const segments = splitPathSegments(project.fullPath || project.path);
+  if (segments.length >= 2) {
+    return segments[segments.length - 2];
+  }
+
+  return project.displayName || project.name;
+};
+
+const formatRelativeActivity = (date: Date): string => {
+  if (!date || Number.isNaN(date.getTime()) || date.getTime() === 0) {
+    return 'Unknown activity';
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+};
+
 const isUpdateAdditive = (
   currentProjects: Project[],
   updatedProjects: Project[],
@@ -133,6 +183,13 @@ export function useProjectsState({
   isMobile,
   activeSessions,
 }: UseProjectsStateArgs) {
+  const {
+    preferences: homePreferences,
+    setFilters: setHomeFilters,
+    toggleWorkspaceFavorite,
+    toggleSessionFavorite,
+    recordOpenContext,
+  } = useHomePreferences();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedSession, setSelectedSession] = useState<ProjectSession | null>(null);
@@ -145,6 +202,10 @@ export function useProjectsState({
       // Silently ignore storage errors
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    recordOpenContext(selectedProject?.name || null, selectedSession?.id || null);
+  }, [recordOpenContext, selectedProject?.name, selectedSession?.id]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -505,6 +566,10 @@ export function useProjectsState({
     [navigate, selectedProject?.name],
   );
 
+  const clearSelectedSessionSelection = useCallback(() => {
+    setSelectedSession(null);
+  }, []);
+
   const sidebarSharedProps = useMemo(
     () => ({
       projects,
@@ -542,6 +607,159 @@ export function useProjectsState({
     ],
   );
 
+  const allHomeSessions = useMemo(() => {
+    return projects.flatMap((project) =>
+      getProjectSessions(project).map((session) => {
+        const activityDate = getSessionActivityDate(session);
+        const isActive = activeSessions.has(session.id) || Date.now() - activityDate.getTime() < 10 * 60 * 1000;
+        const projectGroup = getProjectGroupLabel(project);
+        const workspaceLabel = getWorkspaceLabel(project);
+
+        return {
+          id: `home-session:${session.id}`,
+          sessionId: session.id,
+          title: getSessionDisplayName(session),
+          projectName: project.name,
+          projectGroup,
+          workspaceName: workspaceLabel,
+          displayProjectName: project.displayName || project.name,
+          provider: session.__provider || 'claude',
+          status: isActive ? 'active' : 'idle',
+          summary: typeof session.summary === 'string' ? session.summary : undefined,
+          lastActivityDate: activityDate,
+          lastActivityLabel: formatRelativeActivity(activityDate),
+        };
+      }),
+    );
+  }, [activeSessions, projects]);
+
+  const projectOptions = useMemo(
+    () => {
+      const groups = Array.from(new Set(projects.map((project) => getProjectGroupLabel(project)))).sort((left, right) =>
+        left.localeCompare(right),
+      );
+
+      return [{ value: 'all', label: 'All projects' }, ...groups.map((group) => ({ value: group, label: group }))];
+    },
+    [projects],
+  );
+
+  const workspaceOptions = useMemo(() => {
+    const matchingProjects = homePreferences.filters.project
+      ? projects.filter((project) => getProjectGroupLabel(project) === homePreferences.filters.project)
+      : projects;
+
+    return [
+      { value: 'all', label: 'All workspaces' },
+      ...matchingProjects
+        .map((project) => ({ value: project.name, label: getWorkspaceLabel(project) }))
+        .sort((left, right) => left.label.localeCompare(right.label)),
+    ];
+  }, [homePreferences.filters.project, projects]);
+
+  const favoriteWorkspaceSet = useMemo(
+    () => new Set(homePreferences.favorites.filter((favorite) => favorite.kind === 'workspace').map((favorite) => favorite.projectName)),
+    [homePreferences.favorites],
+  );
+
+  const favoriteSessionSet = useMemo(
+    () => new Set(homePreferences.favorites.filter((favorite) => favorite.kind === 'session').map((favorite) => favorite.sessionId)),
+    [homePreferences.favorites],
+  );
+
+  const favoriteWorkspaces = useMemo(() => {
+    return homePreferences.favorites
+      .filter((favorite) => favorite.kind === 'workspace')
+      .map((favorite) => {
+        const project = projects.find((entry) => entry.name === favorite.projectName);
+        const sessions = project ? getProjectSessions(project) : [];
+        return {
+          id: favorite.id,
+          projectName: favorite.projectName,
+          displayName: project?.displayName || favorite.displayName,
+          path: project?.fullPath || favorite.path,
+          sessionCount: sessions.length,
+        };
+      });
+  }, [homePreferences.favorites, projects]);
+
+  const favoriteSessions = useMemo(() => {
+    return homePreferences.favorites
+      .filter((favorite) => favorite.kind === 'session')
+      .map((favorite) => {
+        const current = allHomeSessions.find((session) => session.sessionId === favorite.sessionId);
+        return {
+          id: favorite.id,
+          sessionId: favorite.sessionId,
+          projectName: current?.projectName || favorite.projectName,
+          title: current?.title || favorite.title,
+          provider: current?.provider || favorite.provider,
+          status: current?.status || favorite.status,
+          summary: current?.summary || favorite.summary,
+        };
+      });
+  }, [allHomeSessions, homePreferences.favorites]);
+
+  const filteredRecentSessions = useMemo(() => {
+    const normalizedSearch = homePreferences.filters.search.trim().toLowerCase();
+
+    return allHomeSessions
+      .filter((session) => {
+        if (homePreferences.filters.project && session.projectName !== homePreferences.filters.project) {
+          if (session.projectGroup !== homePreferences.filters.project) {
+            return false;
+          }
+        }
+
+        if (homePreferences.filters.workspace && session.projectName !== homePreferences.filters.workspace) {
+          return false;
+        }
+
+        if (homePreferences.filters.sessionType !== 'all' && session.provider !== homePreferences.filters.sessionType) {
+          return false;
+        }
+
+        if (!normalizedSearch) {
+          return true;
+        }
+
+        return [
+          session.title,
+          session.projectName,
+          session.projectGroup,
+          session.workspaceName,
+          session.displayProjectName,
+          session.summary || '',
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(normalizedSearch);
+      })
+      .sort((left, right) => right.lastActivityDate.getTime() - left.lastActivityDate.getTime())
+      .slice(0, 10)
+      .map((session) => ({
+        ...session,
+        isFavorite: favoriteSessionSet.has(session.sessionId),
+      }));
+  }, [allHomeSessions, favoriteSessionSet, homePreferences.filters]);
+
+  const landingPageData = useMemo<LandingPageData>(
+    () => ({
+      filters: {
+        search: homePreferences.filters.search,
+        project: homePreferences.filters.project,
+        workspace: homePreferences.filters.workspace,
+        sessionType: homePreferences.filters.sessionType,
+      },
+      favoriteWorkspaces,
+      favoriteSessions,
+      recentSessions: filteredRecentSessions,
+      projectOptions,
+      workspaceOptions,
+    }),
+    [favoriteSessions, favoriteWorkspaces, filteredRecentSessions, homePreferences.filters, projectOptions, workspaceOptions],
+  );
+
   return {
     projects,
     selectedProject,
@@ -561,6 +779,32 @@ export function useProjectsState({
     openSettings,
     fetchProjects,
     refreshProjectsSilently,
+    startupBehavior: homePreferences.startupBehavior,
+    lastOpenedSessionId: homePreferences.lastOpenedSessionId,
+    landingPageData,
+    setLandingSearch: (value: string) => setHomeFilters({ search: value }),
+    setLandingProjectFilter: (value: string | null) => setHomeFilters({ project: value, workspace: null }),
+    setLandingWorkspaceFilter: (value: string | null) => setHomeFilters({ workspace: value }),
+    setLandingSessionTypeFilter: (value: string) => setHomeFilters({ sessionType: value as typeof homePreferences.filters.sessionType }),
+    toggleWorkspaceFavoriteByProjectName: (projectName: string, displayName: string, path?: string) =>
+      toggleWorkspaceFavorite({ projectName, displayName, path }),
+    toggleSessionFavoriteById: (sessionId: string) => {
+      const session = allHomeSessions.find((entry) => entry.sessionId === sessionId);
+      if (!session) {
+        return false;
+      }
+
+      return toggleSessionFavorite({
+        sessionId: session.sessionId,
+        projectName: session.projectName,
+        title: session.title,
+        provider: session.provider as 'claude' | 'cursor' | 'codex' | 'gemini',
+        status: session.status as 'active' | 'paused' | 'archived' | 'idle',
+        summary: session.summary,
+      });
+    },
+    favoriteWorkspaceSet,
+    favoriteSessionSet,
     sidebarSharedProps,
     handleProjectSelect,
     handleSessionSelect,
@@ -568,5 +812,6 @@ export function useProjectsState({
     handleSessionDelete,
     handleProjectDelete,
     handleSidebarRefresh,
+    clearSelectedSessionSelection,
   };
 }
