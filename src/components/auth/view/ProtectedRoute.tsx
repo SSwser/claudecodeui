@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { IS_PLATFORM } from '../../../constants/config';
+import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from '../../../constants/config';
 import { useAuth } from '../context/AuthContext';
 import Onboarding from '../../onboarding/view/Onboarding';
 import AuthLoadingScreen from './AuthLoadingScreen';
@@ -11,7 +11,8 @@ type ProtectedRouteProps = {
 };
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, isLoading, needsSetup, hasCompletedOnboarding, refreshOnboardingStatus } = useAuth();
+  const { user, isLoading, needsSetup, hasCompletedOnboarding, refreshOnboardingStatus } =
+    useAuth();
 
   if (isLoading) {
     return <AuthLoadingScreen />;
@@ -23,6 +24,22 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
 
     return <>{children}</>;
+  }
+
+  // Preserve onboarding in dev mode so manual UAT still exercises real authenticated flows.
+  if (IS_DEV_AUTO_LOGIN) {
+    if (!hasCompletedOnboarding) {
+      return <Onboarding onComplete={refreshOnboardingStatus} />;
+    }
+
+    return (
+      <>
+        {children}
+        <div className="fixed bottom-2 right-2 z-50 rounded bg-yellow-500/90 px-2 py-1 text-xs font-mono text-black">
+          DEV AUTO-LOGIN
+        </div>
+      </>
+    );
   }
 
   if (needsSetup) {

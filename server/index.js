@@ -38,6 +38,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import os from 'os';
 import http from 'http';
 import cors from 'cors';
+import bcrypt from 'bcrypt';
 import { promises as fsPromises } from 'fs';
 import { spawn } from 'child_process';
 import pty from 'node-pty';
@@ -105,10 +106,15 @@ import {
   stopAllPlugins,
   getPluginPort,
 } from './utils/plugin-process-manager.js';
-import { initializeDatabase, sessionNamesDb, applyCustomSessionNames } from './database/db.js';
+import {
+  initializeDatabase,
+  sessionNamesDb,
+  applyCustomSessionNames,
+  userDb,
+} from './database/db.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
-import { IS_PLATFORM } from './constants/config.js';
+import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from './constants/config.js';
 import { getConnectableHost } from '../shared/networkHosts.js';
 
 const VALID_PROVIDERS = ['claude', 'codex', 'cursor', 'gemini'];
@@ -330,15 +336,16 @@ const wss = new WebSocketServer({
   verifyClient: (info) => {
     console.log('WebSocket connection attempt to:', info.req.url);
 
-    // Platform mode: always allow connection
-    if (IS_PLATFORM) {
+    // Dev auto-login must follow the same synchronous WebSocket gate as platform mode.
+    if (IS_PLATFORM || IS_DEV_AUTO_LOGIN) {
       const user = authenticateWebSocket(null); // Will return first user
       if (!user) {
-        console.log('[WARN] Platform mode: No user found in database');
+        console.log('[WARN] Platform/dev mode: No user found in database');
         return false;
       }
+
       info.req.user = user;
-      console.log('[OK] Platform mode WebSocket authenticated for user:', user.username);
+      console.log('[OK] Platform/dev mode WebSocket authenticated for user:', user.username);
       return true;
     }
 
@@ -2744,6 +2751,23 @@ async function startServer() {
   try {
     // Initialize authentication database
     await initializeDatabase();
+
+    // DEV_AUTO_LOGIN must guarantee a real user before any HTTP or WebSocket bypass runs.
+    if (IS_DEV_AUTO_LOGIN) {
+      const existingUser = userDb.getFirstUser();
+      if (!existingUser) {
+        console.log(
+          `${c.warn('[DEV]')} DEV_AUTO_LOGIN: no users found, creating default dev/dev user`
+        );
+        const hash = await bcrypt.hash('dev', 10);
+        userDb.createUser('dev', hash);
+        console.log(`${c.ok('[DEV]')} Created dev user (username: dev, password: dev)`);
+      } else {
+        console.log(
+          `${c.dim('[DEV]')} DEV_AUTO_LOGIN enabled - using existing user: ${existingUser.username}`
+        );
+      }
+    }
 
     // Configure Web Push (VAPID keys)
     configureWebPush();

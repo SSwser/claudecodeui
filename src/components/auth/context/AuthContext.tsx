@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { IS_PLATFORM } from '../../../constants/config';
+import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from '../../../constants/config';
 import { api } from '../../../utils/api';
 import { AUTH_ERROR_MESSAGES, AUTH_TOKEN_STORAGE_KEY } from '../constants';
 import type {
@@ -125,6 +125,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
+    // Server-side auth is bypassed in this mode, so the client should enter the app immediately.
+    if (IS_DEV_AUTO_LOGIN) {
+      setUser({ username: 'dev' });
+      setNeedsSetup(false);
+      void checkOnboardingStatus().finally(() => {
+        setIsLoading(false);
+      });
+      return;
+    }
+
     void checkAuthStatus();
   }, [checkAuthStatus, checkOnboardingStatus]);
 
@@ -151,7 +161,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: AUTH_ERROR_MESSAGES.networkError };
       }
     },
-    [checkOnboardingStatus, setSession],
+    [checkOnboardingStatus, setSession]
   );
 
   const register = useCallback<AuthContextValue['register']>(
@@ -177,7 +187,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: AUTH_ERROR_MESSAGES.networkError };
       }
     },
-    [checkOnboardingStatus, setSession],
+    [checkOnboardingStatus, setSession]
   );
 
   const logout = useCallback(() => {
@@ -215,7 +225,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       register,
       token,
       user,
-    ],
+    ]
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

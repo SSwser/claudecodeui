@@ -1,9 +1,24 @@
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { userDb, appConfigDb } from '../database/db.js';
-import { IS_PLATFORM } from '../constants/config.js';
+import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from '../constants/config.js';
 
 // Use env var if set, otherwise auto-generate a unique secret per installation
 const JWT_SECRET = process.env.JWT_SECRET || appConfigDb.getOrCreateJwtSecret();
+
+// Keep auth bypass decisions in one place so HTTP and WebSocket flows stay aligned.
+const shouldSkipAuth = () => IS_PLATFORM || IS_DEV_AUTO_LOGIN;
+
+const ensureDevUser = async () => {
+  let user = userDb.getFirstUser();
+  if (user) {
+    return user;
+  }
+
+  const passwordHash = await bcrypt.hash('dev', 10);
+  const createdUser = userDb.createUser('dev', passwordHash);
+  return userDb.getUserById(createdUser.id) || createdUser;
+};
 
 // Optional API key middleware
 const validateApiKey = (req, res, next) => {
@@ -11,7 +26,7 @@ const validateApiKey = (req, res, next) => {
   if (!process.env.API_KEY) {
     return next();
   }
-  
+
   const apiKey = req.headers['x-api-key'];
   if (apiKey !== process.env.API_KEY) {
     return res.status(401).json({ error: 'Invalid API key' });
@@ -21,18 +36,18 @@ const validateApiKey = (req, res, next) => {
 
 // JWT authentication middleware
 const authenticateToken = async (req, res, next) => {
-  // Platform mode:  use single database user
-  if (IS_PLATFORM) {
+  // Platform/dev mode: use the single database user instead of JWT validation.
+  if (shouldSkipAuth()) {
     try {
-      const user = userDb.getFirstUser();
+      const user = userDb.getFirstUser() || (IS_DEV_AUTO_LOGIN ? await ensureDevUser() : null);
       if (!user) {
-        return res.status(500).json({ error: 'Platform mode: No user found in database' });
+        return res.status(500).json({ error: 'Platform/dev mode: No user found in database' });
       }
       req.user = user;
       return next();
     } catch (error) {
-      console.error('Platform mode error:', error);
-      return res.status(500).json({ error: 'Platform mode: Failed to fetch user' });
+      console.error('Platform/dev mode error:', error);
+      return res.status(500).json({ error: 'Platform/dev mode: Failed to fetch user' });
     }
   }
 
@@ -81,7 +96,7 @@ const generateToken = (user) => {
   return jwt.sign(
     {
       userId: user.id,
-      username: user.username
+      username: user.username,
     },
     JWT_SECRET,
     { expiresIn: '7d' }
@@ -90,8 +105,9 @@ const generateToken = (user) => {
 
 // WebSocket authentication function
 const authenticateWebSocket = (token) => {
-  // Platform mode: bypass token validation, return first user
-  if (IS_PLATFORM) {
+  // Platform/dev mode: bypass token validation, return first user.
+  // Dev mode relies on startup pre-creation because this hook must stay synchronous.
+  if (shouldSkipAuth()) {
     try {
       const user = userDb.getFirstUser();
       if (user) {
@@ -128,5 +144,7 @@ export {
   authenticateToken,
   generateToken,
   authenticateWebSocket,
-  JWT_SECRET
+  shouldSkipAuth,
+  ensureDevUser,
+  JWT_SECRET,
 };
