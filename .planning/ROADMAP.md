@@ -18,14 +18,14 @@
 
 ## Coverage
 
-| Requirement Category | Count | Phase |
-|-----------------------|-------|-------|
-| Landing Page | 7 | Phase 1 |
-| Layout Infrastructure | 5 | Phase 1 |
-| Project Management | 6 | Phase 2 |
-| Session Management | 8 | Phase 2 |
-| Virtual Sessions | 10 | Phase 3 |
-| UI Component Library | 7 | Phase 4 |
+| Requirement Category  | Count | Phase   |
+| --------------------- | ----- | ------- |
+| Landing Page          | 7     | Phase 1 |
+| Layout Infrastructure | 5     | Phase 1 |
+| Project Management    | 6     | Phase 2 |
+| Session Management    | 8     | Phase 2 |
+| Virtual Sessions      | 10    | Phase 3 |
+| UI Component Library  | 7     | Phase 4 |
 
 **Total v1 Coverage:** 43/43 requirements mapped
 
@@ -194,29 +194,29 @@ Phase 1 (Foundation)
 
 ## Risk Summary
 
-| Phase | Key Risks |
-|-------|-----------|
-| Phase 1 | Landing Page performance with large project lists; Layout persistence edge cases |
-| Phase 2 | Database migration for session schema; Worktree detection reliability |
-| Phase 3 | Context compression quality; Branch continuity during auto-branch |
+| Phase   | Key Risks                                                                                             |
+| ------- | ----------------------------------------------------------------------------------------------------- |
+| Phase 1 | Landing Page performance with large project lists; Layout persistence edge cases                      |
+| Phase 2 | Database migration for session schema; Worktree detection reliability                                 |
+| Phase 3 | Context compression quality; Branch continuity during auto-branch                                     |
 | Phase 4 | Tailwind + shadcn style conflicts; i18n key mapping completeness; Figma workflow adoption consistency |
-| Phase 5 | Multiple ChatInterface performance; Cross-pane WebSocket sync complexity |
+| Phase 5 | Multiple ChatInterface performance; Cross-pane WebSocket sync complexity                              |
 
 ---
 
 ## Progress
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation | 3/4 | In progress | 01-01, 01-02, 01-03 |
-| 2. Core Sessions | 0/3 | Not started | - |
-| 3. Virtual Sessions | 0/3 | Not started | - |
-| 4. UI Migration | 4/4 | Complete | 04-01, 04-02, 04-03, 04-04 |
-| 5. Multi-Pane + Kanban | 0/3 | Not started | - |
+| Phase                  | Plans Complete | Status      | Completed                  |
+| ---------------------- | -------------- | ----------- | -------------------------- |
+| 1. Foundation          | 3/4            | In progress | 01-01, 01-02, 01-03        |
+| 2. Core Sessions       | 0/3            | Not started | -                          |
+| 3. Virtual Sessions    | 0/3            | Not started | -                          |
+| 4. UI Migration        | 4/4            | Complete    | 04-01, 04-02, 04-03, 04-04 |
+| 5. Multi-Pane + Kanban | 0/3            | Not started | -                          |
 
 ---
 
-*Last updated: 2026-04-11*
+_Last updated: 2026-04-11_
 
 ---
 
@@ -234,11 +234,12 @@ Phase 1 (Foundation)
 - 需评估安全边界：方案 A 必须严格限制为开发/测试环境，不能泄漏到生产构建
 
 **Requirements:** TBD
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+- [ ] 999.1-01-PLAN.md -- Server-side shouldSkipAuth() + DEV_AUTO_LOGIN bypass
+- [ ] 999.1-02-PLAN.md -- Frontend IS_DEV_AUTO_LOGIN + AuthContext + ProtectedRoute + dev badge
 
 ### Phase 999.2: 参考 design.md 统一视觉风格 (BACKLOG)
 
