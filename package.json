@@ -27,7 +27,7 @@
     "dev:server": "npm run server",
     "dev:client": "vite --host 127.0.0.1 --port 4000 --strictPort",
     "server": "node server/index.js",
-    "client": "npm run dev:client",
+    "client": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "format": "prettier --write .",
