@@ -1,1 +1,29 @@
+# Windows + lint-staged can fail at backup/stash step with
+# "fatal: Needed a single revision". Try normal flow first, then fallback.
+case "$(uname -s)" in
+MINGW*|MSYS*|CYGWIN*)
+lint_staged_log=".git/.lint-staged-pre-commit.log"
+npx lint-staged 2>"$lint_staged_log"
+status=$?
+
+if [ "$status" -eq 0 ]; then
+rm -f "$lint_staged_log"
+exit 0
+fi
+
+if grep -qi "Needed a single revision" "$lint_staged_log"; then
+cat "$lint_staged_log"
+rm -f "$lint_staged_log"
+echo "Retrying lint-staged with --no-stash on Windows..."
+npx lint-staged --no-stash
+exit $?
+fi
+
+cat "$lint_staged_log"
+rm -f "$lint_staged_log"
+exit "$status"
+;;
+*)
 npx lint-staged
+;;
+esac
