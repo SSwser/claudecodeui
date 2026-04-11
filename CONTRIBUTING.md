@@ -92,18 +92,18 @@ Use imperative, present tense: "add feature" not "added feature" or "adds featur
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | A new feature |
-| `fix` | A bug fix |
-| `perf` | A performance improvement |
+| Type       | Description                                             |
+| ---------- | ------------------------------------------------------- |
+| `feat`     | A new feature                                           |
+| `fix`      | A bug fix                                               |
+| `perf`     | A performance improvement                               |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `docs` | Documentation only |
-| `style` | CSS, formatting, visual changes |
-| `chore` | Maintenance, dependencies, config |
-| `ci` | CI/CD pipeline changes |
-| `test` | Adding or updating tests |
-| `build` | Build system changes |
+| `docs`     | Documentation only                                      |
+| `style`    | CSS, formatting, visual changes                         |
+| `chore`    | Maintenance, dependencies, config                       |
+| `ci`       | CI/CD pipeline changes                                  |
+| `test`     | Adding or updating tests                                |
+| `build`    | Build system changes                                    |
 
 ### Examples
 
@@ -134,6 +134,16 @@ feat!: redesign settings page layout
 - Make sure the build passes (`npm run build`)
 - Keep PRs focused — avoid unrelated changes
 
+### AI-Assisted Code Review (Required)
+
+Before opening a PR, run a code review using your AI coding agent and include a brief summary in the PR description. The summary must explicitly cover:
+
+1. **Cross-platform compatibility** — any behavior differences on Windows / macOS / Linux
+2. **Security audit** — input validation, auth boundaries, dependency risks
+3. **No regressions** — existing functionality unaffected by the change
+
+If no AI agent is available, note that in the PR description. The review does not need to be exhaustive — a few sentences confirming the above is sufficient.
+
 ## Releases
 
 Releases are managed by maintainers using [release-it](https://github.com/release-it/release-it) with the [conventional changelog plugin](https://github.com/release-it/conventional-changelog).
@@ -145,6 +155,7 @@ npm run release -- minor  # minor release
 ```
 
 This automatically:
+
 - Bumps the version based on commit types (`feat` = minor, `fix` = patch)
 - Generates categorized release notes
 - Updates `CHANGELOG.md`
