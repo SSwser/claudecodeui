@@ -1,0 +1,32 @@
+*,
+*::before,
+*::after {
+  animation: none !important;
+  transition-duration: 0s !important;
+  caret-color: transparent !important;
+  scroll-behavior: auto !important;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+button,
+a,
+[role='button'] {
+  transition: none !important;
+}
+
+textarea,
+input,
+select {
+  caret-color: transparent !important;
+}
+
+[data-visual-ready='true'] {
+  min-height: 100vh;
+  background: hsl(var(--background));
+}
