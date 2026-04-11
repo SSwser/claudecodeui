@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: executing
-last_updated: "2026-04-11T05:59:12.847Z"
+last_updated: "2026-04-11T06:04:11.747Z"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
-  percent: 63
+  completed_plans: 6
+  percent: 75
 ---
 
 # State: CloudCLI UI - Desktop UX Enhancement
@@ -35,15 +35,15 @@ progress:
 ## Current Position
 
 Phase: 04 (ui-migration) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 **Phase:** Phase 4 - UI Migration
-**Plan:** 04-02 execution
-**Status:** Executing Phase 04; 04-01 complete
+**Plan:** 04-03 execution
+**Status:** Executing Phase 04; 04-01 and 04-02 complete
 
 ### Progress Bar
 
 ```
-[======                    ] Phase 4 execution in progress (1/4 plans complete)
+[============              ] Phase 4 execution in progress (2/4 plans complete)
 ```
 
 ---
@@ -59,6 +59,7 @@ Plan: 2 of 4
 
 ---
 | Phase 04 P01 | 1500 | 2 tasks | 5 files |
+| Phase 04 P02 | 1800 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Plan: 2 of 4
 - @dnd-kit for drag-and-drop (Phase 5+)
 - [Phase 04]: Extended CSS variables and Tailwind bridges for semantic surfaces, sidebar, typography, and spacing.
 - [Phase 04]: Kept shared primitive APIs stable while aligning Button, Badge, and Input to semantic tokens.
+- [Phase 04]: Documented the new i18n namespace.section.key convention and grouped migration mapping for all 7 namespaces.
+- [Phase 04]: Added a dependency-free lint:i18n gate that reports hardcoded JSX strings with configurable allowlist support.
 
 ### Research Flags (need deeper research during planning)
 
@@ -87,7 +90,7 @@ Plan: 2 of 4
 ### Todo
 
 - [x] Complete 04-01 token foundation and primitive alignment
-- [ ] Complete 04-02 i18n key convention and hardcoded string gate
+- [x] Complete 04-02 i18n key convention and hardcoded string gate
 - [ ] Complete 04-03 Dialog and Select migration
 - [ ] Complete 04-04 visual regression setup and Figma pilot roundtrip
 
@@ -97,7 +100,7 @@ Plan: 2 of 4
 
 **Session started:** 2026-04-10
 **Last updated:** 2026-04-11
-**Roadmap status:** Active - Phase 4 execution underway; 04-01 complete and Wave 1 continuing
+**Roadmap status:** Active - Phase 4 execution underway; 04-01 and 04-02 complete, 04-03 next
 
 ---
 

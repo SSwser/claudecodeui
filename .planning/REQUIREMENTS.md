@@ -52,10 +52,10 @@
 
 - [x] **UI-01**: 调研并选择合适的组件库(shadcn/ui 或其他)
 - [x] **UI-02**: 建立 CSS 变量系统用于主题定制
-- [ ] **UI-03**: 审计现有 i18n 翻译键,创建映射文档
+- [x] **UI-03**: 审计现有 i18n 翻译键,创建映射文档
 - [x] **UI-04**: 渐进式替换基础组件(Button, Input, Dialog 等)
 - [ ] **UI-05**: 新功能使用新组件库,旧组件逐步迁移
-- [ ] **UI-06**: 组件迁移期间保持 CI 检查,防止硬编码字符串
+- [x] **UI-06**: 组件迁移期间保持 CI 检查,防止硬编码字符串
 - [ ] **UI-07**: 设置视觉回归测试,确保 UI 质量
 
 ### Layout Infrastructure
@@ -149,10 +149,10 @@
 | VIRT-10 | Phase 3 | Pending |
 | UI-01 | Phase 4 | Complete |
 | UI-02 | Phase 4 | Complete |
-| UI-03 | Phase 4 | Pending |
+| UI-03 | Phase 4 | Complete |
 | UI-04 | Phase 4 | Complete |
 | UI-05 | Phase 4 | Pending |
-| UI-06 | Phase 4 | Pending |
+| UI-06 | Phase 4 | Complete |
 | UI-07 | Phase 4 | Pending |
 
 **Coverage:**

@@ -148,7 +148,7 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — CSS token foundation and primitive alignment (Button, Badge, Input)
-- [ ] 04-02-PLAN.md — i18n key convention, mapping document, and CI hardcoded string gate
+- [x] 04-02-PLAN.md — i18n key convention, mapping document, and CI hardcoded string gate
 - [ ] 04-03-PLAN.md — Dialog and Select component migration (portal, keyboard accessibility)
 - [ ] 04-04-PLAN.md — Playwright visual regression setup and Figma pilot roundtrip record
 
