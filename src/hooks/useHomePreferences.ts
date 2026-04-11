@@ -288,11 +288,16 @@ const normalizeShellTabs = (value: unknown): HomePreferences['shellTabs'] => {
     return [];
   }
 
+  const seenTabIds = new Set<string>();
+  const seenSessionIds = new Set<string>();
+
   const normalized: HomePreferences['shellTabs'] = value
     .filter((entry): entry is Record<string, unknown> => isRecord(entry))
     .filter((entry) => entry.kind === 'session')
-    .map((entry) => {
+    .map<HomePreferences['shellTabs'][number]>((entry) => {
       const kind: HomeShellTabKind = 'session';
+      const paneId: HomePaneId | null =
+        entry.paneId === 'primary' || entry.paneId === 'secondary' ? entry.paneId : null;
 
       return {
         id: normalizeText(entry.id) || `tab-${Math.random().toString(36).slice(2)}`,
@@ -300,11 +305,21 @@ const normalizeShellTabs = (value: unknown): HomePreferences['shellTabs'] => {
         label: normalizeText(entry.label, 'Session'),
         projectName: normalizeText(entry.projectName) || null,
         sessionId: normalizeText(entry.sessionId) || null,
-        paneId: entry.paneId === 'primary' || entry.paneId === 'secondary' ? entry.paneId : null,
+        paneId,
         activeContentTab: 'chat',
         createdAt: normalizeTimestamp(entry.createdAt, nowIso()),
         updatedAt: normalizeTimestamp(entry.updatedAt, nowIso()),
       };
+    })
+    .filter((entry) => Boolean(entry.sessionId))
+    .filter((entry) => {
+      if (seenTabIds.has(entry.id) || seenSessionIds.has(entry.sessionId!)) {
+        return false;
+      }
+
+      seenTabIds.add(entry.id);
+      seenSessionIds.add(entry.sessionId!);
+      return true;
     });
 
   return normalized;
@@ -315,6 +330,9 @@ const normalizeHomePreferences = (value: unknown): HomePreferences => {
     return DEFAULT_HOME_PREFERENCES;
   }
 
+  const shellTabs = normalizeShellTabs(value.shellTabs);
+  const normalizedActiveShellTabId = normalizeText(value.activeShellTabId);
+
   return {
     version: 1,
     startupBehavior: isValidStartupBehavior(value.startupBehavior)
@@ -323,8 +341,10 @@ const normalizeHomePreferences = (value: unknown): HomePreferences => {
     favorites: normalizeFavorites(value.favorites),
     filters: normalizeFilters(value.filters),
     layout: normalizeLayout(value.layout),
-    shellTabs: normalizeShellTabs(value.shellTabs),
-    activeShellTabId: normalizeText(value.activeShellTabId),
+    shellTabs,
+    activeShellTabId: shellTabs.some((tab) => tab.id === normalizedActiveShellTabId)
+      ? normalizedActiveShellTabId
+      : '',
     lastOpenedProjectName: normalizeText(value.lastOpenedProjectName) || null,
     lastOpenedSessionId: normalizeText(value.lastOpenedSessionId) || null,
     lastOpenedAt:

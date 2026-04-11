@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isSshGitUrl } from '../utils/pathUtils';
-import type { WizardFormState } from '../types';
+import type { CreateWorkspacePayload, WizardFormState } from '../types';
 
 type StepReviewProps = {
+  payload: CreateWorkspacePayload;
   formState: WizardFormState;
   selectedTokenName: string | null;
   isCreating: boolean;
@@ -11,6 +12,7 @@ type StepReviewProps = {
 };
 
 export default function StepReview({
+  payload,
   formState,
   selectedTokenName,
   isCreating,
@@ -45,7 +47,7 @@ export default function StepReview({
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{t('projectWizard.step3.workspaceType')}</span>
             <span className="font-medium text-foreground">
-              {formState.workspaceType === 'logical'
+              {payload.workspaceType === 'logical'
                 ? t('projectWizard.step3.existingWorkspace')
                 : t('projectWizard.step3.newWorkspace')}
             </span>
@@ -54,16 +56,16 @@ export default function StepReview({
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{t('projectWizard.step3.path')}</span>
             <span className="break-all font-mono text-xs text-foreground">
-              {formState.workspacePath}
+              {payload.path}
             </span>
           </div>
 
-          {formState.workspaceType === 'logical' && formState.githubUrl && (
+          {payload.workspaceType === 'logical' && payload.githubUrl && (
             <>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('projectWizard.step3.cloneFrom')}</span>
                 <span className="break-all font-mono text-xs text-foreground">
-                  {formState.githubUrl}
+                  {payload.githubUrl}
                 </span>
               </div>
 
@@ -76,23 +78,23 @@ export default function StepReview({
             </>
           )}
 
-          {formState.workspaceType === 'worktree' && (
+          {payload.workspaceType === 'worktree' && (
             <>
               <div className="flex justify-between gap-3 text-sm">
                 <span className="text-muted-foreground">{t('projectWizard.step3.sourcePath')}</span>
                 <span className="break-all font-mono text-xs text-foreground">
-                  {formState.sourcePath}
+                  {payload.sourcePath}
                 </span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('projectWizard.step3.branchName')}</span>
-                <span className="font-medium text-foreground">{formState.branchName}</span>
+                <span className="font-medium text-foreground">{payload.branchName}</span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('projectWizard.step3.baseBranch')}</span>
-                <span className="font-medium text-foreground">{formState.baseBranch}</span>
+                <span className="font-medium text-foreground">{payload.baseBranch}</span>
               </div>
             </>
           )}
@@ -113,9 +115,9 @@ export default function StepReview({
           </div>
         ) : (
           <p className="text-sm text-foreground">
-            {formState.workspaceType === 'logical'
+            {payload.workspaceType === 'logical'
               ? t('projectWizard.step3.existingInfo')
-              : formState.githubUrl
+              : payload.githubUrl
                 ? t('projectWizard.step3.newWithClone')
                 : t('projectWizard.step3.worktreeInfo')}
           </p>
