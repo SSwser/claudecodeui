@@ -44,6 +44,39 @@
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
 
+    /* Surface hierarchy tokens */
+    --surface-1: 0 0% 100%;
+    --surface-2: 210 40% 98%;
+    --surface-3: 210 40% 96.1%;
+    --surface-elevated: 0 0% 100%;
+
+    /* Sidebar / shell tokens */
+    --sidebar-bg: 222.2 84% 4.9%;
+    --sidebar-fg: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-accent: 217.2 91.2% 59.8%;
+
+    /* Typography scale tokens */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Spacing scale */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+
     /* Nav design tokens */
     --nav-glass-bg: 0 0% 100% / 0.7;
     --nav-glass-blur: 20px;
@@ -104,6 +137,18 @@
     --border: 217.2 32.6% 17.5%;
     --input: 220 13% 46%;
     --ring: 217.2 91.2% 59.8%;
+
+    /* Surface hierarchy tokens */
+    --surface-1: 222.2 84% 4.9%;
+    --surface-2: 222.2 47.4% 8%;
+    --surface-3: 217.2 32.6% 12%;
+    --surface-elevated: 217.2 32.6% 14%;
+
+    /* Sidebar / shell tokens */
+    --sidebar-bg: 222.2 84% 4.9%;
+    --sidebar-fg: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-accent: 217.2 91.2% 59.8%;
 
     /* Nav design tokens — dark overrides */
     --nav-glass-bg: 217.2 91.2% 8% / 0.55;
