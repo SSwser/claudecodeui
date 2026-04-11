@@ -1,4 +1,9 @@
 import type { TFunction } from 'i18next';
+import {
+  HOME_PREFERENCES_STORAGE_KEY,
+  readHomePreferencesSnapshot,
+  writeHomePreferencesSnapshot,
+} from '../../../hooks/useHomePreferences';
 import type { Project } from '../../../types/app';
 import type {
   AdditionalSessionsByProject,
@@ -24,8 +29,12 @@ export const readProjectSortOrder = (): ProjectSortOrder => {
 
 export const loadStarredProjects = (): Set<string> => {
   try {
-    const saved = localStorage.getItem('starredProjects');
-    return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>();
+    const preferences = readHomePreferencesSnapshot(HOME_PREFERENCES_STORAGE_KEY);
+    const workspaceFavorites = preferences.favorites
+      .filter((favorite) => favorite.kind === 'workspace')
+      .map((favorite) => favorite.projectName);
+
+    return new Set<string>(workspaceFavorites);
   } catch {
     return new Set<string>();
   }
@@ -33,6 +42,23 @@ export const loadStarredProjects = (): Set<string> => {
 
 export const persistStarredProjects = (starredProjects: Set<string>) => {
   try {
+    const preferences = readHomePreferencesSnapshot(HOME_PREFERENCES_STORAGE_KEY);
+    const timestamp = new Date().toISOString();
+    const existingSessionFavorites = preferences.favorites.filter((favorite) => favorite.kind === 'session');
+    const workspaceFavorites = [...starredProjects].map((projectName) => ({
+      id: `workspace:${projectName}`,
+      kind: 'workspace' as const,
+      projectName,
+      displayName: projectName,
+      favoritedAt: timestamp,
+      lastAccessedAt: timestamp,
+    }));
+
+    writeHomePreferencesSnapshot({
+      ...preferences,
+      favorites: [...workspaceFavorites, ...existingSessionFavorites],
+    });
+
     localStorage.setItem('starredProjects', JSON.stringify([...starredProjects]));
   } catch {
     // Keep UI responsive even if storage fails.
