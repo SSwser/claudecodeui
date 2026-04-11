@@ -11,7 +11,13 @@ import SidebarProjectList, { type SidebarProjectListProps } from './SidebarProje
 
 type SearchMode = 'projects' | 'conversations';
 
-function HighlightedSnippet({ snippet, highlights }: { snippet: string; highlights: { start: number; end: number }[] }) {
+function HighlightedSnippet({
+  snippet,
+  highlights,
+}: {
+  snippet: string;
+  highlights: { start: number; end: number }[];
+}) {
   const parts: ReactNode[] = [];
   let cursor = 0;
   for (const h of highlights) {
@@ -19,7 +25,10 @@ function HighlightedSnippet({ snippet, highlights }: { snippet: string; highligh
       parts.push(snippet.slice(cursor, h.start));
     }
     parts.push(
-      <mark key={h.start} className="rounded-sm bg-yellow-200 px-0.5 text-foreground dark:bg-yellow-800">
+      <mark
+        key={h.start}
+        className="rounded-sm bg-yellow-200 px-0.5 text-foreground dark:bg-yellow-800"
+      >
         {snippet.slice(h.start, h.end)}
       </mark>
     );
@@ -28,11 +37,7 @@ function HighlightedSnippet({ snippet, highlights }: { snippet: string; highligh
   if (cursor < snippet.length) {
     parts.push(snippet.slice(cursor));
   }
-  return (
-    <span className="text-xs leading-relaxed text-muted-foreground">
-      {parts}
-    </span>
-  );
+  return <span className="text-xs leading-relaxed text-muted-foreground">{parts}</span>;
 }
 
 type SidebarContentProps = {
@@ -48,7 +53,13 @@ type SidebarContentProps = {
   conversationResults: ConversationSearchResults | null;
   isSearching: boolean;
   searchProgress: SearchProgress | null;
-  onConversationResultClick: (projectName: string, sessionId: string, provider: string, messageTimestamp?: string | null, messageSnippet?: string | null) => void;
+  onConversationResultClick: (
+    projectName: string,
+    sessionId: string,
+    provider: string,
+    messageTimestamp?: string | null,
+    messageSnippet?: string | null
+  ) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
   onCreateProject: () => void;
@@ -124,7 +135,8 @@ export default function SidebarContent({
               <p className="text-sm text-muted-foreground">{t('search.searching')}</p>
               {searchProgress && (
                 <p className="mt-1 text-xs text-muted-foreground/60">
-                  {t('search.projectsScanned', { count: searchProgress.scannedProjects })}/{searchProgress.totalProjects}
+                  {t('search.projectsScanned', { count: searchProgress.scannedProjects })}/
+                  {searchProgress.totalProjects}
                 </p>
               )}
             </div>
@@ -133,7 +145,9 @@ export default function SidebarContent({
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted md:mb-3">
                 <Search className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="mb-2 text-base font-medium text-foreground md:mb-1">{t('search.noResults')}</h3>
+              <h3 className="mb-2 text-base font-medium text-foreground md:mb-1">
+                {t('search.noResults')}
+              </h3>
               <p className="text-sm text-muted-foreground">{t('search.tryDifferentQuery')}</p>
             </div>
           ) : hasPartialResults ? (
@@ -155,7 +169,9 @@ export default function SidebarContent({
                 <div className="mx-1 h-0.5 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-primary/60 transition-all duration-300"
-                    style={{ width: `${Math.round((searchProgress.scannedProjects / searchProgress.totalProjects) * 100)}%` }}
+                    style={{
+                      width: `${Math.round((searchProgress.scannedProjects / searchProgress.totalProjects) * 100)}%`,
+                    }}
                   />
                 </div>
               )}
@@ -171,13 +187,15 @@ export default function SidebarContent({
                     <button
                       key={`${projectResult.projectName}-${session.sessionId}`}
                       className="w-full rounded-md px-2 py-2 text-left transition-colors hover:bg-accent/50"
-                      onClick={() => onConversationResultClick(
-                        projectResult.projectName,
-                        session.sessionId,
-                        session.provider || session.matches[0]?.provider || 'claude',
-                        session.matches[0]?.timestamp,
-                        session.matches[0]?.snippet
-                      )}
+                      onClick={() =>
+                        onConversationResultClick(
+                          projectResult.projectName,
+                          session.sessionId,
+                          session.provider || session.matches[0]?.provider || 'claude',
+                          session.matches[0]?.timestamp,
+                          session.matches[0]?.snippet
+                        )
+                      }
                     >
                       <div className="mb-1 flex items-center gap-1.5">
                         <MessageSquare className="h-3 w-3 flex-shrink-0 text-primary" />
