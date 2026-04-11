@@ -11,7 +11,7 @@
 - [~] **Phase 1: Foundation** - Landing Page + Layout Infrastructure
 - [ ] **Phase 2: Core Sessions** - Project Management + Session Lifecycle
 - [ ] **Phase 3: Virtual Sessions** - Hybrid Branching + Timeline
-- [ ] **Phase 4: UI Migration** - Component Library + i18n
+- [x] **Phase 4: UI Migration** - Component Library + i18n
 - [ ] **Phase 5: Multi-Pane + Kanban** - v2 Transition (v2 scope)
 
 ---
@@ -141,16 +141,18 @@ Plans:
 **Backlog (pre-Phase 4 and Phase 4 support):**
 
 - [ ] Add one pilot screen roundtrip record (Design -> Code -> Design delta -> Code)
+- [x] Add one pilot screen roundtrip record (Design -> Code -> Design delta -> Code)
 - [ ] Add CI-friendly checklist verification note for UI PR template
-- [ ] Add component mapping starter list for Code Connect high-frequency primitives
+- [x] Add component mapping starter list for Code Connect high-frequency primitives
 
 **Plans:** 4 plans
 
 Plans:
+
 - [x] 04-01-PLAN.md — CSS token foundation and primitive alignment (Button, Badge, Input)
 - [x] 04-02-PLAN.md — i18n key convention, mapping document, and CI hardcoded string gate
 - [x] 04-03-PLAN.md — Dialog and Select component migration (portal, keyboard accessibility)
-- [ ] 04-04-PLAN.md — Playwright visual regression setup and Figma pilot roundtrip record
+- [x] 04-04-PLAN.md — Playwright visual regression setup and Figma pilot roundtrip record
 
 ### Phase 5: Multi-Pane + Kanban (v2 Transition)
 
@@ -209,7 +211,7 @@ Phase 1 (Foundation)
 | 1. Foundation | 3/4 | In progress | 01-01, 01-02, 01-03 |
 | 2. Core Sessions | 0/3 | Not started | - |
 | 3. Virtual Sessions | 0/3 | Not started | - |
-| 4. UI Migration | 1/4 | In progress | 04-01 |
+| 4. UI Migration | 4/4 | Complete | 04-01, 04-02, 04-03, 04-04 |
 | 5. Multi-Pane + Kanban | 0/3 | Not started | - |
 
 ---
@@ -256,4 +258,3 @@ Plans:
 Plans:
 
 - [ ] TBD (promote with /gsd-review-backlog when ready)
-

@@ -56,7 +56,7 @@
 - [x] **UI-04**: 渐进式替换基础组件(Button, Input, Dialog 等)
 - [x] **UI-05**: 新功能使用新组件库,旧组件逐步迁移
 - [x] **UI-06**: 组件迁移期间保持 CI 检查,防止硬编码字符串
-- [ ] **UI-07**: 设置视觉回归测试,确保 UI 质量
+- [x] **UI-07**: 设置视觉回归测试,确保 UI 质量
 
 ### Layout Infrastructure
 
@@ -153,7 +153,7 @@
 | UI-04 | Phase 4 | Complete |
 | UI-05 | Phase 4 | Complete |
 | UI-06 | Phase 4 | Complete |
-| UI-07 | Phase 4 | Pending |
+| UI-07 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 43 total

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 04
-status: executing
-last_updated: "2026-04-11T06:11:19.675Z"
+status: completed
+last_updated: "2026-04-11T06:26:40.107Z"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # State: CloudCLI UI - Desktop UX Enhancement
@@ -34,16 +34,16 @@ progress:
 
 ## Current Position
 
-Phase: 04 (ui-migration) — EXECUTING
+Phase: 04 (ui-migration) — COMPLETE
 Plan: 4 of 4
 **Phase:** Phase 4 - UI Migration
-**Plan:** 04-04 execution
-**Status:** Executing Phase 04; Wave 1 complete and Wave 2 pending verification
+**Plan:** 04-04 complete
+**Status:** Phase 04 complete; visual regression baseline and Figma pilot approved
 
 ### Progress Bar
 
 ```
-[==================        ] Phase 4 execution in progress (3/4 plans complete)
+[========================] Phase 4 execution complete (4/4 plans complete)
 ```
 
 ---
@@ -61,6 +61,7 @@ Plan: 4 of 4
 | Phase 04 P01 | 1500 | 2 tasks | 5 files |
 | Phase 04 P02 | 1800 | 2 tasks | 3 files |
 | Phase 04 P03 | 2100 | 2 tasks | 2 files |
+| Phase 04 P04 | 2400 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Plan: 4 of 4
 - [Phase 04]: Added a dependency-free lint:i18n gate that reports hardcoded JSX strings with configurable allowlist support.
 - [Phase 04]: Upgraded Dialog to a portal-mounted primitive with focus and Escape handling while keeping the exported API stable.
 - [Phase 04]: Replaced Select with a controlled combobox/listbox implementation for keyboard accessibility and semantic token styling.
+- [Phase 04]: Configured Playwright visual baselines around the current root app route with conditional shell coverage and non-breaking test hooks.
+- [Phase 04]: Recorded the Button Figma pilot roundtrip and validated baseline generation/comparison before human approval.
 
 ### Research Flags (need deeper research during planning)
 
@@ -88,14 +91,14 @@ Plan: 4 of 4
 
 ### Blockers
 
-- None for Phase 4 Wave 1 execution.
+- None for Phase 4.
 
 ### Todo
 
 - [x] Complete 04-01 token foundation and primitive alignment
 - [x] Complete 04-02 i18n key convention and hardcoded string gate
 - [x] Complete 04-03 Dialog and Select migration
-- [ ] Complete 04-04 visual regression setup and Figma pilot roundtrip
+- [x] Complete 04-04 visual regression setup and Figma pilot roundtrip
 
 ---
 
@@ -103,7 +106,7 @@ Plan: 4 of 4
 
 **Session started:** 2026-04-10
 **Last updated:** 2026-04-11
-**Roadmap status:** Active - Phase 4 Wave 1 complete; 04-04 remains for visual regression and Figma roundtrip
+**Roadmap status:** Phase 4 complete; all UI migration plans finished and approved
 
 ---
 
