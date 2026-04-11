@@ -167,6 +167,7 @@
 			"branchNamePlaceholder": "feature/landing-shell",
 			"baseBranch": "Base Branch",
 			"baseBranchPlaceholder": "main",
+			"baseBranchHelp": "Optional. If you leave this as-is, the request will use main as the base branch.",
 			"worktreeConsequences": "Worktree mode creates or links a separate filesystem directory and branch. Deleting it later may also require removing the worktree from the source repository.",
 			"githubUrl": "GitHub URL (Optional)",
 			"githubPlaceholder": "https://github.com/username/repository",
@@ -218,8 +219,12 @@
 		"errors": {
 			"selectType": "Please select whether you have an existing workspace or want to create a new one",
 			"providePath": "Please provide a workspace path",
+			"provideLogicalPath": "Enter the logical workspace path before continuing.",
+			"provideWorktreePath": "Enter the worktree path before continuing to review.",
 			"provideSourcePath": "Please provide the source repository path for worktree mode",
 			"provideBranchName": "Please provide a branch name for worktree mode",
+			"provideSourcePathAction": "Enter the source repository path for this worktree before continuing.",
+			"provideBranchNameAction": "Enter the worktree branch name before continuing.",
 			"failedToCreate": "Failed to create workspace",
 			"failedToCreateFolder": "Failed to create folder"
 		}

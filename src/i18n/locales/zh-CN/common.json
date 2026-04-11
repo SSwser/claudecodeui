@@ -167,6 +167,7 @@
 			"branchNamePlaceholder": "feature/landing-shell",
 			"baseBranch": "基线分支",
 			"baseBranchPlaceholder": "main",
+			"baseBranchHelp": "可选项。保持默认时，请求会使用 main 作为基线分支。",
 			"worktreeConsequences": "Worktree 模式会创建或关联一个独立的文件系统目录和分支。后续删除时，通常也需要从源仓库中移除对应 worktree。",
 			"githubUrl": "GitHub URL（可选）",
 			"githubPlaceholder": "https://github.com/username/repository",
@@ -218,8 +219,12 @@
 		"errors": {
 			"selectType": "请选择您已有现有工作区还是想创建新工作区",
 			"providePath": "请提供工作区路径",
+			"provideLogicalPath": "请先填写逻辑工作区路径，再继续下一步。",
+			"provideWorktreePath": "请先填写 worktree 路径，再进入确认步骤。",
 			"provideSourcePath": "Worktree 模式下请提供源仓库路径",
 			"provideBranchName": "Worktree 模式下请提供分支名",
+			"provideSourcePathAction": "请先填写该 worktree 对应的源仓库路径，再继续下一步。",
+			"provideBranchNameAction": "请先填写 worktree 分支名，再继续下一步。",
 			"failedToCreate": "创建工作区失败",
 			"failedToCreateFolder": "创建文件夹失败"
 		}

@@ -10,7 +10,13 @@ import WizardProgress from './components/WizardProgress';
 import { useGithubTokens } from './hooks/useGithubTokens';
 import { cloneWorkspaceWithProgress, createWorkspaceRequest } from './data/workspaceApi';
 import { isCloneWorkflow, shouldShowGithubAuthentication } from './utils/pathUtils';
-import type { TokenMode, WizardFormState, WizardStep, WorkspaceType } from './types';
+import type {
+  CreateWorkspacePayload,
+  TokenMode,
+  WizardFormState,
+  WizardStep,
+  WorkspaceType,
+} from './types';
 
 type ProjectCreationWizardProps = {
   onClose: () => void;
@@ -27,6 +33,58 @@ const initialFormState: WizardFormState = {
   tokenMode: 'stored',
   selectedGithubToken: '',
   newGithubToken: '',
+};
+
+const buildCreateWorkspacePayload = (formState: WizardFormState): CreateWorkspacePayload => {
+  const workspaceType = formState.workspaceType;
+  const path = formState.workspacePath.trim();
+
+  if (workspaceType === 'worktree') {
+    return {
+      workspaceType,
+      path,
+      sourcePath: formState.sourcePath.trim(),
+      branchName: formState.branchName.trim(),
+      baseBranch: formState.baseBranch.trim() || 'main',
+    };
+  }
+
+  const githubUrl = formState.githubUrl.trim();
+
+  return {
+    workspaceType,
+    path,
+    ...(githubUrl
+      ? {
+          githubUrl,
+          githubTokenId:
+            formState.tokenMode === 'stored' ? formState.selectedGithubToken || undefined : undefined,
+          newGithubToken:
+            formState.tokenMode === 'new' ? formState.newGithubToken.trim() || undefined : undefined,
+        }
+      : {}),
+  };
+};
+
+const getConfigurationValidationError = (
+  formState: WizardFormState,
+  t: (key: string) => string
+): string | null => {
+  if (!formState.workspacePath.trim()) {
+    return formState.workspaceType === 'worktree'
+      ? t('projectWizard.errors.provideWorktreePath')
+      : t('projectWizard.errors.provideLogicalPath');
+  }
+
+  if (formState.workspaceType === 'worktree' && !formState.sourcePath.trim()) {
+    return t('projectWizard.errors.provideSourcePathAction');
+  }
+
+  if (formState.workspaceType === 'worktree' && !formState.branchName.trim()) {
+    return t('projectWizard.errors.provideBranchNameAction');
+  }
+
+  return null;
 };
 
 export default function ProjectCreationWizard({
@@ -67,8 +125,20 @@ export default function ProjectCreationWizard({
   );
 
   const updateWorkspaceType = useCallback(
-    (workspaceType: WorkspaceType) => updateField('workspaceType', workspaceType),
-    [updateField]
+    (workspaceType: WorkspaceType) => {
+      setFormState((previous) => ({
+        ...previous,
+        workspaceType,
+        sourcePath: workspaceType === 'worktree' ? previous.sourcePath : '',
+        branchName: workspaceType === 'worktree' ? previous.branchName : '',
+        baseBranch: workspaceType === 'worktree' ? previous.baseBranch || 'main' : 'main',
+        githubUrl: workspaceType === 'logical' ? previous.githubUrl : '',
+        tokenMode: workspaceType === 'logical' ? previous.tokenMode : 'stored',
+        selectedGithubToken: workspaceType === 'logical' ? previous.selectedGithubToken : '',
+        newGithubToken: workspaceType === 'logical' ? previous.newGithubToken : '',
+      }));
+    },
+    []
   );
 
   const updateTokenMode = useCallback(
@@ -89,24 +159,15 @@ export default function ProjectCreationWizard({
     }
 
     if (step === 2) {
-      if (!formState.workspacePath.trim()) {
-        setError(t('projectWizard.errors.providePath'));
-        return;
-      }
-
-      if (formState.workspaceType === 'worktree' && !formState.sourcePath.trim()) {
-        setError(t('projectWizard.errors.provideSourcePath'));
-        return;
-      }
-
-      if (formState.workspaceType === 'worktree' && !formState.branchName.trim()) {
-        setError(t('projectWizard.errors.provideBranchName'));
+      const validationError = getConfigurationValidationError(formState, t);
+      if (validationError) {
+        setError(validationError);
         return;
       }
 
       setStep(3);
     }
-  }, [formState.workspacePath, formState.workspaceType, step, t]);
+  }, [formState, step, t]);
 
   const handleBack = useCallback(() => {
     setError(null);
@@ -115,19 +176,23 @@ export default function ProjectCreationWizard({
     );
   }, []);
 
+  const reviewPayload = useMemo(() => buildCreateWorkspacePayload(formState), [formState]);
+
   const handleCreate = useCallback(async () => {
     setIsCreating(true);
     setError(null);
     setCloneProgress('');
 
     try {
-      const shouldCloneRepository = isCloneWorkflow(formState.workspaceType, formState.githubUrl);
+      const payload = buildCreateWorkspacePayload(formState);
+      const shouldCloneRepository =
+        payload.workspaceType === 'logical' && Boolean(payload.githubUrl && payload.githubUrl.trim());
 
       if (shouldCloneRepository) {
         const project = await cloneWorkspaceWithProgress(
           {
-            workspacePath: formState.workspacePath,
-            githubUrl: formState.githubUrl,
+            workspacePath: payload.path,
+            githubUrl: payload.githubUrl || '',
             tokenMode: formState.tokenMode,
             selectedGithubToken: formState.selectedGithubToken,
             newGithubToken: formState.newGithubToken,
@@ -142,18 +207,7 @@ export default function ProjectCreationWizard({
         return;
       }
 
-      const project = await createWorkspaceRequest({
-        workspaceType: formState.workspaceType,
-        path: formState.workspacePath.trim(),
-        sourcePath: formState.sourcePath.trim() || undefined,
-        branchName: formState.branchName.trim() || undefined,
-        baseBranch: formState.baseBranch.trim() || undefined,
-        githubUrl: formState.githubUrl.trim() || undefined,
-        githubTokenId:
-          formState.tokenMode === 'stored' ? formState.selectedGithubToken || undefined : undefined,
-        newGithubToken:
-          formState.tokenMode === 'new' ? formState.newGithubToken.trim() || undefined : undefined,
-      });
+      const project = await createWorkspaceRequest(payload);
 
       onProjectCreated?.(project);
       onClose();
@@ -237,6 +291,7 @@ export default function ProjectCreationWizard({
 
           {step === 3 && (
             <StepReview
+              payload={reviewPayload}
               formState={formState}
               selectedTokenName={selectedTokenName}
               isCreating={isCreating}
