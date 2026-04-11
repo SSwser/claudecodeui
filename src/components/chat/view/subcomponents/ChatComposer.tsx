@@ -92,6 +92,8 @@ interface ChatComposerProps {
   isTextareaExpanded: boolean;
   sendByCtrlEnter?: boolean;
   onTranscript: (text: string) => void;
+  isDesignMode: boolean;
+  onToggleDesignMode: () => void;
 }
 
 export default function ChatComposer({
@@ -149,6 +151,8 @@ export default function ChatComposer({
   isTextareaExpanded,
   sendByCtrlEnter,
   onTranscript,
+  isDesignMode,
+  onToggleDesignMode,
 }: ChatComposerProps) {
   const { t } = useTranslation('chat');
   const textareaRect = textareaRef.current?.getBoundingClientRect();
@@ -202,6 +206,8 @@ export default function ChatComposer({
           isUserScrolledUp={isUserScrolledUp}
           hasMessages={hasMessages}
           onScrollToBottom={onScrollToBottom}
+          isDesignMode={isDesignMode}
+          onToggleDesignMode={onToggleDesignMode}
         />}
       </div>
 

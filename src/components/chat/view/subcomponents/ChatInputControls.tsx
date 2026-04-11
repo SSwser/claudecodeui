@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { ScanEye } from 'lucide-react';
 import type { PermissionMode, Provider } from '../../types/types';
 import ThinkingModeSelector from './ThinkingModeSelector';
 import TokenUsagePie from './TokenUsagePie';
@@ -18,6 +19,8 @@ interface ChatInputControlsProps {
   isUserScrolledUp: boolean;
   hasMessages: boolean;
   onScrollToBottom: () => void;
+  isDesignMode: boolean;
+  onToggleDesignMode: () => void;
 }
 
 export default function ChatInputControls({
@@ -34,6 +37,8 @@ export default function ChatInputControls({
   isUserScrolledUp,
   hasMessages,
   onScrollToBottom,
+  isDesignMode,
+  onToggleDesignMode,
 }: ChatInputControlsProps) {
   const { t } = useTranslation('chat');
 
@@ -101,6 +106,19 @@ export default function ChatInputControls({
             {slashCommandsCount}
           </span>
         )}
+      </button>
+
+      <button
+        type="button"
+        onClick={onToggleDesignMode}
+        className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors sm:h-8 sm:w-8 ${
+          isDesignMode
+            ? 'bg-blue-500 text-white hover:bg-blue-600'
+            : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+        }`}
+        title="Design Mode — click any element to capture it into chat"
+      >
+        <ScanEye className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
       </button>
 
       {hasInput && (

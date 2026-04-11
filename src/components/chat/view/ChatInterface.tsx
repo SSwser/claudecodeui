@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTasksSettings } from '../../../contexts/TasksSettingsContext';
 import { QuickSettingsPanel } from '../../quick-settings-panel';
@@ -11,6 +11,7 @@ import { useChatComposerState } from '../hooks/useChatComposerState';
 import { useSessionStore } from '../../../stores/useSessionStore';
 import ChatMessagesPane from './subcomponents/ChatMessagesPane';
 import ChatComposer from './subcomponents/ChatComposer';
+import DesignModeOverlay from './subcomponents/DesignModeOverlay';
 
 
 type PendingViewSession = {
@@ -202,6 +203,22 @@ function ChatInterface({
     setIsUserScrolledUp,
     setPendingPermissionRequests,
   });
+
+  // Design Mode
+  const [isDesignMode, setIsDesignMode] = useState(false);
+
+  const handleDesignCapture = useCallback(
+    (text: string, screenshot: File | null) => {
+      setInput((prev) => {
+        const separator = prev.trim() ? '\n\n' : '';
+        return prev + separator + text;
+      });
+      if (screenshot) {
+        setAttachedImages((prev) => [...prev, screenshot].slice(0, 5));
+      }
+    },
+    [setInput, setAttachedImages],
+  );
 
   // On WebSocket reconnect, re-fetch the current session's messages from the server
   // so missed streaming events are shown. Also reset isLoading.
@@ -409,8 +426,17 @@ function ChatInterface({
           isTextareaExpanded={isTextareaExpanded}
           sendByCtrlEnter={sendByCtrlEnter}
           onTranscript={handleTranscript}
+          isDesignMode={isDesignMode}
+          onToggleDesignMode={() => setIsDesignMode((v) => !v)}
         />
       </div>
+
+      {isDesignMode && (
+        <DesignModeOverlay
+          onCapture={handleDesignCapture}
+          onClose={() => setIsDesignMode(false)}
+        />
+      )}
 
       <QuickSettingsPanel />
     </>
