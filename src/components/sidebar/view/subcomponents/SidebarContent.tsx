@@ -93,6 +93,7 @@ export default function SidebarContent({
 
   return (
     <div
+      data-testid="sidebar"
       className="flex h-full flex-col bg-background/80 backdrop-blur-sm md:w-72 md:select-none"
       style={{}}
     >

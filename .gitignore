@@ -73,6 +73,9 @@ pids
 coverage/
 *.lcov
 .nyc_output
+/playwright-report/
+/test-results/
+/tests/visual/__snapshots__/
 
 # Packaging artifacts
 *.tgz

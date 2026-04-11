@@ -72,7 +72,7 @@ export function DialogTrigger({ children }: { children: ReactNode }) {
 
 	if (!isValidElement(children)) {
 		return (
-			<button type='button' onClick={() => onOpenChange(true)}>
+			<button type='button' data-testid='dialog-trigger' onClick={() => onOpenChange(true)}>
 				{children}
 			</button>
 		)
@@ -84,6 +84,7 @@ export function DialogTrigger({ children }: { children: ReactNode }) {
 			onOpenChange(true)
 		},
 		'aria-haspopup': 'dialog',
+		'data-testid': 'dialog-trigger',
 	} as Record<string, unknown>)
 }
 
