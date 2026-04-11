@@ -45,7 +45,7 @@ export type HomeFilters = {
   sessionType: HomeFilterSessionType;
 };
 
-export type HomeShellTabKind = 'home' | 'session';
+export type HomeShellTabKind = 'session';
 
 export type HomeShellTab = {
   id: string;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import type { AppTab } from '../types/app';
 import type {
   FavoriteSessionEntry,
@@ -41,32 +41,32 @@ type SyncEventDetail = {
   value: HomePreferences;
 };
 
-type ToggleWorkspaceFavoriteInput = Omit<FavoriteWorkspaceEntry, 'id' | 'kind' | 'favoritedAt' | 'lastAccessedAt'>;
-type ToggleSessionFavoriteInput = Omit<FavoriteSessionEntry, 'id' | 'kind' | 'favoritedAt' | 'lastAccessedAt'>;
+type ToggleWorkspaceFavoriteInput = Omit<
+  FavoriteWorkspaceEntry,
+  'id' | 'kind' | 'favoritedAt' | 'lastAccessedAt'
+>;
+type ToggleSessionFavoriteInput = Omit<
+  FavoriteSessionEntry,
+  'id' | 'kind' | 'favoritedAt' | 'lastAccessedAt'
+>;
 
 const nowIso = () => new Date().toISOString();
 
 const createDefaultPanes = (): PaneDescriptor[] => [
   { paneId: 'primary', sessionId: null, projectName: null, tabId: null, activeContentTab: 'chat' },
-  { paneId: 'secondary', sessionId: null, projectName: null, tabId: null, activeContentTab: 'chat' },
+  {
+    paneId: 'secondary',
+    sessionId: null,
+    projectName: null,
+    tabId: null,
+    activeContentTab: 'chat',
+  },
 ];
 
 const createDefaultLayout = (): LayoutPreferences => ({
   mode: 'single',
   activePane: 'primary',
   panes: createDefaultPanes(),
-  updatedAt: nowIso(),
-});
-
-const createHomeShellTab = () => ({
-  id: 'home',
-  kind: 'home' as const,
-  label: 'Home',
-  projectName: null,
-  sessionId: null,
-  paneId: null,
-  activeContentTab: 'chat' as const,
-  createdAt: nowIso(),
   updatedAt: nowIso(),
 });
 
@@ -83,12 +83,15 @@ export const DEFAULT_HOME_PREFERENCES: HomePreferences = {
   favorites: [],
   filters: DEFAULT_FILTERS,
   layout: createDefaultLayout(),
-  shellTabs: [createHomeShellTab()],
-  activeShellTabId: 'home',
+  shellTabs: [],
+  activeShellTabId: '',
   lastOpenedProjectName: null,
   lastOpenedSessionId: null,
   lastOpenedAt: null,
 };
+
+const arePreferencesEqual = (left: HomePreferences, right: HomePreferences) =>
+  JSON.stringify(left) === JSON.stringify(right);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -132,7 +135,8 @@ const normalizePane = (value: unknown, fallback: PaneDescriptor): PaneDescriptor
   return {
     paneId,
     sessionId: typeof value.sessionId === 'string' && value.sessionId ? value.sessionId : null,
-    projectName: typeof value.projectName === 'string' && value.projectName ? value.projectName : null,
+    projectName:
+      typeof value.projectName === 'string' && value.projectName ? value.projectName : null,
     tabId: typeof value.tabId === 'string' && value.tabId ? value.tabId : null,
     activeContentTab: isValidAppTab(value.activeContentTab) ? value.activeContentTab : 'chat',
   };
@@ -158,7 +162,10 @@ const clampFavorites = (favorites: HomeFavoriteEntry[]): HomeFavoriteEntry[] => 
   return [...workspaceFavorites, ...sessionFavorites];
 };
 
-const normalizeWorkspaceFavorite = (value: Record<string, unknown>, fallbackTime: string): FavoriteWorkspaceEntry | null => {
+const normalizeWorkspaceFavorite = (
+  value: Record<string, unknown>,
+  fallbackTime: string
+): FavoriteWorkspaceEntry | null => {
   const projectName = normalizeText(value.projectName);
   if (!projectName) {
     return null;
@@ -179,7 +186,10 @@ const normalizeWorkspaceFavorite = (value: Record<string, unknown>, fallbackTime
   };
 };
 
-const normalizeSessionFavorite = (value: Record<string, unknown>, fallbackTime: string): FavoriteSessionEntry | null => {
+const normalizeSessionFavorite = (
+  value: Record<string, unknown>,
+  fallbackTime: string
+): FavoriteSessionEntry | null => {
   const sessionId = normalizeText(value.sessionId);
   const projectName = normalizeText(value.projectName);
   const title = normalizeText(value.title, normalizeText(value.summary, 'Untitled Session'));
@@ -275,33 +285,29 @@ const normalizeLayout = (value: unknown): LayoutPreferences => {
 
 const normalizeShellTabs = (value: unknown): HomePreferences['shellTabs'] => {
   if (!Array.isArray(value)) {
-    return [createHomeShellTab()];
+    return [];
   }
 
   const normalized: HomePreferences['shellTabs'] = value
     .filter((entry): entry is Record<string, unknown> => isRecord(entry))
+    .filter((entry) => entry.kind === 'session')
     .map((entry) => {
-      const kind: HomeShellTabKind = entry.kind === 'session' ? 'session' : 'home';
+      const kind: HomeShellTabKind = 'session';
 
       return {
         id: normalizeText(entry.id) || `tab-${Math.random().toString(36).slice(2)}`,
         kind,
-        label: normalizeText(entry.label, kind === 'session' ? 'Session' : 'Home'),
+        label: normalizeText(entry.label, 'Session'),
         projectName: normalizeText(entry.projectName) || null,
         sessionId: normalizeText(entry.sessionId) || null,
-        paneId:
-          entry.paneId === 'primary' || entry.paneId === 'secondary'
-            ? entry.paneId
-            : null,
+        paneId: entry.paneId === 'primary' || entry.paneId === 'secondary' ? entry.paneId : null,
         activeContentTab: 'chat',
         createdAt: normalizeTimestamp(entry.createdAt, nowIso()),
         updatedAt: normalizeTimestamp(entry.updatedAt, nowIso()),
       };
     });
 
-  return normalized.some((entry) => entry.id === 'home')
-    ? normalized
-    : [createHomeShellTab(), ...normalized.filter((entry) => entry.kind === 'session')];
+  return normalized;
 };
 
 const normalizeHomePreferences = (value: unknown): HomePreferences => {
@@ -318,12 +324,13 @@ const normalizeHomePreferences = (value: unknown): HomePreferences => {
     filters: normalizeFilters(value.filters),
     layout: normalizeLayout(value.layout),
     shellTabs: normalizeShellTabs(value.shellTabs),
-    activeShellTabId: normalizeText(value.activeShellTabId, 'home') || 'home',
+    activeShellTabId: normalizeText(value.activeShellTabId),
     lastOpenedProjectName: normalizeText(value.lastOpenedProjectName) || null,
     lastOpenedSessionId: normalizeText(value.lastOpenedSessionId) || null,
-    lastOpenedAt: typeof value.lastOpenedAt === 'string'
-      ? normalizeTimestamp(value.lastOpenedAt, nowIso())
-      : null,
+    lastOpenedAt:
+      typeof value.lastOpenedAt === 'string'
+        ? normalizeTimestamp(value.lastOpenedAt, nowIso())
+        : null,
   };
 };
 
@@ -360,7 +367,9 @@ const migrateLegacyStarredProjects = (): FavoriteWorkspaceEntry[] => {
   }
 };
 
-export const readHomePreferencesSnapshot = (storageKey = HOME_PREFERENCES_STORAGE_KEY): HomePreferences => {
+export const readHomePreferencesSnapshot = (
+  storageKey = HOME_PREFERENCES_STORAGE_KEY
+): HomePreferences => {
   if (typeof window === 'undefined') {
     return DEFAULT_HOME_PREFERENCES;
   }
@@ -386,7 +395,7 @@ export const readHomePreferencesSnapshot = (storageKey = HOME_PREFERENCES_STORAG
 
 export const writeHomePreferencesSnapshot = (
   nextPreferences: HomePreferences,
-  options: { storageKey?: string; sourceId?: string } = {},
+  options: { storageKey?: string; sourceId?: string } = {}
 ) => {
   if (typeof window === 'undefined') {
     return;
@@ -403,19 +412,22 @@ export const writeHomePreferencesSnapshot = (
         sourceId: options.sourceId || 'external',
         value: normalized,
       },
-    }),
+    })
   );
 };
 
 function reducer(state: HomePreferences, action: HomePreferencesAction): HomePreferences {
   switch (action.type) {
-    case 'set_state':
-      return action.value;
-    case 'patch':
-      return normalizeHomePreferences({
+    case 'set_state': {
+      return arePreferencesEqual(state, action.value) ? state : action.value;
+    }
+    case 'patch': {
+      const nextState = normalizeHomePreferences({
         ...state,
         ...action.value,
       });
+      return arePreferencesEqual(state, nextState) ? state : nextState;
+    }
     default:
       return state;
   }
@@ -423,9 +435,15 @@ function reducer(state: HomePreferences, action: HomePreferencesAction): HomePre
 
 export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
   const instanceIdRef = useRef(`home-preferences-${Math.random().toString(36).slice(2)}`);
+  const suppressNextWriteRef = useRef(false);
   const [preferences, dispatch] = useReducer(reducer, storageKey, readHomePreferencesSnapshot);
 
   useEffect(() => {
+    if (suppressNextWriteRef.current) {
+      suppressNextWriteRef.current = false;
+      return;
+    }
+
     writeHomePreferencesSnapshot(preferences, {
       storageKey,
       sourceId: instanceIdRef.current,
@@ -438,6 +456,7 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
     }
 
     const apply = (value: unknown) => {
+      suppressNextWriteRef.current = true;
       dispatch({ type: 'set_state', value: normalizeHomePreferences(value) });
     };
 
@@ -456,7 +475,11 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
     const handleSync = (event: Event) => {
       const syncEvent = event as CustomEvent<SyncEventDetail>;
       const detail = syncEvent.detail;
-      if (!detail || detail.storageKey !== storageKey || detail.sourceId === instanceIdRef.current) {
+      if (
+        !detail ||
+        detail.storageKey !== storageKey ||
+        detail.sourceId === instanceIdRef.current
+      ) {
         return;
       }
 
@@ -472,12 +495,12 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
     };
   }, [storageKey]);
 
-  const api = useMemo(() => {
-    const setStartupBehavior = (startupBehavior: StartupBehavior) => {
-      dispatch({ type: 'patch', value: { startupBehavior } });
-    };
+  const setStartupBehavior = useCallback((startupBehavior: StartupBehavior) => {
+    dispatch({ type: 'patch', value: { startupBehavior } });
+  }, []);
 
-    const setFilters = (filters: Partial<HomeFilters>) => {
+  const setFilters = useCallback(
+    (filters: Partial<HomeFilters>) => {
       dispatch({
         type: 'patch',
         value: {
@@ -487,9 +510,12 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
           }),
         },
       });
-    };
+    },
+    [preferences.filters]
+  );
 
-    const setLayout = (layout: Partial<LayoutPreferences>) => {
+  const setLayout = useCallback(
+    (layout: Partial<LayoutPreferences>) => {
       dispatch({
         type: 'patch',
         value: {
@@ -500,32 +526,41 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
           }),
         },
       });
-    };
+    },
+    [preferences.layout]
+  );
 
-    const setLayoutMode = (mode: HomeLayoutMode) => {
+  const setLayoutMode = useCallback(
+    (mode: HomeLayoutMode) => {
       setLayout({ mode });
-    };
+    },
+    [setLayout]
+  );
 
-    const setShellTabs = (shellTabs: HomePreferences['shellTabs']) => {
-      dispatch({ type: 'patch', value: { shellTabs } });
-    };
+  const setShellTabs = useCallback((shellTabs: HomePreferences['shellTabs']) => {
+    dispatch({ type: 'patch', value: { shellTabs } });
+  }, []);
 
-    const setActiveShellTabId = (activeShellTabId: string) => {
-      dispatch({ type: 'patch', value: { activeShellTabId } });
-    };
+  const setActiveShellTabId = useCallback((activeShellTabId: string) => {
+    dispatch({ type: 'patch', value: { activeShellTabId } });
+  }, []);
 
-    const setActivePane = (activePane: HomePaneId) => {
+  const setActivePane = useCallback(
+    (activePane: HomePaneId) => {
       setLayout({ activePane });
-    };
+    },
+    [setLayout]
+  );
 
-    const assignSessionToPane = (
+  const assignSessionToPane = useCallback(
+    (
       paneId: HomePaneId,
       payload: {
         sessionId: string | null;
         projectName?: string | null;
         tabId?: string | null;
         activeContentTab?: PaneDescriptor['activeContentTab'];
-      },
+      }
     ) => {
       const panes = preferences.layout.panes.map((pane) =>
         pane.paneId === paneId
@@ -534,28 +569,42 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
               sessionId: payload.sessionId,
               projectName: payload.projectName ?? null,
               tabId: payload.tabId ?? null,
-              activeContentTab: payload.activeContentTab ?? (payload.sessionId ? pane.activeContentTab : 'chat'),
+              activeContentTab:
+                payload.activeContentTab ?? (payload.sessionId ? pane.activeContentTab : 'chat'),
             }
-          : pane,
+          : pane
       );
 
       setLayout({ panes, activePane: paneId });
-    };
+    },
+    [preferences.layout.panes, setLayout]
+  );
 
-    const setPaneContentTab = (paneId: HomePaneId, activeContentTab: PaneDescriptor['activeContentTab']) => {
+  const setPaneContentTab = useCallback(
+    (paneId: HomePaneId, activeContentTab: PaneDescriptor['activeContentTab']) => {
       const panes = preferences.layout.panes.map((pane) =>
         pane.paneId === paneId
           ? {
               ...pane,
               activeContentTab,
             }
-          : pane,
+          : pane
       );
 
       setLayout({ panes, activePane: paneId });
-    };
+    },
+    [preferences.layout.panes, setLayout]
+  );
 
-    const recordOpenContext = (projectName: string | null, sessionId: string | null) => {
+  const recordOpenContext = useCallback(
+    (projectName: string | null, sessionId: string | null) => {
+      if (
+        preferences.lastOpenedProjectName === projectName &&
+        preferences.lastOpenedSessionId === sessionId
+      ) {
+        return;
+      }
+
       dispatch({
         type: 'patch',
         value: {
@@ -564,9 +613,12 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
           lastOpenedAt: nowIso(),
         },
       });
-    };
+    },
+    [preferences.lastOpenedProjectName, preferences.lastOpenedSessionId]
+  );
 
-    const toggleWorkspaceFavorite = (workspace: ToggleWorkspaceFavoriteInput) => {
+  const toggleWorkspaceFavorite = useCallback(
+    (workspace: ToggleWorkspaceFavoriteInput) => {
       const id = `workspace:${workspace.projectName}`;
       const existing = preferences.favorites.find((favorite) => favorite.id === id);
 
@@ -594,13 +646,19 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
       dispatch({
         type: 'patch',
         value: {
-          favorites: clampFavorites([nextFavorite, ...preferences.favorites.filter((favorite) => favorite.id !== id)]),
+          favorites: clampFavorites([
+            nextFavorite,
+            ...preferences.favorites.filter((favorite) => favorite.id !== id),
+          ]),
         },
       });
       return true;
-    };
+    },
+    [preferences.favorites]
+  );
 
-    const toggleSessionFavorite = (session: ToggleSessionFavoriteInput) => {
+  const toggleSessionFavorite = useCallback(
+    (session: ToggleSessionFavoriteInput) => {
       const id = `session:${session.sessionId}`;
       const existing = preferences.favorites.find((favorite) => favorite.id === id);
 
@@ -632,27 +690,36 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
       dispatch({
         type: 'patch',
         value: {
-          favorites: clampFavorites([nextFavorite, ...preferences.favorites.filter((favorite) => favorite.id !== id)]),
+          favorites: clampFavorites([
+            nextFavorite,
+            ...preferences.favorites.filter((favorite) => favorite.id !== id),
+          ]),
         },
       });
       return true;
-    };
+    },
+    [preferences.favorites]
+  );
 
-    const markFavoriteAccessed = (favoriteId: string) => {
+  const markFavoriteAccessed = useCallback(
+    (favoriteId: string) => {
       dispatch({
         type: 'patch',
         value: {
           favorites: preferences.favorites.map((favorite) =>
-            favorite.id === favoriteId ? { ...favorite, lastAccessedAt: nowIso() } : favorite,
+            favorite.id === favoriteId ? { ...favorite, lastAccessedAt: nowIso() } : favorite
           ),
         },
       });
-    };
+    },
+    [preferences.favorites]
+  );
 
-    const resetHomePreferences = () => {
-      dispatch({ type: 'set_state', value: DEFAULT_HOME_PREFERENCES });
-    };
+  const resetHomePreferences = useCallback(() => {
+    dispatch({ type: 'set_state', value: DEFAULT_HOME_PREFERENCES });
+  }, []);
 
+  const api = useMemo(() => {
     return {
       setStartupBehavior,
       setFilters,
@@ -669,11 +736,25 @@ export function useHomePreferences(storageKey = HOME_PREFERENCES_STORAGE_KEY) {
       markFavoriteAccessed,
       resetHomePreferences,
     };
-  }, [preferences]);
+  }, [
+    assignSessionToPane,
+    markFavoriteAccessed,
+    recordOpenContext,
+    resetHomePreferences,
+    setActivePane,
+    setActiveShellTabId,
+    setFilters,
+    setLayout,
+    setLayoutMode,
+    setPaneContentTab,
+    setShellTabs,
+    setStartupBehavior,
+    toggleSessionFavorite,
+    toggleWorkspaceFavorite,
+  ]);
 
   return {
     preferences,
     ...api,
   };
 }
-

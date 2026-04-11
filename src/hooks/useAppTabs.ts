@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
-import { useHomePreferences } from './useHomePreferences';
 import type { AppShellTab, Project, ProjectSession } from '../types/app';
+import { useHomePreferences } from './useHomePreferences';
 
 type RootViewMode = 'landing' | 'empty';
 
@@ -13,14 +13,12 @@ type UseAppTabsArgs = {
   onRequestClearSession: () => void;
 };
 
-const HOME_TAB_ID = 'home';
-
 const toPreferenceTab = (
   tab: AppShellTab,
   existing?: {
     createdAt: string;
     updatedAt: string;
-  },
+  }
 ) => ({
   ...tab,
   paneId: null,
@@ -87,14 +85,16 @@ export function useAppTabs({
         existingShellTab?.sessionId !== sessionTab.sessionId;
 
       if (tabChanged) {
-        const nextTabs = currentShellTabs.map((tab) => (tab.id === sessionTab.id ? sessionTab : tab));
+        const nextTabs = currentShellTabs.map((tab) =>
+          tab.id === sessionTab.id ? sessionTab : tab
+        );
         setShellTabs(
           nextTabs.map((tab) =>
             toPreferenceTab(
               tab,
-              prefShellTabs.find((preferenceTab) => preferenceTab.id === tab.id),
-            ),
-          ),
+              prefShellTabs.find((preferenceTab) => preferenceTab.id === tab.id)
+            )
+          )
         );
       }
 
@@ -113,9 +113,9 @@ export function useAppTabs({
           tab,
           tab.id === sessionTab.id
             ? existingPreferenceTab
-            : prefShellTabs.find((preferenceTab) => preferenceTab.id === tab.id),
-        ),
-      ),
+            : prefShellTabs.find((preferenceTab) => preferenceTab.id === tab.id)
+        )
+      )
     );
     setActiveShellTabId(sessionTab.id);
   }, [selectedProject, selectedSession, setActiveShellTabId, setShellTabs]);
@@ -134,23 +134,12 @@ export function useAppTabs({
 
     setActiveShellTabId(tab.id);
 
-    if (tab.kind === 'home') {
-      setRootViewMode('landing');
-      onRequestClearSession();
-      navigate('/');
-      return;
-    }
-
     if (tab.sessionId) {
       navigate(`/session/${tab.sessionId}`);
     }
   };
 
   const closeShellTab = (tabId: string) => {
-    if (tabId === HOME_TAB_ID) {
-      return;
-    }
-
     const index = shellTabs.findIndex((tab) => tab.id === tabId);
     if (index < 0) {
       return;
@@ -161,9 +150,9 @@ export function useAppTabs({
       nextTabs.map((tab) =>
         toPreferenceTab(
           tab,
-          preferences.shellTabs.find((preferenceTab) => preferenceTab.id === tab.id),
-        ),
-      ),
+          preferences.shellTabs.find((preferenceTab) => preferenceTab.id === tab.id)
+        )
+      )
     );
 
     if (preferences.activeShellTabId !== tabId) {
@@ -177,15 +166,10 @@ export function useAppTabs({
       return;
     }
 
-    setActiveShellTabId(HOME_TAB_ID);
+    setActiveShellTabId('');
     setRootViewMode('empty');
     onRequestClearSession();
     navigate('/');
-  };
-
-  const activateHomeTab = () => {
-    setRootViewMode('landing');
-    selectShellTab(HOME_TAB_ID);
   };
 
   return {
@@ -195,6 +179,5 @@ export function useAppTabs({
     setRootViewMode,
     selectShellTab,
     closeShellTab,
-    activateHomeTab,
   };
 }

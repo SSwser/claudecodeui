@@ -2,7 +2,7 @@ export type SessionProvider = 'claude' | 'cursor' | 'codex' | 'gemini';
 
 export type AppTab = 'chat' | 'files' | 'shell' | 'git' | 'tasks' | 'preview' | `plugin:${string}`;
 
-export type AppShellTabKind = 'home' | 'session';
+export type AppShellTabKind = 'session';
 
 export type AppShellTab = {
   id: string;
@@ -77,4 +77,4 @@ export interface LoadingProgressMessage extends LoadingProgress {
 export type AppSocketMessage =
   | LoadingProgressMessage
   | ProjectsUpdatedMessage
-  | { type?: string;[key: string]: unknown };
+  | { type?: string; [key: string]: unknown };
