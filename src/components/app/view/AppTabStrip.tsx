@@ -50,7 +50,7 @@ export default function AppTabStrip({
 								event.preventDefault()
 								setMenuState({ tabId: tab.id, x: event.clientX, y: event.clientY })
 							}}
-							className={`group flex items-center gap-1 rounded-2xl border px-3 py-2 text-sm transition ${isActive ? 'border-primary/30 bg-primary/10 text-foreground shadow-sm' : 'border-border/60 bg-background text-muted-foreground hover:border-primary/20 hover:text-foreground'}`}
+							className={`group flex shrink-0 items-center gap-1 rounded-2xl border px-3 py-2 text-sm ${isActive ? 'border-primary/30 bg-primary/10 text-foreground shadow-sm' : 'border-border/60 bg-background text-muted-foreground hover:border-primary/20 hover:text-foreground'}`}
 						>
 							<button
 								type='button'
