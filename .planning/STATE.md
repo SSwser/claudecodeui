@@ -1,8 +1,23 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+current_phase: 04
+status: executing
+last_updated: "2026-04-11T05:59:12.847Z"
+progress:
+  total_phases: 7
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 5
+  percent: 63
+---
+
 # State: CloudCLI UI - Desktop UX Enhancement
 
 **Project:** CloudCLI UI - Desktop UX Enhancement
 **Core Value:** 清晰的组织管理
-**Current Phase:** Phase 1 - Foundation
+**Current Phase:** 04
 
 ---
 
@@ -19,14 +34,16 @@
 
 ## Current Position
 
-**Phase:** Phase 1 - Foundation
-**Plan:** 01-04 verification checkpoint
-**Status:** Automated validation and code review complete, awaiting human verification
+Phase: 04 (ui-migration) — EXECUTING
+Plan: 2 of 4
+**Phase:** Phase 4 - UI Migration
+**Plan:** 04-02 execution
+**Status:** Executing Phase 04; 04-01 complete
 
 ### Progress Bar
 
 ```
-[====                      ] Phase 1 implementation in progress (3/4 plans verified complete)
+[======                    ] Phase 4 execution in progress (1/4 plans complete)
 ```
 
 ---
@@ -41,6 +58,7 @@
 | Risk Assessment | Complete |
 
 ---
+| Phase 04 P01 | 1500 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -52,6 +70,8 @@
 - CSS Grid + LayoutContext for layout system
 - Context + Immer for state management
 - @dnd-kit for drag-and-drop (Phase 5+)
+- [Phase 04]: Extended CSS variables and Tailwind bridges for semantic surfaces, sidebar, typography, and spacing.
+- [Phase 04]: Kept shared primitive APIs stable while aligning Button, Badge, and Input to semantic tokens.
 
 ### Research Flags (need deeper research during planning)
 
@@ -62,24 +82,23 @@
 
 ### Blockers
 
-- Plan 01-04 still requires the human verification checklist for tab-strip and dual-pane interactions.
+- None for Phase 4 Wave 1 execution.
 
 ### Todo
 
-- [x] Implement Phase 1 plans 01-01 through 01-03
-- [x] Run `npm run typecheck && npm run build`
-- [x] Run Phase 1 code review gate
-- [ ] Complete 01-04 human verification checklist
-- [ ] Mark Phase 1 complete in roadmap/state after verification
+- [x] Complete 04-01 token foundation and primitive alignment
+- [ ] Complete 04-02 i18n key convention and hardcoded string gate
+- [ ] Complete 04-03 Dialog and Select migration
+- [ ] Complete 04-04 visual regression setup and Figma pilot roundtrip
 
 ---
 
 ## Session Continuity
 
 **Session started:** 2026-04-10
-**Last updated:** 2026-04-10
-**Roadmap status:** Active - Phase 1 execution underway; Phase 4 pre-start gate/backlog defined for Figma workflow
+**Last updated:** 2026-04-11
+**Roadmap status:** Active - Phase 4 execution underway; 04-01 complete and Wave 1 continuing
 
 ---
 
-*State updated: 2026-04-10*
+*State updated: 2026-04-11*
