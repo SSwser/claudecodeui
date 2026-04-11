@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { DarkModeToggle } from '../../../../shared/view/ui';
+import { Select } from '../../../ui/select';
 import type { CodeEditorSettingsState, ProjectSortOrder } from '../../types/types';
 import LanguageSelector from '../../../../shared/view/ui/LanguageSelector';
 import SettingsCard from '../SettingsCard';
@@ -55,14 +56,21 @@ export default function AppearanceSettingsTab({
             label={t('appearanceSettings.projectSorting.label')}
             description={t('appearanceSettings.projectSorting.description')}
           >
-            <select
+            <Select
               value={projectSortOrder}
-              onChange={(event) => onProjectSortOrderChange(event.target.value as ProjectSortOrder)}
-              className="w-full rounded-lg border border-input bg-card p-2.5 text-sm text-foreground touch-manipulation focus:border-primary focus:ring-1 focus:ring-primary sm:w-36"
-            >
-              <option value="name">{t('appearanceSettings.projectSorting.alphabetical')}</option>
-              <option value="date">{t('appearanceSettings.projectSorting.recentActivity')}</option>
-            </select>
+              onValueChange={(value) => onProjectSortOrderChange(value as ProjectSortOrder)}
+              options={[
+                {
+                  value: 'name',
+                  label: t('appearanceSettings.projectSorting.alphabetical'),
+                },
+                {
+                  value: 'date',
+                  label: t('appearanceSettings.projectSorting.recentActivity'),
+                },
+              ]}
+              className="w-full sm:w-36"
+            />
           </SettingsRow>
         </SettingsCard>
       </SettingsSection>
@@ -117,21 +125,15 @@ export default function AppearanceSettingsTab({
             label={t('appearanceSettings.codeEditor.fontSize.label')}
             description={t('appearanceSettings.codeEditor.fontSize.description')}
           >
-            <select
+            <Select
               value={codeEditorSettings.fontSize}
-              onChange={(event) => onCodeEditorFontSizeChange(event.target.value)}
-              className="w-full rounded-lg border border-input bg-card p-2.5 text-sm text-foreground touch-manipulation focus:border-primary focus:ring-1 focus:ring-primary sm:w-28"
-            >
-              <option value="10">10px</option>
-              <option value="11">11px</option>
-              <option value="12">12px</option>
-              <option value="13">13px</option>
-              <option value="14">14px</option>
-              <option value="15">15px</option>
-              <option value="16">16px</option>
-              <option value="18">18px</option>
-              <option value="20">20px</option>
-            </select>
+              onValueChange={onCodeEditorFontSizeChange}
+              options={['10', '11', '12', '13', '14', '15', '16', '18', '20'].map((size) => ({
+                value: size,
+                label: `${size}px`,
+              }))}
+              className="w-full sm:w-28"
+            />
           </SettingsRow>
         </SettingsCard>
       </SettingsSection>

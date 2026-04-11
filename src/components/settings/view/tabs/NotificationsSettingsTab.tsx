@@ -1,6 +1,8 @@
 import { Bell, BellOff, BellRing, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NotificationPreferencesState } from '../../types/types';
+import { Button } from '../../../ui/button';
+import SettingsToggle from '../SettingsToggle';
 
 type NotificationsSettingsTabProps = {
   notificationPreferences: NotificationPreferencesState;
@@ -30,13 +32,13 @@ export default function NotificationsSettingsTab({
     <div className="space-y-6 md:space-y-8">
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <Bell className="w-5 h-5 text-blue-600" />
+          <Bell className="h-5 w-5 text-brand" />
           <h3 className="text-lg font-medium text-foreground">{t('notifications.title')}</h3>
         </div>
         <p className="text-sm text-muted-foreground">{t('notifications.description')}</p>
       </div>
 
-      <div className="space-y-4 bg-card border border-border rounded-lg p-4">
+      <div className="space-y-4 rounded-large border border-border/70 bg-card p-4 shadow-ring">
         <h4 className="font-medium text-foreground">{t('notifications.webPush.title')}</h4>
         {!pushSupported ? (
           <p className="text-sm text-muted-foreground">{t('notifications.webPush.unsupported')}</p>
@@ -44,7 +46,7 @@ export default function NotificationsSettingsTab({
           <p className="text-sm text-muted-foreground">{t('notifications.webPush.denied')}</p>
         ) : (
           <div className="flex items-center gap-3">
-            <button
+            <Button
               type="button"
               disabled={isPushLoading}
               onClick={() => {
@@ -54,90 +56,87 @@ export default function NotificationsSettingsTab({
                   onEnablePush();
                 }
               }}
-              className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50 ${
                 isPushSubscribed
-                  ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+                  ? 'border-destructive/35 bg-destructive/10 text-destructive shadow-subtle hover:opacity-60'
+                  : 'border-border/70 bg-card text-foreground shadow-button hover:opacity-60'
               }`}
             >
               {isPushLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : isPushSubscribed ? (
-                <BellOff className="w-4 h-4" />
+                <BellOff className="h-4 w-4" />
               ) : (
-                <BellRing className="w-4 h-4" />
+                <BellRing className="h-4 w-4" />
               )}
               {isPushLoading
                 ? t('notifications.webPush.loading')
                 : isPushSubscribed
                   ? t('notifications.webPush.disable')
                   : t('notifications.webPush.enable')}
-            </button>
+            </Button>
             {isPushSubscribed && (
-              <span className="text-sm text-green-600 dark:text-green-400">
-                {t('notifications.webPush.enabled')}
-              </span>
+              <span className="text-sm text-success">{t('notifications.webPush.enabled')}</span>
             )}
           </div>
         )}
       </div>
 
-      <div className="space-y-4 bg-card border border-border rounded-lg p-4">
+      <div className="space-y-4 rounded-large border border-border/70 bg-card p-4 shadow-ring">
         <h4 className="font-medium text-foreground">{t('notifications.events.title')}</h4>
         <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm text-foreground">
-            <input
-              type="checkbox"
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-surface-2/80 p-3">
+            <span className="text-sm text-foreground">
+              {t('notifications.events.actionRequired')}
+            </span>
+            <SettingsToggle
               checked={notificationPreferences.events.actionRequired}
-              onChange={(event) =>
+              onChange={(checked) =>
                 onNotificationPreferencesChange({
                   ...notificationPreferences,
                   events: {
                     ...notificationPreferences.events,
-                    actionRequired: event.target.checked,
+                    actionRequired: checked,
                   },
                 })
               }
-              className="w-4 h-4"
+              ariaLabel={t('notifications.events.actionRequired')}
             />
-            {t('notifications.events.actionRequired')}
-          </label>
+          </div>
 
-          <label className="flex items-center gap-2 text-sm text-foreground">
-            <input
-              type="checkbox"
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-surface-2/80 p-3">
+            <span className="text-sm text-foreground">{t('notifications.events.stop')}</span>
+            <SettingsToggle
               checked={notificationPreferences.events.stop}
-              onChange={(event) =>
+              onChange={(checked) =>
                 onNotificationPreferencesChange({
                   ...notificationPreferences,
                   events: {
                     ...notificationPreferences.events,
-                    stop: event.target.checked,
+                    stop: checked,
                   },
                 })
               }
-              className="w-4 h-4"
+              ariaLabel={t('notifications.events.stop')}
             />
-            {t('notifications.events.stop')}
-          </label>
+          </div>
 
-          <label className="flex items-center gap-2 text-sm text-foreground">
-            <input
-              type="checkbox"
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-surface-2/80 p-3">
+            <span className="text-sm text-foreground">{t('notifications.events.error')}</span>
+            <SettingsToggle
               checked={notificationPreferences.events.error}
-              onChange={(event) =>
+              onChange={(checked) =>
                 onNotificationPreferencesChange({
                   ...notificationPreferences,
                   events: {
                     ...notificationPreferences.events,
-                    error: event.target.checked,
+                    error: checked,
                   },
                 })
               }
-              className="w-4 h-4"
+              ariaLabel={t('notifications.events.error')}
             />
-            {t('notifications.events.error')}
-          </label>
+          </div>
         </div>
       </div>
     </div>

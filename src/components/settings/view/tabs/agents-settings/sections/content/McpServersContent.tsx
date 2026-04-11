@@ -56,19 +56,23 @@ function ClaudeMcpServers({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <Server className="h-5 w-5 text-purple-500" />
+        <Server className="h-5 w-5 text-brand" />
         <h3 className="text-lg font-medium text-foreground">{t('mcpServers.title')}</h3>
       </div>
       <p className="text-sm text-muted-foreground">{t('mcpServers.description.claude')}</p>
 
       <div className="flex items-center justify-between">
-        <Button onClick={onAdd} className="bg-purple-600 text-white hover:bg-purple-700" size="sm">
+        <Button
+          onClick={onAdd}
+          className="bg-brand text-brand-foreground hover:opacity-90"
+          size="sm"
+        >
           <Plus className="mr-2 h-4 w-4" />
           {t('mcpServers.addButton')}
         </Button>
       </div>
       {deleteError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-200">
+        <div className="rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {deleteError}
         </div>
       )}
@@ -93,8 +97,8 @@ function ClaudeMcpServers({
                       {server.scope === 'local'
                         ? t('mcpServers.scope.local')
                         : server.scope === 'user'
-                        ? t('mcpServers.scope.user')
-                        : server.scope}
+                          ? t('mcpServers.scope.user')
+                          : server.scope}
                     </Badge>
                   </div>
 
@@ -102,7 +106,9 @@ function ClaudeMcpServers({
                     {server.type === 'stdio' && server.config?.command && (
                       <div>
                         {t('mcpServers.config.command')}:{' '}
-                        <code className="rounded bg-muted px-1 text-xs">{server.config.command}</code>
+                        <code className="rounded bg-muted px-1 text-xs">
+                          {server.config.command}
+                        </code>
                       </div>
                     )}
                     {(server.type === 'sse' || server.type === 'http') && server.config?.url && (
@@ -114,30 +120,37 @@ function ClaudeMcpServers({
                     {server.config?.args && server.config.args.length > 0 && (
                       <div>
                         {t('mcpServers.config.args')}:{' '}
-                        <code className="rounded bg-muted px-1 text-xs">{server.config.args.join(' ')}</code>
+                        <code className="rounded bg-muted px-1 text-xs">
+                          {server.config.args.join(' ')}
+                        </code>
                       </div>
                     )}
                   </div>
 
                   {testResult && (
-                    <div className={`mt-2 rounded p-2 text-xs ${
-                      testResult.success
-                        ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200'
-                        : 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-200'
-                    }`}
+                    <div
+                      className={`mt-2 rounded-xl p-2 text-xs ${
+                        testResult.success
+                          ? 'border border-success/20 bg-success/10 text-success'
+                          : 'border border-destructive/20 bg-destructive/10 text-destructive'
+                      }`}
                     >
                       <div className="font-medium">{testResult.message}</div>
                     </div>
                   )}
 
                   {toolsResult && toolsResult.tools && toolsResult.tools.length > 0 && (
-                    <div className="mt-2 rounded bg-blue-50 p-2 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
+                    <div className="mt-2 rounded-xl border border-brand/20 bg-brand/10 p-2 text-xs text-foreground">
                       <div className="font-medium">
-                        {t('mcpServers.tools.title')} {t('mcpServers.tools.count', { count: toolsResult.tools.length })}
+                        {t('mcpServers.tools.title')}{' '}
+                        {t('mcpServers.tools.count', { count: toolsResult.tools.length })}
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {toolsResult.tools.slice(0, 5).map((tool, index) => (
-                          <code key={`${tool.name}-${index}`} className="rounded bg-blue-100 px-1 dark:bg-blue-800">
+                          <code
+                            key={`${tool.name}-${index}`}
+                            className="font-code rounded bg-background/80 px-1 py-0.5 text-foreground"
+                          >
                             {tool.name}
                           </code>
                         ))}
@@ -165,7 +178,7 @@ function ClaudeMcpServers({
                     onClick={() => onDelete(serverId, server.scope)}
                     variant="ghost"
                     size="sm"
-                    className="text-red-600 hover:text-red-700"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     title={t('mcpServers.actions.delete')}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -191,19 +204,28 @@ type CursorMcpServersProps = {
   onDelete: (serverId: string) => void;
 };
 
-function CursorMcpServers({ servers, onAdd, onEdit, onDelete }: Omit<CursorMcpServersProps, 'agent'>) {
+function CursorMcpServers({
+  servers,
+  onAdd,
+  onEdit,
+  onDelete,
+}: Omit<CursorMcpServersProps, 'agent'>) {
   const { t } = useTranslation('settings');
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <Server className="h-5 w-5 text-purple-500" />
+        <Server className="h-5 w-5 text-brand" />
         <h3 className="text-lg font-medium text-foreground">{t('mcpServers.title')}</h3>
       </div>
       <p className="text-sm text-muted-foreground">{t('mcpServers.description.cursor')}</p>
 
       <div className="flex items-center justify-between">
-        <Button onClick={onAdd} className="bg-purple-600 text-white hover:bg-purple-700" size="sm">
+        <Button
+          onClick={onAdd}
+          className="bg-brand text-brand-foreground hover:opacity-90"
+          size="sm"
+        >
           <Plus className="mr-2 h-4 w-4" />
           {t('mcpServers.addButton')}
         </Button>
@@ -220,13 +242,17 @@ function CursorMcpServers({ servers, onAdd, onEdit, onDelete }: Omit<CursorMcpSe
                   <div className="mb-2 flex items-center gap-2">
                     <Terminal className="h-4 w-4" />
                     <span className="font-medium text-foreground">{server.name}</span>
-                    <Badge variant="outline" className="text-xs">stdio</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      stdio
+                    </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {server.config?.command && (
                       <div>
                         {t('mcpServers.config.command')}:{' '}
-                        <code className="rounded bg-muted px-1 text-xs">{server.config.command}</code>
+                        <code className="rounded bg-muted px-1 text-xs">
+                          {server.config.command}
+                        </code>
                       </div>
                     )}
                   </div>
@@ -245,7 +271,7 @@ function CursorMcpServers({ servers, onAdd, onEdit, onDelete }: Omit<CursorMcpSe
                     onClick={() => onDelete(serverId)}
                     variant="ghost"
                     size="sm"
-                    className="text-red-600 hover:text-red-700"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     title={t('mcpServers.actions.delete')}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -272,7 +298,13 @@ type CodexMcpServersProps = {
   deleteError?: string | null;
 };
 
-function CodexMcpServers({ servers, onAdd, onEdit, onDelete, deleteError }: Omit<CodexMcpServersProps, 'agent'>) {
+function CodexMcpServers({
+  servers,
+  onAdd,
+  onEdit,
+  onDelete,
+  deleteError,
+}: Omit<CodexMcpServersProps, 'agent'>) {
   const { t } = useTranslation('settings');
 
   return (
@@ -284,13 +316,17 @@ function CodexMcpServers({ servers, onAdd, onEdit, onDelete, deleteError }: Omit
       <p className="text-sm text-muted-foreground">{t('mcpServers.description.codex')}</p>
 
       <div className="flex items-center justify-between">
-        <Button onClick={onAdd} className="bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600" size="sm">
+        <Button
+          onClick={onAdd}
+          className="bg-brand text-brand-foreground hover:opacity-90"
+          size="sm"
+        >
           <Plus className="mr-2 h-4 w-4" />
           {t('mcpServers.addButton')}
         </Button>
       </div>
       {deleteError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-200">
+        <div className="rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {deleteError}
         </div>
       )}
@@ -303,7 +339,9 @@ function CodexMcpServers({ servers, onAdd, onEdit, onDelete, deleteError }: Omit
                 <div className="mb-2 flex items-center gap-2">
                   <Terminal className="h-4 w-4" />
                   <span className="font-medium text-foreground">{server.name}</span>
-                  <Badge variant="outline" className="text-xs">stdio</Badge>
+                  <Badge variant="outline" className="text-xs">
+                    stdio
+                  </Badge>
                 </div>
 
                 <div className="space-y-1 text-sm text-muted-foreground">
@@ -316,14 +354,18 @@ function CodexMcpServers({ servers, onAdd, onEdit, onDelete, deleteError }: Omit
                   {server.config?.args && server.config.args.length > 0 && (
                     <div>
                       {t('mcpServers.config.args')}:{' '}
-                      <code className="rounded bg-muted px-1 text-xs">{server.config.args.join(' ')}</code>
+                      <code className="rounded bg-muted px-1 text-xs">
+                        {server.config.args.join(' ')}
+                      </code>
                     </div>
                   )}
                   {server.config?.env && Object.keys(server.config.env).length > 0 && (
                     <div>
                       {t('mcpServers.config.environment')}:{' '}
                       <code className="rounded bg-muted px-1 text-xs">
-                        {Object.entries(server.config.env).map(([key, value]) => `${key}=${maskSecret(value)}`).join(', ')}
+                        {Object.entries(server.config.env)
+                          .map(([key, value]) => `${key}=${maskSecret(value)}`)
+                          .join(', ')}
                       </code>
                     </div>
                   )}
@@ -344,7 +386,7 @@ function CodexMcpServers({ servers, onAdd, onEdit, onDelete, deleteError }: Omit
                   onClick={() => onDelete(server.name)}
                   variant="ghost"
                   size="sm"
-                  className="text-red-600 hover:text-red-700"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   title={t('mcpServers.actions.delete')}
                 >
                   <Trash2 className="h-4 w-4" />
