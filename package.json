@@ -31,6 +31,7 @@
 		"typecheck": "tsc --noEmit -p tsconfig.json",
 		"lint": "eslint src/",
 		"lint:fix": "eslint src/ --fix",
+		"lint:i18n": "node scripts/check-hardcoded-strings.cjs",
 		"start": "npm run build && npm run server",
 		"release": "./release.sh",
 		"prepublishOnly": "npm run build",
