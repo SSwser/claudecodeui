@@ -6,10 +6,48 @@ import os from 'os';
 import { addProjectManually } from '../projects.js';
 
 const router = express.Router();
+const CLONE_PROGRESS_SESSION_TTL_MS = 10 * 60 * 1000;
+const cloneProgressSessions = new Map();
+const VALID_WORKSPACE_TYPES = new Set(['existing', 'new', 'logical', 'worktree']);
+const VALID_BRANCH_PATTERN = /^(?!.*\.\.)(?!.*\/$)(?!-)(?!.*\s)[A-Za-z0-9._/-]+$/;
 
 function sanitizeGitError(message, token) {
   if (!message || !token) return message;
   return message.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '***');
+}
+
+function createCloneProgressSession({ userId, workspacePath, githubUrl, githubTokenId, newGithubToken }) {
+  const sessionId = `clone-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+
+  cloneProgressSessions.set(sessionId, {
+    userId,
+    workspacePath,
+    githubUrl,
+    githubTokenId,
+    newGithubToken,
+    expiresAt: Date.now() + CLONE_PROGRESS_SESSION_TTL_MS,
+  });
+
+  return sessionId;
+}
+
+function consumeCloneProgressSession(sessionId, userId) {
+  const session = cloneProgressSessions.get(sessionId);
+  if (!session) {
+    return null;
+  }
+
+  if (session.expiresAt < Date.now() || session.userId !== userId) {
+    cloneProgressSessions.delete(sessionId);
+    return null;
+  }
+
+  cloneProgressSessions.delete(sessionId);
+  return session;
+}
+
+function sanitizeProgressMessage(message, githubToken) {
+  return sanitizeGitError(String(message || '').trim(), githubToken);
 }
 
 // Configure allowed workspace root (defaults to user's home directory)
@@ -161,28 +199,126 @@ export async function validateWorkspacePath(requestedPath) {
   }
 }
 
+function validateBranchName(branchName) {
+  if (!branchName || !VALID_BRANCH_PATTERN.test(branchName)) {
+    return {
+      valid: false,
+      error: 'Invalid branch name. Use letters, numbers, ., _, /, and - only.',
+    };
+  }
+
+  return { valid: true };
+}
+
+function normalizeWorkspacePayload(body = {}) {
+  const legacyWorkspaceType = typeof body.workspaceType === 'string' ? body.workspaceType : 'logical';
+  const normalizedWorkspaceType = legacyWorkspaceType === 'worktree' ? 'worktree' : 'logical';
+
+  return {
+    requestedWorkspaceType: legacyWorkspaceType,
+    workspaceType: normalizedWorkspaceType,
+    path: body.path,
+    githubUrl: body.githubUrl,
+    githubTokenId: body.githubTokenId,
+    newGithubToken: body.newGithubToken,
+    sourcePath: typeof body.sourcePath === 'string' ? body.sourcePath.trim() : '',
+    branchName: typeof body.branchName === 'string' ? body.branchName.trim() : '',
+    baseBranch: typeof body.baseBranch === 'string' && body.baseBranch.trim() ? body.baseBranch.trim() : 'main',
+  };
+}
+
+function spawnAsync(command, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      ...options,
+      shell: false,
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+        return;
+      }
+
+      const error = new Error(stderr || stdout || `Command failed: ${command}`);
+      error.code = code;
+      reject(error);
+    });
+  });
+}
+
+async function ensureGitRepository(projectPath) {
+  await spawnAsync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: projectPath });
+}
+
+async function createWorktreeWorkspace({ sourcePath, targetPath, branchName, baseBranch }) {
+  const branchValidation = validateBranchName(branchName);
+  if (!branchValidation.valid) {
+    throw new Error(branchValidation.error);
+  }
+
+  const baseValidation = validateBranchName(baseBranch);
+  if (!baseValidation.valid) {
+    throw new Error('Invalid base branch name');
+  }
+
+  await ensureGitRepository(sourcePath);
+  await fs.mkdir(path.dirname(targetPath), { recursive: true });
+
+  await spawnAsync(
+    'git',
+    ['worktree', 'add', '-b', branchName, targetPath, baseBranch],
+    { cwd: sourcePath },
+  );
+}
+
 /**
  * Create a new workspace
  * POST /api/projects/create-workspace
  *
  * Body:
- * - workspaceType: 'existing' | 'new'
+ * - workspaceType: 'logical' | 'worktree' (legacy 'existing' | 'new' still accepted)
  * - path: string (workspace path)
  * - githubUrl?: string (optional, for new workspaces)
  * - githubTokenId?: number (optional, ID of stored token)
  * - newGithubToken?: string (optional, one-time token)
+ * - sourcePath?: string (required for worktree mode when creating a new worktree)
+ * - branchName?: string (required for worktree mode)
+ * - baseBranch?: string (optional, defaults to main)
  */
 router.post('/create-workspace', async (req, res) => {
   try {
-    const { workspaceType, path: workspacePath, githubUrl, githubTokenId, newGithubToken } = req.body;
+    const {
+      requestedWorkspaceType,
+      workspaceType,
+      path: workspacePath,
+      githubUrl,
+      githubTokenId,
+      newGithubToken,
+      sourcePath,
+      branchName,
+      baseBranch,
+    } = normalizeWorkspacePayload(req.body);
 
     // Validate required fields
     if (!workspaceType || !workspacePath) {
       return res.status(400).json({ error: 'workspaceType and path are required' });
     }
 
-    if (!['existing', 'new'].includes(workspaceType)) {
-      return res.status(400).json({ error: 'workspaceType must be "existing" or "new"' });
+    if (!VALID_WORKSPACE_TYPES.has(requestedWorkspaceType)) {
+      return res.status(400).json({ error: 'workspaceType must be logical or worktree' });
     }
 
     // Validate path safety before any operations
@@ -196,9 +332,8 @@ router.post('/create-workspace', async (req, res) => {
 
     const absolutePath = validation.resolvedPath;
 
-    // Handle existing workspace
-    if (workspaceType === 'existing') {
-      // Check if the path exists
+    // Logical workspaces stay path-based and support the legacy existing/new payloads.
+    if (workspaceType === 'logical') {
       try {
         await fs.access(absolutePath);
         const stats = await fs.stat(absolutePath);
@@ -207,29 +342,14 @@ router.post('/create-workspace', async (req, res) => {
           return res.status(400).json({ error: 'Path exists but is not a directory' });
         }
       } catch (error) {
-        if (error.code === 'ENOENT') {
-          return res.status(404).json({ error: 'Workspace path does not exist' });
+        if (error.code !== 'ENOENT') {
+          throw error;
         }
-        throw error;
       }
 
-      // Add the existing workspace to the project list
-      const project = await addProjectManually(absolutePath);
-
-      return res.json({
-        success: true,
-        project,
-        message: 'Existing workspace added successfully'
-      });
-    }
-
-    // Handle new workspace creation
-    if (workspaceType === 'new') {
-      // Create the directory if it doesn't exist
-      await fs.mkdir(absolutePath, { recursive: true });
-
-      // If GitHub URL is provided, clone the repository
+      // If GitHub URL is provided, clone the repository into the requested folder.
       if (githubUrl) {
+        await fs.mkdir(absolutePath, { recursive: true });
         let githubToken = null;
 
         // Get GitHub token if needed
@@ -284,17 +404,97 @@ router.post('/create-workspace', async (req, res) => {
         return res.json({
           success: true,
           project,
-          message: 'New workspace created and repository cloned successfully'
+          workspaceMode: 'logical',
+          message: 'Logical workspace created and repository cloned successfully'
         });
       }
 
-      // Add the new workspace to the project list (no clone)
+      // Existing path: attach. Missing path: create and attach.
+      await fs.mkdir(absolutePath, { recursive: true });
       const project = await addProjectManually(absolutePath);
 
       return res.json({
         success: true,
         project,
-        message: 'New workspace created successfully'
+        workspaceMode: 'logical',
+        message: 'Logical workspace is ready'
+      });
+    }
+
+    if (workspaceType === 'worktree') {
+      if (!branchName) {
+        return res.status(400).json({
+          error: 'branchName is required for worktree mode',
+        });
+      }
+
+      const branchValidation = validateBranchName(branchName);
+      if (!branchValidation.valid) {
+        return res.status(400).json({
+          error: branchValidation.error,
+        });
+      }
+
+      const targetExists = await fs.access(absolutePath).then(() => true).catch(() => false);
+
+      // Existing worktree association flow.
+      if (targetExists && !sourcePath) {
+        await ensureGitRepository(absolutePath);
+        const project = await addProjectManually(absolutePath);
+
+        return res.json({
+          success: true,
+          project,
+          workspaceMode: 'worktree',
+          metadata: {
+            branchName,
+            baseBranch,
+            associationOnly: true,
+          },
+          message: 'Existing worktree associated successfully',
+        });
+      }
+
+      if (!sourcePath) {
+        return res.status(400).json({
+          error: 'sourcePath is required to create a new worktree workspace',
+        });
+      }
+
+      if (targetExists) {
+        return res.status(409).json({
+          error: 'Target path already exists',
+          details: 'Choose an empty path for the new worktree or leave sourcePath empty to associate an existing worktree.',
+        });
+      }
+
+      const sourceValidation = await validateWorkspacePath(sourcePath);
+      if (!sourceValidation.valid) {
+        return res.status(400).json({
+          error: 'Invalid sourcePath for worktree mode',
+          details: sourceValidation.error,
+        });
+      }
+
+      await createWorktreeWorkspace({
+        sourcePath: sourceValidation.resolvedPath,
+        targetPath: absolutePath,
+        branchName,
+        baseBranch,
+      });
+
+      const project = await addProjectManually(absolutePath);
+
+      return res.json({
+        success: true,
+        project,
+        workspaceMode: 'worktree',
+        metadata: {
+          sourcePath: sourceValidation.resolvedPath,
+          branchName,
+          baseBranch,
+        },
+        message: 'Worktree workspace created successfully',
       });
     }
 
@@ -329,11 +529,33 @@ async function getGithubTokenById(tokenId, userId) {
 }
 
 /**
+ * Start a clone progress session without sending one-time git credentials in the URL.
+ * POST /api/projects/clone-progress/start
+ */
+router.post('/clone-progress/start', async (req, res) => {
+  const { path: workspacePath, githubUrl, githubTokenId, newGithubToken } = req.body || {};
+
+  if (!workspacePath || !githubUrl) {
+    return res.status(400).json({ error: 'workspacePath and githubUrl are required' });
+  }
+
+  const sessionId = createCloneProgressSession({
+    userId: req.user.id,
+    workspacePath,
+    githubUrl,
+    githubTokenId,
+    newGithubToken,
+  });
+
+  return res.json({ sessionId });
+});
+
+/**
  * Clone repository with progress streaming (SSE)
  * GET /api/projects/clone-progress
  */
 router.get('/clone-progress', async (req, res) => {
-  const { path: workspacePath, githubUrl, githubTokenId, newGithubToken } = req.query;
+  const { sessionId } = req.query;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -345,11 +567,20 @@ router.get('/clone-progress', async (req, res) => {
   };
 
   try {
-    if (!workspacePath || !githubUrl) {
-      sendEvent('error', { message: 'workspacePath and githubUrl are required' });
+    if (!sessionId || typeof sessionId !== 'string') {
+      sendEvent('error', { message: 'clone session is required' });
       res.end();
       return;
     }
+
+    const cloneSession = consumeCloneProgressSession(sessionId, req.user.id);
+    if (!cloneSession) {
+      sendEvent('error', { message: 'clone session expired or is invalid' });
+      res.end();
+      return;
+    }
+
+    const { workspacePath, githubUrl, githubTokenId, newGithubToken } = cloneSession;
 
     const validation = await validateWorkspacePath(workspacePath);
     if (!validation.valid) {
@@ -415,14 +646,14 @@ router.get('/clone-progress', async (req, res) => {
     let lastError = '';
 
     gitProcess.stdout.on('data', (data) => {
-      const message = data.toString().trim();
+      const message = sanitizeProgressMessage(data, githubToken);
       if (message) {
         sendEvent('progress', { message });
       }
     });
 
     gitProcess.stderr.on('data', (data) => {
-      const message = data.toString().trim();
+      const message = sanitizeProgressMessage(data, githubToken);
       lastError = message;
       if (message) {
         sendEvent('progress', { message });
@@ -463,7 +694,7 @@ router.get('/clone-progress', async (req, res) => {
       if (error.code === 'ENOENT') {
         sendEvent('error', { message: 'Git is not installed or not in PATH' });
       } else {
-        sendEvent('error', { message: error.message });
+        sendEvent('error', { message: sanitizeGitError(error.message, githubToken) });
       }
       res.end();
     });
@@ -473,7 +704,7 @@ router.get('/clone-progress', async (req, res) => {
     });
 
   } catch (error) {
-    sendEvent('error', { message: error.message });
+    sendEvent('error', { message: sanitizeGitError(error.message, null) });
     res.end();
   }
 });
@@ -520,15 +751,16 @@ function cloneGitHubRepository(githubUrl, destinationPath, githubToken = null) {
         resolve({ stdout, stderr });
       } else {
         let errorMessage = 'Git clone failed';
+        const sanitizedStderr = sanitizeGitError(stderr, githubToken);
 
-        if (stderr.includes('Authentication failed') || stderr.includes('could not read Username')) {
+        if (sanitizedStderr.includes('Authentication failed') || sanitizedStderr.includes('could not read Username')) {
           errorMessage = 'Authentication failed. Please check your GitHub token.';
-        } else if (stderr.includes('Repository not found')) {
+        } else if (sanitizedStderr.includes('Repository not found')) {
           errorMessage = 'Repository not found. Please check the URL and ensure you have access.';
-        } else if (stderr.includes('already exists')) {
+        } else if (sanitizedStderr.includes('already exists')) {
           errorMessage = 'Directory already exists';
-        } else if (stderr) {
-          errorMessage = stderr;
+        } else if (sanitizedStderr) {
+          errorMessage = sanitizedStderr;
         }
 
         reject(new Error(errorMessage));

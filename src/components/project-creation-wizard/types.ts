@@ -1,6 +1,6 @@
 export type WizardStep = 1 | 2 | 3;
 
-export type WorkspaceType = 'existing' | 'new';
+export type WorkspaceType = 'logical' | 'worktree';
 
 export type TokenMode = 'stored' | 'new' | 'none';
 
@@ -37,6 +37,12 @@ export type CreateFolderResponse = {
 export type CreateWorkspacePayload = {
   workspaceType: WorkspaceType;
   path: string;
+  sourcePath?: string;
+  branchName?: string;
+  baseBranch?: string;
+  githubUrl?: string;
+  githubTokenId?: string;
+  newGithubToken?: string;
 };
 
 export type CreateWorkspaceResponse = {
@@ -55,6 +61,9 @@ export type CloneProgressEvent = {
 export type WizardFormState = {
   workspaceType: WorkspaceType;
   workspacePath: string;
+  sourcePath: string;
+  branchName: string;
+  baseBranch: string;
   githubUrl: string;
   tokenMode: TokenMode;
   selectedGithubToken: string;

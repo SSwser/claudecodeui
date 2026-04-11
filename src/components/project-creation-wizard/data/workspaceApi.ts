@@ -22,6 +22,11 @@ type CloneProgressHandlers = {
   onProgress: (message: string) => void;
 };
 
+type CreateCloneSessionResponse = {
+  sessionId?: string;
+  error?: string;
+};
+
 const parseJson = async <T>(response: Response): Promise<T> => {
   const data = (await response.json()) as T;
   return data;
@@ -75,42 +80,21 @@ export const createWorkspaceRequest = async (payload: CreateWorkspacePayload) =>
   return data.project;
 };
 
-const buildCloneProgressQuery = ({
-  workspacePath,
-  githubUrl,
-  tokenMode,
-  selectedGithubToken,
-  newGithubToken,
-}: CloneWorkspaceParams) => {
-  const query = new URLSearchParams({
-    path: workspacePath.trim(),
-    githubUrl: githubUrl.trim(),
-  });
-
-  if (tokenMode === 'stored' && selectedGithubToken) {
-    query.set('githubTokenId', selectedGithubToken);
-  }
-
-  if (tokenMode === 'new' && newGithubToken.trim()) {
-    query.set('newGithubToken', newGithubToken.trim());
-  }
-
-  // EventSource cannot send custom headers, so the auth token is passed as query.
+export const cloneWorkspaceWithProgress = async (
+  params: CloneWorkspaceParams,
+  handlers: CloneProgressHandlers,
+): Promise<Record<string, unknown> | undefined> => {
+  const startResponse = await authenticatedCloneProgressSession(params);
   const authToken = localStorage.getItem('auth-token');
+  const query = new URLSearchParams({ sessionId: startResponse.sessionId || '' });
+
   if (authToken) {
     query.set('token', authToken);
   }
 
-  return query.toString();
-};
+  const eventSource = new EventSource(`/api/projects/clone-progress?${query.toString()}`);
 
-export const cloneWorkspaceWithProgress = (
-  params: CloneWorkspaceParams,
-  handlers: CloneProgressHandlers,
-) =>
-  new Promise<Record<string, unknown> | undefined>((resolve, reject) => {
-    const query = buildCloneProgressQuery(params);
-    const eventSource = new EventSource(`/api/projects/clone-progress?${query}`);
+  return new Promise<Record<string, unknown> | undefined>((resolve, reject) => {
     let settled = false;
 
     const settle = (callback: () => void) => {
@@ -118,7 +102,7 @@ export const cloneWorkspaceWithProgress = (
         return;
       }
       settled = true;
-      eventSource.close();
+      eventSource?.close();
       callback();
     };
 
@@ -148,3 +132,21 @@ export const cloneWorkspaceWithProgress = (
       settle(() => reject(new Error('Connection lost during clone')));
     };
   });
+};
+
+const authenticatedCloneProgressSession = async (params: CloneWorkspaceParams) => {
+  const response = await api.post('/projects/clone-progress/start', {
+    path: params.workspacePath.trim(),
+    githubUrl: params.githubUrl.trim(),
+    githubTokenId: params.tokenMode === 'stored' && params.selectedGithubToken ? params.selectedGithubToken : undefined,
+    newGithubToken: params.tokenMode === 'new' && params.newGithubToken.trim() ? params.newGithubToken.trim() : undefined,
+  });
+
+  const data = await parseJson<CreateCloneSessionResponse>(response);
+
+  if (!response.ok || !data.sessionId) {
+    throw new Error(data.error || 'Failed to start clone session');
+  }
+
+  return data;
+};
