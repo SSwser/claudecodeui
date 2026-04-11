@@ -279,7 +279,7 @@ export default function ClaudeMcpFormModal({
                         label: `${t('mcpForm.fields.selectProject')}...`,
                       },
                       ...projects.map((project) => ({
-                        value: project.path || project.fullPath,
+                        value: project.path ?? project.fullPath ?? project.name,
                         label: project.displayName || project.name,
                       })),
                     ]}

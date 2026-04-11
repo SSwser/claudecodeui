@@ -9,6 +9,7 @@ type AppTabStripProps = {
   activeTabId: string;
   onSelectTab: (tabId: string) => void;
   onCloseTab: (tabId: string) => void;
+  onActivateHome?: () => void;
   onAddTab: () => void;
 };
 
