@@ -49,10 +49,10 @@ Configured Playwright visual regression coverage for Phase 4 surfaces, captured 
 
 ## Task Results
 
-| Task | Status | Commit | Notes |
-|------|--------|--------|-------|
-| 1 | Complete | da8f247 | Added Playwright config, baseline spec, npm scripts, gitignore entries, test hooks, and Figma pilot document |
-| 2 | Complete | human-approved | Human verification approved after baseline generation and comparison run |
+| Task | Status   | Commit         | Notes                                                                                                        |
+| ---- | -------- | -------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1    | Complete | da8f247        | Added Playwright config, baseline spec, npm scripts, gitignore entries, test hooks, and Figma pilot document |
+| 2    | Complete | human-approved | Human verification approved after baseline generation and comparison run                                     |
 
 ## Verification
 
@@ -68,6 +68,7 @@ Configured Playwright visual regression coverage for Phase 4 surfaces, captured 
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Adapted visual baseline routes to the current app entrypoints**
+
 - **Found during:** Task 1 implementation
 - **Issue:** The plan examples referenced `/login` and `/settings` routes that do not exist in the current router; forcing those routes would only produce 404 or unrelated states.
 - **Fix:** Baselines were adapted to the existing `/` route, with shell-only screenshots gated by real UI availability and `data-testid` hooks.

@@ -1,6 +1,6 @@
 ---
 phase: 04-ui-migration
-plan: "03"
+plan: '03'
 subsystem: primitive-migration
 tags:
   - dialog
@@ -38,10 +38,10 @@ Replaced the local Dialog and Select primitives with accessible, semantic-token 
 
 ## Task Results
 
-| Task | Status | Commit | Notes |
-|------|--------|--------|-------|
-| 1 | Complete | 0916b78 | Rebuilt Dialog with portal mounting, backdrop close, Escape handling, focus management, and shared context |
-| 2 | Complete | d5b9565 | Replaced Select with a keyboard-accessible combobox/listbox implementation and semantic option states |
+| Task | Status   | Commit  | Notes                                                                                                      |
+| ---- | -------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| 1    | Complete | 0916b78 | Rebuilt Dialog with portal mounting, backdrop close, Escape handling, focus management, and shared context |
+| 2    | Complete | d5b9565 | Replaced Select with a keyboard-accessible combobox/listbox implementation and semantic option states      |
 
 ## Verification
 

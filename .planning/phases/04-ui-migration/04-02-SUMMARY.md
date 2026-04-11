@@ -1,6 +1,6 @@
 ---
 phase: 04-ui-migration
-plan: "02"
+plan: '02'
 subsystem: i18n-guardrails
 tags:
   - i18n
@@ -40,10 +40,10 @@ Defined the i18n naming convention and migration reference for all loaded Englis
 
 ## Task Results
 
-| Task | Status | Commit | Notes |
-|------|--------|--------|-------|
-| 1 | Complete | ed57346 | Added naming convention, grouped key inventory, and migration strategy document |
-| 2 | Complete | 2d6499b | Added hardcoded JSX string checker and `lint:i18n` package script |
+| Task | Status   | Commit  | Notes                                                                           |
+| ---- | -------- | ------- | ------------------------------------------------------------------------------- |
+| 1    | Complete | ed57346 | Added naming convention, grouped key inventory, and migration strategy document |
+| 2    | Complete | 2d6499b | Added hardcoded JSX string checker and `lint:i18n` package script               |
 
 ## Verification
 

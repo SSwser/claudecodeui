@@ -1,6 +1,6 @@
 ---
 phase: 04-ui-migration
-plan: "01"
+plan: '01'
 subsystem: ui-foundation
 tags:
   - tokens
@@ -45,10 +45,10 @@ Semantic token foundation expanded across CSS variables and Tailwind bridges, wi
 
 ## Task Results
 
-| Task | Status | Commit | Notes |
-|------|--------|--------|-------|
-| 1 | Complete | 870dbc5 | Added surface, sidebar, typography, and spacing tokens plus Tailwind bridges |
-| 2 | Complete | 7f2002a | Updated Button, Badge, and Input to semantic token usage and added required variants |
+| Task | Status   | Commit  | Notes                                                                                |
+| ---- | -------- | ------- | ------------------------------------------------------------------------------------ |
+| 1    | Complete | 870dbc5 | Added surface, sidebar, typography, and spacing tokens plus Tailwind bridges         |
+| 2    | Complete | 7f2002a | Updated Button, Badge, and Input to semantic token usage and added required variants |
 
 ## Verification
 
@@ -62,6 +62,7 @@ Semantic token foundation expanded across CSS variables and Tailwind bridges, wi
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Worked around broken pre-commit hook execution**
+
 - **Found during:** Task 2 commit
 - **Issue:** Repository `lint-staged` failed with `fatal: Needed a single revision`, blocking a normal commit even after typecheck passed.
 - **Fix:** Re-ran the equivalent ESLint checks directly on the staged primitive files, confirmed only warnings, then completed the commit with `--no-verify`.
