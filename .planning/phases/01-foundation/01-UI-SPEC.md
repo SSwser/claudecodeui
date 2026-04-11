@@ -1,7 +1,7 @@
 ---
 phase: 01
 slug: foundation
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-11
@@ -137,11 +137,12 @@ Accent reserved for: primary CTA buttons, active shell tab/highlight, focused in
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG (non-blocking)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** VERIFIED (2026-04-11)
+**Notes:** Visual dimension has two non-blocking recommendations: define a primary focal point and add icon-only a11y fallback conventions.
