@@ -231,3 +231,22 @@ Phase 1 (Foundation)
 Plans:
 
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.2: 参考 design.md 统一视觉风格 (BACKLOG)
+
+**Goal:** 以 DESIGN.md 中的 Raycast 风格设计系统为基准，全面统一应用视觉语言——包括色彩 token、排版比例、圆角、阴影、间距以及组件样式，使 UI 风格一致且具有品牌辨识度。
+
+**Context:**
+
+- `DESIGN.md` 定义了 Raycast 启发的暗色主题：近黑背景 `#07080a`、Raycast Red `#FF6363`、Inter 字体、多层 macOS 原生阴影
+- 当前代码库使用 Tailwind semantic CSS variable token，与 DESIGN.md 的色板存在差距
+- Phase 1 UI-SPEC 已锁定当前阶段的交互合约；本 backlog 针对品牌视觉层的系统性对齐
+- 需要更新 `src/index.css`（CSS 变量）、`tailwind.config.js`（token 映射）以及相关组件的 class 用法
+- 优先保证 dark 模式一致性；light 模式适配可作为子任务
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (promote with /gsd-review-backlog when ready)
