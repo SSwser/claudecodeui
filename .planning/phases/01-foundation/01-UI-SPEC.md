@@ -91,35 +91,41 @@ Accent reserved for: primary CTA buttons, active shell tab/highlight, focused in
 ## UAT-Driven Adjustment Contract (2026-04-11)
 
 1. Landing and login routing contract
+
 - Auth gate remains first: unauthenticated users see login/setup first.
 - After successful auth, root route must resolve to landing state when no explicit session route is present.
 - Landing state is a chrome-light state: no shell tab strip, no persistent desktop sidebar.
 
-2. Sidebar visibility on landing
+1. Sidebar visibility on landing
+
 - Desktop sidebar is hidden when root view mode is landing.
 - Mobile overlay nav remains available via menu button only; it is not open by default on landing.
 - Sidebar appears only after entering project/session context.
 
-3. Tab flicker and lifecycle contract
+1. Tab flicker and lifecycle contract
+
 - Shell tab strip mounts only in shell state, never in landing state.
 - Home tab behavior is deterministic: selecting Home returns to landing and removes transient empty-shell visual residue.
 - Add-tab behavior is explicit: if project context exists, create new session draft; if no project context, route to landing create flow.
 - Tab close must always update active tab and route in one transition; no intermediate flashing state.
 
-4. Dual-pane functional contract
+1. Dual-pane functional contract
+
 - Entering dual mode requires a valid primary session context.
 - Secondary pane always receives explicit session assignment (sessionId + projectName + tabId).
 - Returning to single mode always clears secondary pane state.
 - Pane content tabs are independent, and switching one pane must not mutate the other pane active tab.
 
-5. Workspace flow alignment contract
+1. Workspace flow alignment contract
+
 - Wizard step 2 fields are mode-gated and validation-gated:
   - logical mode requires workspace path; optional github clone fields only when URL exists.
   - worktree mode requires workspace path + source path + branch name.
 - Review step mirrors submitted payload exactly (no hidden defaults that change mode intent).
 - All validation copy must explain next action, not only report missing field.
 
-6. Visual polish baseline for Phase 1
+1. Visual polish baseline for Phase 1
+
 - Landing sections (hero, filters, favorites, recent list) share consistent corner radius tiers (12/16/24) and single shadow depth scale.
 - Stateful controls (tabs, filter chips, favorite actions) use one interaction language: hover, focus-visible, active, disabled.
 - Contrast baseline: body text and key metadata must meet WCAG AA against both light and dark theme surfaces.
