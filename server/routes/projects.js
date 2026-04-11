@@ -422,6 +422,12 @@ router.post('/create-workspace', async (req, res) => {
     }
 
     if (workspaceType === 'worktree') {
+      if (!sourcePath) {
+        return res.status(400).json({
+          error: 'sourcePath is required for worktree mode',
+        });
+      }
+
       if (!branchName) {
         return res.status(400).json({
           error: 'branchName is required for worktree mode',
@@ -437,8 +443,15 @@ router.post('/create-workspace', async (req, res) => {
 
       const targetExists = await fs.access(absolutePath).then(() => true).catch(() => false);
 
-      // Existing worktree association flow.
-      if (targetExists && !sourcePath) {
+      const sourceValidation = await validateWorkspacePath(sourcePath);
+      if (!sourceValidation.valid) {
+        return res.status(400).json({
+          error: 'Invalid sourcePath for worktree mode',
+          details: sourceValidation.error,
+        });
+      }
+
+      if (targetExists) {
         await ensureGitRepository(absolutePath);
         const project = await addProjectManually(absolutePath);
 
@@ -447,32 +460,12 @@ router.post('/create-workspace', async (req, res) => {
           project,
           workspaceMode: 'worktree',
           metadata: {
+            sourcePath: sourceValidation.resolvedPath,
             branchName,
             baseBranch,
             associationOnly: true,
           },
           message: 'Existing worktree associated successfully',
-        });
-      }
-
-      if (!sourcePath) {
-        return res.status(400).json({
-          error: 'sourcePath is required to create a new worktree workspace',
-        });
-      }
-
-      if (targetExists) {
-        return res.status(409).json({
-          error: 'Target path already exists',
-          details: 'Choose an empty path for the new worktree or leave sourcePath empty to associate an existing worktree.',
-        });
-      }
-
-      const sourceValidation = await validateWorkspacePath(sourcePath);
-      if (!sourceValidation.valid) {
-        return res.status(400).json({
-          error: 'Invalid sourcePath for worktree mode',
-          details: sourceValidation.error,
         });
       }
 

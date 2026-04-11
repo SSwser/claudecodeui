@@ -162,6 +162,9 @@ export default function StepConfiguration({
                 className="w-full"
                 disabled={isCreating}
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t('projectWizard.step2.baseBranchHelp')}
+              </p>
             </div>
           </div>
 

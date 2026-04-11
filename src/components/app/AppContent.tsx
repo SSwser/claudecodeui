@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../sidebar/view/Sidebar';
 import MainContent from '../main-content/view/MainContent';
 import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useAppTabs } from '../../hooks/useAppTabs';
 import { useDeviceSettings } from '../../hooks/useDeviceSettings';
 import { useSessionProtection } from '../../hooks/useSessionProtection';
 import { useProjectsState } from '../../hooks/useProjectsState';
@@ -64,7 +65,22 @@ export default function AppContent() {
     isMobile,
     activeSessions,
   });
-  const [rootViewMode, setRootViewMode] = useState<'landing' | 'empty'>('landing');
+
+  const {
+    rootViewMode,
+    startupRestoreSessionId,
+    openLandingView,
+    openEmptyShell,
+  } = useAppTabs({
+    projects,
+    selectedProject,
+    selectedSession,
+    sessionId,
+    startupBehavior,
+    lastOpenedSessionId,
+    navigate,
+    onRequestClearSession: clearSelectedSessionSelection,
+  });
 
   const resolveSessionContext = useMemo(
     () => (targetSessionId: string) => {
@@ -89,7 +105,7 @@ export default function AppContent() {
     [projects]
   );
 
-  const showDesktopSidebar = Boolean(sessionId || selectedSession || rootViewMode === 'empty');
+  const showDesktopSidebar = rootViewMode === 'empty';
 
   useEffect(() => {
     // Chat/session flows call this bridge to refresh sidebar data without forcing a full loading state.
@@ -113,23 +129,31 @@ export default function AppContent() {
   }, [openSettings]);
 
   useEffect(() => {
-    if (sessionId || isLoadingProjects || startupResolvedRef.current) {
+    if (sessionId) {
+      startupResolvedRef.current = true;
+      return;
+    }
+
+    if (isLoadingProjects || startupResolvedRef.current) {
       return;
     }
 
     startupResolvedRef.current = true;
 
-    if (startupBehavior !== 'landing' && lastOpenedSessionId) {
-      navigate(`/session/${lastOpenedSessionId}`, { replace: true });
-      setRootViewMode('landing');
+    if (startupRestoreSessionId) {
+      openEmptyShell();
+      navigate(`/session/${startupRestoreSessionId}`, { replace: true });
+      return;
     }
+    // Root-route landings must clear any stale selected session so the landing view stays chrome-light.
+    openLandingView();
   }, [
     isLoadingProjects,
-    lastOpenedSessionId,
     navigate,
+    openEmptyShell,
+    openLandingView,
     sessionId,
-    setRootViewMode,
-    startupBehavior,
+    startupRestoreSessionId,
   ]);
 
   useEffect(() => {
@@ -156,6 +180,7 @@ export default function AppContent() {
         return;
       }
 
+      openLandingView();
       navigate('/');
     };
 
@@ -164,7 +189,7 @@ export default function AppContent() {
     return () => {
       navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
     };
-  }, [navigate, refreshProjectsSilently, setActiveTab, setSidebarOpen]);
+  }, [navigate, openLandingView, refreshProjectsSilently, setActiveTab, setSidebarOpen]);
 
   // Permission recovery: query pending permissions on WebSocket reconnect or session change
   useEffect(() => {
@@ -267,13 +292,14 @@ export default function AppContent() {
                 onOpenWorkspace: (projectName: string) => {
                   const project = projects.find((entry) => entry.name === projectName);
                   if (project) {
-                    setRootViewMode('empty');
+                    openEmptyShell();
                     handleProjectSelect(project);
                   }
                 },
                 onOpenSession: (targetSessionId: string) => {
                   const context = resolveSessionContext(targetSessionId);
                   if (context) {
+                    openEmptyShell();
                     handleSessionSelect(context.session);
                   }
                 },
@@ -281,13 +307,13 @@ export default function AppContent() {
                 onToggleSessionFavorite: toggleSessionFavoriteById,
                 onCreateSession: () => {
                   if (selectedProject) {
-                    setRootViewMode('empty');
+                    openEmptyShell();
                     handleNewSession(selectedProject);
                     return;
                   }
 
                   if (projects[0]) {
-                    setRootViewMode('empty');
+                    openEmptyShell();
                     handleNewSession(projects[0]);
                     return;
                   }
