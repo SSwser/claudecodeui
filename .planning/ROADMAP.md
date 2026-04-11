@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Foundation** - Landing Page + Layout Infrastructure
+- [~] **Phase 1: Foundation** - Landing Page + Layout Infrastructure
 - [ ] **Phase 2: Core Sessions** - Project Management + Session Lifecycle
 - [ ] **Phase 3: Virtual Sessions** - Hybrid Branching + Timeline
 - [ ] **Phase 4: UI Migration** - Component Library + i18n
@@ -42,6 +42,7 @@
 **Requirements:** LAND-01, LAND-02, LAND-03, LAND-04, LAND-05, LAND-06, LAND-07, LAY-01, LAY-02, LAY-03, LAY-04, LAY-05
 
 **Success Criteria** (what must be TRUE):
+
 1. User sees Landing Page on app launch instead of direct session entry
 2. User sees list of 10 most recent projects on Landing Page
 3. User sees list of 10 most recent sessions on Landing Page
@@ -55,10 +56,11 @@
 **Plans:** 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md - Home-state contracts, persistence, and LayoutContext foundation
-- [ ] 01-02-PLAN.md - Workspace creation modes and wizard contract update
-- [ ] 01-03-PLAN.md - Landing page UI, favorites, recent activity, and startup routing
-- [ ] 01-04-PLAN.md - Browser-style tabs and single/dual-pane shell behaviors
+
+- [x] 01-01-PLAN.md - Home-state contracts, persistence, and LayoutContext foundation
+- [x] 01-02-PLAN.md - Workspace creation modes and wizard contract update
+- [x] 01-03-PLAN.md - Landing page UI, favorites, recent activity, and startup routing
+- [ ] 01-04-PLAN.md - Browser-style tabs and single/dual-pane shell behaviors (awaiting human verification)
 
 **UI hint:** yes
 
@@ -73,6 +75,7 @@ Plans:
 **Requirements:** PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05, PROJ-06, SESS-01, SESS-02, SESS-03, SESS-04, SESS-05, SESS-06, SESS-07, SESS-08
 
 **Success Criteria** (what must be TRUE):
+
 1. System automatically discovers and displays projects in user directory
 2. Git worktrees are detected and shown as separate entries under parent project
 3. User can create, rename, and delete Workspaces within a project
@@ -97,6 +100,7 @@ Plans:
 **Requirements:** VIRT-01, VIRT-02, VIRT-03, VIRT-04, VIRT-05, VIRT-06, VIRT-07, VIRT-08, VIRT-09, VIRT-10
 
 **Success Criteria** (what must be TRUE):
+
 1. System displays real-time context usage percentage for each session
 2. Warning appears when context reaches 80% capacity
 3. System automatically creates a new branch when context approaches limits, visible as a notification but not blocking user flow
@@ -119,6 +123,7 @@ Plans:
 **Requirements:** UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07
 
 **Success Criteria** (what must be TRUE):
+
 1. Component library evaluation completed with selection documented
 2. CSS variable system covers all themeable properties (colors, spacing, typography)
 3. All existing i18n translation keys are audited and mapped to new structure
@@ -126,6 +131,18 @@ Plans:
 5. New features use component library exclusively
 6. CI prevents new hardcoded strings from being added (i18n enforcement)
 7. Visual regression tests catch unintended UI changes during migration
+
+**Phase 4 Entry Gate** (must be done before official start):
+
+1. Figma integration rules are documented in `docs/figma/INTEGRATION-RULES.md`
+2. Figma-to-code checklist is documented in `docs/figma/FIGMA-TO-CODE-CHECKLIST.md`
+3. MCP / Code Connect workflow guidance is documented in `docs/figma/MCP-CODE-CONNECT-WORKFLOW.md`
+
+**Backlog (pre-Phase 4 and Phase 4 support):**
+
+- [ ] Add one pilot screen roundtrip record (Design -> Code -> Design delta -> Code)
+- [ ] Add CI-friendly checklist verification note for UI PR template
+- [ ] Add component mapping starter list for Code Connect high-frequency primitives
 
 **Plans:** TBD
 
@@ -138,6 +155,7 @@ Plans:
 **Requirements:** MPAN-01, MPAN-02, MPAN-03, MPAN-04, KBN-01, KBN-02, KBN-03
 
 **Success Criteria** (what must be TRUE):
+
 1. User can arrange multiple sessions in a grid layout (1x1, 2x2, 1x3 configurations)
 2. Each pane renders an independent session interface
 3. Panes can be resized by user interaction
@@ -173,7 +191,7 @@ Phase 1 (Foundation)
 | Phase 1 | Landing Page performance with large project lists; Layout persistence edge cases |
 | Phase 2 | Database migration for session schema; Worktree detection reliability |
 | Phase 3 | Context compression quality; Branch continuity during auto-branch |
-| Phase 4 | Tailwind + shadcn style conflicts; i18n key mapping completeness |
+| Phase 4 | Tailwind + shadcn style conflicts; i18n key mapping completeness; Figma workflow adoption consistency |
 | Phase 5 | Multiple ChatInterface performance; Cross-pane WebSocket sync complexity |
 
 ---
@@ -182,7 +200,7 @@ Phase 1 (Foundation)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/4 | Not started | - |
+| 1. Foundation | 3/4 | In progress | 01-01, 01-02, 01-03 |
 | 2. Core Sessions | 0/3 | Not started | - |
 | 3. Virtual Sessions | 0/3 | Not started | - |
 | 4. UI Migration | 0/3 | Not started | - |
@@ -190,4 +208,26 @@ Phase 1 (Foundation)
 
 ---
 
-*Last updated: 2026-04-10*
+*Last updated: 2026-04-11*
+
+---
+
+## Backlog
+
+### Phase 999.1: Dev Login Skip or Credential Management (BACKLOG)
+
+**Goal:** 评估并实现开发体验优化：在开发环境通过环境变量自动跳过登录，或开发完整的免登录用户凭证管理功能。
+
+**Context:**
+
+- 应用当前有登录页面，每次开发调试需要手动登录，影响迭代效率
+- 方案 A（轻量）：读取 `DEV_AUTO_LOGIN` 环境变量，开发模式下自动注入测试凭证，绕过登录页面
+- 方案 B（完整）：设计无感知凭证管理，支持持久化 token、自动刷新、多账号切换
+- 需评估安全边界：方案 A 必须严格限制为开发/测试环境，不能泄漏到生产构建
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (promote with /gsd-review-backlog when ready)
