@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: null
 status: completed
-last_updated: '2026-04-11T15:05:00.000Z'
+last_updated: '2026-04-11T15:27:00.000Z'
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 7
+  completed_phases: 4
+  total_plans: 20
+  completed_plans: 20
   percent: 100
 ---
 
@@ -34,35 +34,34 @@ progress:
 
 ## Current Position
 
-Phase: 999.2 (design-md) — COMPLETED
-Plan: 10 of 10
-**Phase:** Phase 999.2 - DESIGN.md rollout
-**Plan:** 10-10 complete
+Phase: 999.1 (dev-login-skip-or-credential-management) — COMPLETED
+Plan: 2 of 2
+**Phase:** Phase 999.1 - dev-login-skip-or-credential-management
+**Plan:** 02-02 complete
 **Status:** Awaiting next workflow step
 
 ### Progress Bar
 
 ```
-[========================] Phase 999.2 complete (10/10 plans complete)
+[========================] Phase 999.1 complete (2/2 plans complete)
 ```
 
 ---
 
 ## Performance Metrics
 
-| Metric                 | Value                |
-| ---------------------- | -------------------- |
-| Requirements Coverage  | 999.2 scope complete |
-| Phase Coverage         | 10/10 plans          |
-| Dependencies Validated | Yes                  |
-| Risk Assessment        | Final gate passed    |
+| Metric                 | Value                          |
+| ---------------------- | ------------------------------ |
+| Requirements Coverage  | 999.1 scope complete           |
+| Phase Coverage         | 2/2 plans                      |
+| Dependencies Validated | Yes                            |
+| Risk Assessment        | Build and static checks passed |
 
-| Final Gate               | Result    |
-| ------------------------ | --------- | ------- | ------- |
-| `npm run test:visual`    | 15 passed |
-| `npm run lint:design-md` | passed    |
-| `npm run build`          | passed    |
-| Phase 04 P04             | 2400      | 2 tasks | 7 files |
+| Final Gate        | Result    |
+| ----------------- | --------- |
+| `get_errors`      | passed    |
+| `npm run build`   | passed    |
+| Summary artifacts | 2 written |
 
 ## Accumulated Context
 
@@ -79,6 +78,9 @@ Plan: 10 of 10
 - [Phase 999.2]: Added `lint:design-md` to block blue/gray hardcoded visual regressions in covered directories.
 - [Phase 999.2]: Refreshed the final fixture-based visual baselines and revalidated the full Playwright matrix.
 - [Phase 999.2]: Final human verification was accepted after the last cleanup sweep and baseline refresh.
+- [Phase 999.1]: Added a development-only `VITE_DEV_AUTO_LOGIN` bypass on both server and client.
+- [Phase 999.1]: Centralized auth bypass decisions in `shouldSkipAuth()` so REST and WebSocket behavior stay aligned.
+- [Phase 999.1]: Preserved onboarding during dev auto-login and added a visible in-app badge to distinguish bypass mode.
 
 ### Research Flags (need deeper research during planning)
 
@@ -89,10 +91,12 @@ Plan: 10 of 10
 
 ### Blockers
 
-- None. Phase 999.2 is complete.
+- None. Phase 999.1 is complete.
 
 ### Todo
 
+- [x] Complete 999.1-01 server DEV_AUTO_LOGIN bypass and dev user bootstrap
+- [x] Complete 999.1-02 frontend DEV_AUTO_LOGIN entry and visible badge
 - [x] Complete 999.2-01 stable fixture route and scene matrix
 - [x] Complete 999.2-02 token/font bridge
 - [x] Complete 999.2-03 shared primitive shell migration
@@ -110,7 +114,7 @@ Plan: 10 of 10
 
 **Session started:** 2026-04-10
 **Last updated:** 2026-04-11
-**Roadmap status:** Phase 999.2 complete; final audit, visual refresh, and verification finished
+**Roadmap status:** Phase 999.1 complete; dev auto-login bypass implemented and verified for server and frontend
 
 ---
 
