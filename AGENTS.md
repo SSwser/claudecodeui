@@ -100,23 +100,71 @@ A future maintainer who hasn't read the design doc should understand from the co
 
 ### Worktree Policy — MANDATORY
 
-Every plan execution (`gsd-execute-phase` / `gsd-executor`) **MUST** run inside a dedicated git worktree. Never execute plans directly on `main` or the active development branch.
+Every phase execution (`gsd-execute-phase` / `gsd-executor`) **MUST** run inside a dedicated git worktree. Never execute plans directly on `main` or the active development branch.
 
-```bash
-# 1. Create worktree before executing a plan
-git worktree add ../claudecodeui-phase-<phase-id> -b feat/phase-<phase-id>
+**One worktree per phase.** All plans within a phase share the same worktree and branch.
 
-# 2. Execute the plan inside the worktree
-cd ../claudecodeui-phase-<phase-id>
+#### Creating a Worktree (Windows-safe)
+
+Always use the `.worktrees/` subdirectory inside the repo root. Never use `../` relative paths — on Windows, Git resolves paths relative to the git root, not `$PWD`, which causes silent failures.
+
+```powershell
+# 1. Create worktree under .worktrees/ (Windows-safe, same drive, no path ambiguity)
+git worktree add .worktrees/phase-<id> -b feat/phase-<id>
+
+# 2. Execute all plans inside the worktree
+cd .worktrees/phase-<id>
 # ... run gsd-executor here ...
-
-# 3. After verification passes, open PR → merge
-# 4. Remove worktree after merge
-git worktree remove ../claudecodeui-phase-<phase-id>
 ```
 
-**Branch naming**: `feat/phase-<phase-id>` (e.g., `feat/phase-05-1`)  
-**One worktree per plan**, not per phase (a phase with 3 plans = 3 sequential worktrees, or parallel if plans are independent).
+The `.worktrees/` directory is listed in `.gitignore` — worktree directories are not source files and must never be committed.
+
+**Branch naming**: `feat/phase-<id>` (e.g., `feat/phase-02`)
+
+#### Worktree Lifecycle
+
+Worktrees are **not removed automatically** after phase completion. The lifecycle is:
+
+```
+Phase complete → push branch → open PR → merge → update STATE.md → gsd-progress prompts cleanup
+```
+
+1. **After phase verification passes**: push branch and open PR.
+2. **After PR is merged**: update `STATE.md` to record the merge and add a cleanup todo (see Recording section below).
+3. **`gsd-progress`** reads `STATE.md` and surfaces any pending cleanup todos — it will prompt the user to run `/gsd-remove-workspace`.
+4. **User runs `/gsd-remove-workspace <worktree-name>`** to safely remove the worktree after confirming no uncommitted changes remain.
+
+Do not run `git worktree remove` directly — always use `gsd-remove-workspace`, which checks for uncommitted work first.
+
+#### Recording Worktree State in STATE.md
+
+When creating a worktree, add a `worktree` block to `STATE.md` frontmatter:
+
+```yaml
+worktree:
+  path: .worktrees/phase-<id>
+  branch: feat/phase-<id>
+  status: active # active | merged | removed
+  pr: null # fill in PR number once opened
+```
+
+When PR is merged, update the block **and** add a cleanup todo to the `### Todo` section of `STATE.md`:
+
+```yaml
+worktree:
+  path: .worktrees/phase-<id>
+  branch: feat/phase-<id>
+  status: merged
+  pr: 42
+```
+
+```markdown
+### Todo
+
+- [ ] Worktree cleanup: run `/gsd-remove-workspace phase-<id>` to remove `.worktrees/phase-<id>`
+```
+
+`gsd-progress` reads `STATE.md` in full and will surface this todo as a pending action.
 
 ### Worktree Safety
 
@@ -125,11 +173,16 @@ Always use the current working directory (the worktree) for all file reads and e
 ### Phase Execution Checklist
 
 1. [ ] Read `PLAN.md` and `RESEARCH.md` for the phase
-2. [ ] Create worktree: `git worktree add ../claudecodeui-phase-<id> -b feat/phase-<id>`
-3. [ ] Execute all tasks in the worktree with atomic commits
-4. [ ] Run `gsd-verifier` to confirm phase goal achieved
-5. [ ] Open PR from worktree branch → `main`
-6. [ ] After merge: `git worktree remove ../claudecodeui-phase-<id>`
+2. [ ] Create worktree: `git worktree add .worktrees/phase-<id> -b feat/phase-<id>`
+3. [ ] Add `worktree` block to `STATE.md` frontmatter (status: active)
+4. [ ] Execute all tasks in the worktree with atomic commits
+5. [ ] Run `gsd-verifier` to confirm phase goal achieved
+6. [ ] Run `/gsd-pr-branch dev` — strips `.planning/` commits from the branch so reviewers only see code changes (target: `dev`)
+7. [ ] Run `/gsd-ship` — pushes the clean branch, auto-generates PR body, opens PR against `dev`, and tracks merge; record PR number in `STATE.md` worktree block
+8. [ ] After merge: set `worktree.status: merged` in `STATE.md` and add cleanup todo
+9. [ ] Run `/gsd-remove-workspace phase-<id>` when prompted by `gsd-progress`
+
+> **Why `gsd-pr-branch` before `gsd-ship`**: GSD phase branches mix code commits with `.planning/` artifact commits (PLAN.md, STATE.md, SUMMARY.md). `gsd-pr-branch` creates a filtered copy of the branch with only code commits, keeping PR diffs clean for reviewers. `gsd-ship` then pushes and opens the PR from that clean branch.
 
 ### Other GSD Rules
 
