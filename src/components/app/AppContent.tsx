@@ -8,10 +8,8 @@ import { useDeviceSettings } from '../../hooks/useDeviceSettings'
 import { useSessionProtection } from '../../hooks/useSessionProtection'
 import { useAppTabs } from '../../hooks/useAppTabs'
 import { useProjectsState } from '../../hooks/useProjectsState'
-import { useLayout } from '../../contexts/LayoutContext'
 import MobileNav from './MobileNav'
 import AppTabStrip from './view/AppTabStrip'
-import PaneDropZone from './view/PaneDropZone'
 
 export default function AppContent() {
 	const navigate = useNavigate()
@@ -21,7 +19,6 @@ export default function AppContent() {
 	const { ws, sendMessage, latestMessage, isConnected } = useWebSocket()
 	const wasConnectedRef = useRef(false)
 	const startupResolvedRef = useRef(false)
-	const [draggedShellTabId, setDraggedShellTabId] = useState<string | null>(null)
 
 	const {
 		activeSessions,
@@ -69,7 +66,6 @@ export default function AppContent() {
 		isMobile,
 		activeSessions,
 	})
-	const { layoutMode, panes, setLayoutMode, setPaneContentTab, assignSessionToPane, clearPane } = useLayout()
 	const { shellTabs, activeShellTabId, rootViewMode, setRootViewMode, selectShellTab, closeShellTab, activateHomeTab } =
 		useAppTabs({
 			selectedProject,
@@ -102,30 +98,12 @@ export default function AppContent() {
 		[projects],
 	)
 
-	const secondaryPane = panes.find(pane => pane.paneId === 'secondary')
-	const secondaryPaneContext = secondaryPane?.sessionId ? resolveSessionContext(secondaryPane.sessionId) : null
-	const secondaryActiveTab = secondaryPane?.activeContentTab || 'chat'
-	// Show shell chrome (tab strip + pane layout) only when actively in a session or empty-new-session state.
-	// The landing page never shows the chrome — including when a project is selected but no session is open.
-	const showShellChrome = Boolean(sessionId || selectedSession || rootViewMode === 'empty')
-
-	useEffect(() => {
-		setPaneContentTab('primary', activeTab)
-	}, [activeTab, setPaneContentTab])
-
-	useEffect(() => {
-		if (!selectedSession) {
-			assignSessionToPane('primary', { sessionId: null, projectName: null, tabId: null })
-			return
-		}
-
-		assignSessionToPane('primary', {
-			sessionId: selectedSession.id,
-			projectName: selectedProject?.name || selectedSession.__projectName || null,
-			tabId: activeShellTabId,
-			activeContentTab: activeTab,
-		})
-	}, [activeShellTabId, activeTab, assignSessionToPane, selectedProject?.name, selectedSession])
+	// Tab strip: show when in a session, OR in new-session mode with existing session tabs
+	// (so + from within a session keeps the strip visible for navigation).
+	const hasSessionTabs = shellTabs.some(t => t.kind === 'session')
+	const showTabStrip = Boolean(sessionId || selectedSession || (rootViewMode === 'empty' && hasSessionTabs))
+	// Sidebar: visible when in a session OR in new-session creation mode.
+	const showDesktopSidebar = Boolean(sessionId || selectedSession || rootViewMode === 'empty')
 
 	useEffect(() => {
 		// Expose a non-blocking refresh for chat/session flows.
@@ -216,7 +194,7 @@ export default function AppContent() {
 
 	return (
 		<div className='fixed inset-0 flex overflow-hidden bg-background'>
-			{!isMobile && showShellChrome ? (
+			{!isMobile && showDesktopSidebar ? (
 				<div className='h-full flex-shrink-0 border-r border-border/50'>
 					<Sidebar {...sidebarSharedProps} />
 				</div>
@@ -254,57 +232,26 @@ export default function AppContent() {
 			) : null}
 
 			<div className={`flex min-w-0 flex-1 flex-col overflow-hidden ${isMobile ? 'pb-mobile-nav' : ''}`}>
-				{showShellChrome ? (
+				{showTabStrip ? (
 					<AppTabStrip
 						tabs={shellTabs}
 						activeTabId={activeShellTabId}
-						layoutMode={layoutMode}
 						onSelectTab={selectShellTab}
-						onCloseTab={tabId => {
-							const closingTab = shellTabs.find(tab => tab.id === tabId)
-							if (closingTab?.sessionId === secondaryPane?.sessionId) {
-								clearPane('secondary')
-							}
-							closeShellTab(tabId)
-						}}
+						onCloseTab={closeShellTab}
 						onActivateHome={activateHomeTab}
 						onAddTab={() => {
 							if (selectedProject) {
 								setRootViewMode('empty')
-								handleNewSession(selectedProject)
+								navigate('/')
 								return
 							}
-
 							setRootViewMode('landing')
 							navigate('/')
 						}}
-						onLayoutModeChange={mode => {
-							setLayoutMode(mode)
-							if (mode === 'single') {
-								clearPane('secondary')
-							}
-						}}
-						onOpenInNewPane={tabId => {
-							const tab = shellTabs.find(entry => entry.id === tabId)
-							if (!tab?.sessionId) {
-								return
-							}
-
-							setLayoutMode('dual')
-							assignSessionToPane('secondary', {
-								sessionId: tab.sessionId,
-								projectName: tab.projectName,
-								tabId: tab.id,
-							})
-						}}
-						onDragTabStart={setDraggedShellTabId}
-						onDragTabEnd={() => setDraggedShellTabId(null)}
 					/>
 				) : null}
 
-				<div
-					className={`grid min-h-0 flex-1 overflow-hidden ${layoutMode === 'dual' ? 'md:grid-cols-2' : 'grid-cols-1'}`}
-				>
+				<div className='flex min-h-0 flex-1 overflow-hidden'>
 					<MainContent
 						projects={projects}
 						selectedProject={selectedProject}
@@ -373,88 +320,9 @@ export default function AppContent() {
 						}}
 					/>
 
-					{layoutMode === 'dual' ? (
-						<MainContent
-							projects={projects}
-							selectedProject={secondaryPaneContext?.project || null}
-							selectedSession={secondaryPaneContext?.session || null}
-							activeTab={secondaryActiveTab}
-							setActiveTab={value => {
-								const nextTab = typeof value === 'function' ? value(secondaryActiveTab) : value
-								setPaneContentTab('secondary', nextTab)
-							}}
-							ws={ws}
-							sendMessage={sendMessage}
-							latestMessage={latestMessage}
-							isMobile={isMobile}
-							onMenuClick={() => setSidebarOpen(true)}
-							isLoading={isLoadingProjects}
-							onInputFocusChange={setIsInputFocused}
-							onSessionActive={markSessionAsActive}
-							onSessionInactive={markSessionAsInactive}
-							onSessionProcessing={markSessionAsProcessing}
-							onSessionNotProcessing={markSessionAsNotProcessing}
-							processingSessions={processingSessions}
-							onReplaceTemporarySession={replaceTemporarySession}
-							onNavigateToSession={(targetSessionId: string) => navigate(`/session/${targetSessionId}`)}
-							onShowSettings={() => setShowSettings(true)}
-							externalMessageUpdate={externalMessageUpdate}
-							showLandingPage={false}
-							forceEmptyState={false}
-							landingPageData={landingPageData}
-							onLandingFiltersChange={{
-								onSearchChange: setLandingSearch,
-								onProjectChange: setLandingProjectFilter,
-								onWorkspaceChange: setLandingWorkspaceFilter,
-								onSessionTypeChange: setLandingSessionTypeFilter,
-							}}
-							onLandingActions={{
-								onOpenWorkspace: () => undefined,
-								onOpenSession: () => undefined,
-								onToggleWorkspaceFavorite: () => undefined,
-								onToggleSessionFavorite: () => undefined,
-								onCreateSession: () => undefined,
-								onCreateWorkspace: () => undefined,
-							}}
-						/>
-					) : null}
 				</div>
 			</div>
 
-			<PaneDropZone
-				open={Boolean(draggedShellTabId) && !isMobile}
-				onDropToPane={paneId => {
-					if (!draggedShellTabId) {
-						return
-					}
-
-					const draggedTab = shellTabs.find(tab => tab.id === draggedShellTabId)
-					if (!draggedTab?.sessionId) {
-						setDraggedShellTabId(null)
-						return
-					}
-
-					const context = resolveSessionContext(draggedTab.sessionId)
-					if (!context) {
-						setDraggedShellTabId(null)
-						return
-					}
-
-					if (paneId === 'primary') {
-						navigate(`/session/${draggedTab.sessionId}`)
-					} else {
-						setLayoutMode('dual')
-						assignSessionToPane('secondary', {
-							sessionId: draggedTab.sessionId,
-							projectName: context.project.name,
-							tabId: draggedTab.id,
-							activeContentTab: activeTab,
-						})
-					}
-
-					setDraggedShellTabId(null)
-				}}
-			/>
 
 			{isMobile && <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} isInputFocused={isInputFocused} />}
 		</div>
