@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import { useHomePreferences } from './useHomePreferences';
 import type { AppShellTab, Project, ProjectSession } from '../types/app';
@@ -57,43 +57,55 @@ export function useAppTabs({
     }));
   }, [preferences.shellTabs]);
 
+  // Refs to hold latest snapshot for effects that must not re-run on every tab update.
+  const shellTabsRef = useRef(shellTabs);
+  shellTabsRef.current = shellTabs;
+  const activeShellTabIdRef = useRef(preferences.activeShellTabId);
+  activeShellTabIdRef.current = preferences.activeShellTabId;
+  const prefShellTabsRef = useRef(preferences.shellTabs);
+  prefShellTabsRef.current = preferences.shellTabs;
+
   useEffect(() => {
     if (!selectedSession) {
       return;
     }
 
+    const currentShellTabs = shellTabsRef.current;
+    const activeTabId = activeShellTabIdRef.current;
+    const prefShellTabs = prefShellTabsRef.current;
+
     const sessionTab = createSessionTab(selectedSession, selectedProject);
-    const activeIndex = shellTabs.findIndex((tab) => tab.id === preferences.activeShellTabId);
-    const existingIndex = shellTabs.findIndex((tab) => tab.id === sessionTab.id);
-    const existingPreferenceTab = preferences.shellTabs.find((tab) => tab.id === sessionTab.id);
+    const activeIndex = currentShellTabs.findIndex((tab) => tab.id === activeTabId);
+    const existingIndex = currentShellTabs.findIndex((tab) => tab.id === sessionTab.id);
+    const existingPreferenceTab = prefShellTabs.find((tab) => tab.id === sessionTab.id);
 
     if (existingIndex >= 0) {
-      const existingShellTab = shellTabs[existingIndex];
+      const existingShellTab = currentShellTabs[existingIndex];
       const tabChanged =
         existingShellTab?.label !== sessionTab.label ||
         existingShellTab?.projectName !== sessionTab.projectName ||
         existingShellTab?.sessionId !== sessionTab.sessionId;
 
       if (tabChanged) {
-        const nextTabs = shellTabs.map((tab) => (tab.id === sessionTab.id ? sessionTab : tab));
+        const nextTabs = currentShellTabs.map((tab) => (tab.id === sessionTab.id ? sessionTab : tab));
         setShellTabs(
           nextTabs.map((tab) =>
             toPreferenceTab(
               tab,
-              preferences.shellTabs.find((preferenceTab) => preferenceTab.id === tab.id),
+              prefShellTabs.find((preferenceTab) => preferenceTab.id === tab.id),
             ),
           ),
         );
       }
 
-      if (preferences.activeShellTabId !== sessionTab.id) {
+      if (activeTabId !== sessionTab.id) {
         setActiveShellTabId(sessionTab.id);
       }
 
       return;
     }
 
-    const nextTabs = [...shellTabs];
+    const nextTabs = [...currentShellTabs];
     nextTabs.splice(activeIndex >= 0 ? activeIndex + 1 : nextTabs.length, 0, sessionTab);
     setShellTabs(
       nextTabs.map((tab) =>
@@ -101,12 +113,12 @@ export function useAppTabs({
           tab,
           tab.id === sessionTab.id
             ? existingPreferenceTab
-            : preferences.shellTabs.find((preferenceTab) => preferenceTab.id === tab.id),
+            : prefShellTabs.find((preferenceTab) => preferenceTab.id === tab.id),
         ),
       ),
     );
     setActiveShellTabId(sessionTab.id);
-  }, [preferences.activeShellTabId, selectedProject, selectedSession, setActiveShellTabId, setShellTabs, shellTabs]);
+  }, [selectedProject, selectedSession, setActiveShellTabId, setShellTabs]);
 
   useEffect(() => {
     if (sessionId) {

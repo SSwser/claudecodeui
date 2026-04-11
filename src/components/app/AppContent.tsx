@@ -105,7 +105,9 @@ export default function AppContent() {
 	const secondaryPane = panes.find(pane => pane.paneId === 'secondary')
 	const secondaryPaneContext = secondaryPane?.sessionId ? resolveSessionContext(secondaryPane.sessionId) : null
 	const secondaryActiveTab = secondaryPane?.activeContentTab || 'chat'
-	const showShellChrome = Boolean(sessionId || selectedProject || selectedSession || rootViewMode !== 'landing')
+	// Show shell chrome (tab strip + pane layout) only when actively in a session or empty-new-session state.
+	// The landing page never shows the chrome — including when a project is selected but no session is open.
+	const showShellChrome = Boolean(sessionId || selectedSession || rootViewMode === 'empty')
 
 	useEffect(() => {
 		setPaneContentTab('primary', activeTab)
@@ -214,11 +216,13 @@ export default function AppContent() {
 
 	return (
 		<div className='fixed inset-0 flex overflow-hidden bg-background'>
-			{!isMobile ? (
+			{!isMobile && showShellChrome ? (
 				<div className='h-full flex-shrink-0 border-r border-border/50'>
 					<Sidebar {...sidebarSharedProps} />
 				</div>
-			) : (
+			) : null}
+
+			{isMobile ? (
 				<div
 					className={`fixed inset-0 z-50 flex transition-all duration-150 ease-out ${
 						sidebarOpen ? 'visible opacity-100' : 'invisible opacity-0'
@@ -247,7 +251,7 @@ export default function AppContent() {
 						<Sidebar {...sidebarSharedProps} />
 					</div>
 				</div>
-			)}
+			) : null}
 
 			<div className={`flex min-w-0 flex-1 flex-col overflow-hidden ${isMobile ? 'pb-mobile-nav' : ''}`}>
 				{showShellChrome ? (
@@ -275,15 +279,6 @@ export default function AppContent() {
 							navigate('/')
 						}}
 						onLayoutModeChange={mode => {
-							if (mode === 'dual' && layoutMode !== 'dual' && selectedSession && !secondaryPane?.sessionId) {
-								assignSessionToPane('secondary', {
-									sessionId: selectedSession.id,
-									projectName: selectedProject?.name || selectedSession.__projectName || null,
-									tabId: activeShellTabId,
-									activeContentTab: activeTab,
-								})
-							}
-
 							setLayoutMode(mode)
 							if (mode === 'single') {
 								clearPane('secondary')
@@ -352,7 +347,6 @@ export default function AppContent() {
 							onOpenSession: (targetSessionId: string) => {
 								const context = resolveSessionContext(targetSessionId)
 								if (context) {
-									setRootViewMode('landing')
 									handleSessionSelect(context.session)
 								}
 							},
