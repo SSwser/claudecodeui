@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 04
+current_phase: null
 status: completed
-last_updated: "2026-04-11T06:26:40.107Z"
+last_updated: '2026-04-11T15:05:00.000Z'
 progress:
-  total_phases: 7
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 10
+  completed_plans: 10
   percent: 100
 ---
 
@@ -17,51 +17,52 @@ progress:
 
 **Project:** CloudCLI UI - Desktop UX Enhancement
 **Core Value:** 清晰的组织管理
-**Current Phase:** 04
+**Current Phase:** None active
 
 ---
 
 ## Project Reference
 
-| Field | Value |
-|-------|-------|
-| Core Value | 清晰的组织管理 - 让用户能够轻松管理多个项目、workspace 和会话 |
-| Granularity | Coarse (3-5 phases, 1-3 plans each) |
-| Total v1 Requirements | 43 |
-| Phases | 5 |
+| Field                 | Value                                                         |
+| --------------------- | ------------------------------------------------------------- |
+| Core Value            | 清晰的组织管理 - 让用户能够轻松管理多个项目、workspace 和会话 |
+| Granularity           | Coarse (3-5 phases, 1-3 plans each)                           |
+| Total v1 Requirements | 43                                                            |
+| Phases                | 5                                                             |
 
 ---
 
 ## Current Position
 
-Phase: 04 (ui-migration) — COMPLETE
-Plan: 4 of 4
-**Phase:** Phase 4 - UI Migration
-**Plan:** 04-04 complete
-**Status:** Phase 04 complete; visual regression baseline and Figma pilot approved
+Phase: 999.2 (design-md) — COMPLETED
+Plan: 10 of 10
+**Phase:** Phase 999.2 - DESIGN.md rollout
+**Plan:** 10-10 complete
+**Status:** Awaiting next workflow step
 
 ### Progress Bar
 
 ```
-[========================] Phase 4 execution complete (4/4 plans complete)
+[========================] Phase 999.2 complete (10/10 plans complete)
 ```
 
 ---
 
 ## Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| Requirements Coverage | 43/43 (100%) |
-| Phase Coverage | 5/5 |
-| Dependencies Validated | Yes |
-| Risk Assessment | Complete |
+| Metric                 | Value                |
+| ---------------------- | -------------------- |
+| Requirements Coverage  | 999.2 scope complete |
+| Phase Coverage         | 10/10 plans          |
+| Dependencies Validated | Yes                  |
+| Risk Assessment        | Final gate passed    |
 
----
-| Phase 04 P01 | 1500 | 2 tasks | 5 files |
-| Phase 04 P02 | 1800 | 2 tasks | 3 files |
-| Phase 04 P03 | 2100 | 2 tasks | 2 files |
-| Phase 04 P04 | 2400 | 2 tasks | 7 files |
+| Final Gate               | Result    |
+| ------------------------ | --------- | ------- | ------- |
+| `npm run test:visual`    | 15 passed |
+| `npm run lint:design-md` | passed    |
+| `npm run build`          | passed    |
+| Phase 04 P04             | 2400      | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -73,14 +74,11 @@ Plan: 4 of 4
 - CSS Grid + LayoutContext for layout system
 - Context + Immer for state management
 - @dnd-kit for drag-and-drop (Phase 5+)
-- [Phase 04]: Extended CSS variables and Tailwind bridges for semantic surfaces, sidebar, typography, and spacing.
-- [Phase 04]: Kept shared primitive APIs stable while aligning Button, Badge, and Input to semantic tokens.
-- [Phase 04]: Documented the new i18n namespace.section.key convention and grouped migration mapping for all 7 namespaces.
-- [Phase 04]: Added a dependency-free lint:i18n gate that reports hardcoded JSX strings with configurable allowlist support.
-- [Phase 04]: Upgraded Dialog to a portal-mounted primitive with focus and Escape handling while keeping the exported API stable.
-- [Phase 04]: Replaced Select with a controlled combobox/listbox implementation for keyboard accessibility and semantic token styling.
-- [Phase 04]: Configured Playwright visual baselines around the current root app route with conditional shell coverage and non-breaking test hooks.
-- [Phase 04]: Recorded the Button Figma pilot roundtrip and validated baseline generation/comparison before human approval.
+- [Phase 999.2]: Added a stable visual fixture route so screenshots come from deterministic scenes instead of opportunistic app state.
+- [Phase 999.2]: Remapped tokens, typography, shared primitives, landing, auth, chat, settings, shell, and upgrade surfaces to the DESIGN.md contract.
+- [Phase 999.2]: Added `lint:design-md` to block blue/gray hardcoded visual regressions in covered directories.
+- [Phase 999.2]: Refreshed the final fixture-based visual baselines and revalidated the full Playwright matrix.
+- [Phase 999.2]: Final human verification was accepted after the last cleanup sweep and baseline refresh.
 
 ### Research Flags (need deeper research during planning)
 
@@ -91,14 +89,20 @@ Plan: 4 of 4
 
 ### Blockers
 
-- None for Phase 4.
+- None. Phase 999.2 is complete.
 
 ### Todo
 
-- [x] Complete 04-01 token foundation and primitive alignment
-- [x] Complete 04-02 i18n key convention and hardcoded string gate
-- [x] Complete 04-03 Dialog and Select migration
-- [x] Complete 04-04 visual regression setup and Figma pilot roundtrip
+- [x] Complete 999.2-01 stable fixture route and scene matrix
+- [x] Complete 999.2-02 token/font bridge
+- [x] Complete 999.2-03 shared primitive shell migration
+- [x] Complete 999.2-04 landing and tabs migration
+- [x] Complete 999.2-05 chat controls migration
+- [x] Complete 999.2-06 settings shell migration
+- [x] Complete 999.2-07 chat messages and markdown migration
+- [x] Complete 999.2-08 auth migration
+- [x] Complete 999.2-09 modal and upgrade migration
+- [x] Complete 999.2-10 final audit, baseline refresh, and verification
 
 ---
 
@@ -106,8 +110,8 @@ Plan: 4 of 4
 
 **Session started:** 2026-04-10
 **Last updated:** 2026-04-11
-**Roadmap status:** Phase 4 complete; all UI migration plans finished and approved
+**Roadmap status:** Phase 999.2 complete; final audit, visual refresh, and verification finished
 
 ---
 
-*State updated: 2026-04-11*
+_State updated: 2026-04-11_
