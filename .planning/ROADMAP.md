@@ -91,7 +91,18 @@ Plans:
 13. Sidebar shows global recent sessions (top) and project list (bottom); no Landing Page
 14. Project Inbox opens in MainContent when a project is selected
 
-**Plans:** TBD
+**Plans:** 8 plans (4 waves)
+
+Plans:
+
+- [ ] 02-01-PLAN.md — DB Schema + TypeScript Types (Wave 1)
+- [ ] 02-02-PLAN.md — Project/Workspace CRUD Backend (Wave 1)
+- [ ] 02-03-PLAN.md — Sidebar Restructure (Wave 2)
+- [ ] 02-04-PLAN.md — Project Inbox Frontend + Project Wizard (Wave 2)
+- [ ] 02-05-PLAN.md — Session Lifecycle Backend (Wave 2)
+- [ ] 02-06-PLAN.md — Session Lifecycle Frontend (Wave 3)
+- [ ] 02-07-PLAN.md — Search + FTS5 (Wave 3)
+- [ ] 02-08-PLAN.md — Integration + Routing (Wave 4)
 
 ### Phase 3: Virtual Sessions
 
@@ -182,14 +193,10 @@ Plans:
 
 ```
 Phase 1 (Foundation)
-       │
-       ├── Phase 2 (Core Sessions)
-       │         │
-       │         └── Phase 3 (Virtual Sessions)
-       │                   │
-       │                   └── Phase 5 (Multi-Pane + Kanban)
-       │
-       └── Phase 4 (UI Migration) [can run parallel to Phase 2-3]
+       │       ├── Phase 2 (Core Sessions)
+       │        │       │        └── Phase 3 (Virtual Sessions)
+       │                  │       │                  └── Phase 5 (Multi-Pane + Kanban)
+       │       └── Phase 4 (UI Migration) [can run parallel to Phase 2-3]
 ```
 
 ---
@@ -227,7 +234,6 @@ _Last updated: 2026-04-11_
 ### Phase 999.1: Dev Login Skip or Credential Management (BACKLOG)
 
 **Goal:** 评估并实现开发体验优化：在开发环境通过环境变量自动跳过登录，或开发完整的免登录用户凭证管理功能。
-
 **Context:**
 
 - 应用当前有登录页面，每次开发调试需要手动登录，影响迭代效率
@@ -243,14 +249,13 @@ Plans:
 - [ ] 999.1-01-PLAN.md -- Server-side shouldSkipAuth() + DEV_AUTO_LOGIN bypass
 - [ ] 999.1-02-PLAN.md -- Frontend IS_DEV_AUTO_LOGIN + AuthContext + ProtectedRoute + dev badge
 
-### Phase 999.2: 参考 design.md 统一视觉风格 (BACKLOG)
+### Phase 999.2: 参照 design.md 统一视觉风格 (BACKLOG)
 
-**Goal:** 以 DESIGN.md 中的 Raycast 风格设计系统为基准，全面统一应用视觉语言——包括色彩 token、排版比例、圆角、阴影、间距以及组件样式，使 UI 风格一致且具有品牌辨识度。
-
+**Goal:** 以 DESIGN.md 中的 Raycast 风格设计系统为基准，全面统一应用视觉语言——包括色彩 token、排版比例、圆角、阴影、间距以及组件样式，让 UI 风格一致且具有品牌辨识度。
 **Context:**
 
-- `DESIGN.md` 定义了 Raycast 启发的暗色主题：近黑背景 `#07080a`、Raycast Red `#FF6363`、Inter 字体、多层 macOS 原生阴影
-- 当前代码库使用 Tailwind semantic CSS variable token，与 DESIGN.md 的色板存在差距
+- `DESIGN.md` 定义了 Raycast 启发的暗色主题：近黑背景 `#07080a`、Raycast Red `#FF6363`、Inter 字体、多级 macOS 原生阴影
+- 当前代码库使用 Tailwind semantic CSS variable token，与 DESIGN.md 的色板存在差异
 - Phase 1 UI-SPEC 已锁定当前阶段的交互合约；本 backlog 针对品牌视觉层的系统性对齐
 - 需要更新 `src/index.css`（CSS 变量）、`tailwind.config.js`（token 映射）以及相关组件的 class 用法
 - 优先保证 dark 模式一致性；light 模式适配可作为子任务
