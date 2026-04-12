@@ -15,6 +15,7 @@ import { TaskMasterPanel } from '../../task-master'
 import MainContentHeader from './subcomponents/MainContentHeader'
 import MainContentStateView from './subcomponents/MainContentStateView'
 import ErrorBoundary from './ErrorBoundary'
+import ProjectInbox from '../../project-inbox/view/ProjectInbox'
 
 type TaskMasterContextValue = {
 	currentProject?: Project | null
@@ -47,6 +48,8 @@ function MainContent({
 	processingSessions,
 	onReplaceTemporarySession,
 	onNavigateToSession,
+	onOpenProjectSession,
+	onCreateProjectSession,
 	onShowSettings,
 	externalMessageUpdate,
 	showLandingPage,
@@ -133,6 +136,15 @@ function MainContent({
 			<div className='flex min-h-0 flex-1 overflow-hidden'>
 				<div className={`flex min-h-0 min-w-[200px] flex-col overflow-hidden ${editorExpanded ? 'hidden' : ''} flex-1`}>
 					<div className={`h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
+						{!selectedSession ? (
+							<ProjectInbox
+								projectId={selectedProject.id || 0}
+								projectName={selectedProject.name}
+								projectDisplayName={selectedProject.displayName}
+								onOpenSession={onOpenProjectSession}
+								onCreateSession={() => onCreateProjectSession(selectedProject)}
+							/>
+						) : (
 						<ErrorBoundary showDetails>
 							<ChatInterface
 								selectedProject={selectedProject}
@@ -159,6 +171,7 @@ function MainContent({
 								onShowAllTasks={tasksEnabled ? () => setActiveTab('tasks') : null}
 							/>
 						</ErrorBoundary>
+						)}
 					</div>
 
 					{activeTab === 'files' && (

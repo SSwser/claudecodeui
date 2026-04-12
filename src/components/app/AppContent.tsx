@@ -277,6 +277,8 @@ export default function AppContent() {
               onNavigateToSession={(targetSessionId: string) =>
                 navigate(`/session/${targetSessionId}`)
               }
+              onOpenProjectSession={handleSessionSelect}
+              onCreateProjectSession={handleNewSession}
               onShowSettings={() => setShowSettings(true)}
               externalMessageUpdate={externalMessageUpdate}
               showLandingPage={!sessionId && rootViewMode === 'landing'}

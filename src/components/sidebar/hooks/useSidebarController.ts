@@ -333,7 +333,7 @@ export function useSidebarController({
       return null;
     }
 
-    return getWorkspaceLabel(selectedProject);
+    return selectedProject ? getWorkspaceLabel(selectedProject) : null;
   }, [selectedProject]);
 
   const startEditing = useCallback((project: Project) => {

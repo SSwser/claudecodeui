@@ -27,6 +27,10 @@ function getTabTitle(activeTab: AppTab, shouldShowTasksTab: boolean, t: (key: st
     return 'TaskMaster';
   }
 
+  if (activeTab === 'chat') {
+    return 'Project Inbox';
+  }
+
   return 'Project';
 }
 
@@ -52,7 +56,7 @@ export default function MainContentTitle({
     : undefined;
 
   const showSessionIcon = activeTab === 'chat' && Boolean(selectedSession);
-  const showChatNewSession = activeTab === 'chat' && !selectedSession;
+  const showProjectInbox = activeTab === 'chat' && !selectedSession;
 
   return (
     <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
@@ -70,9 +74,9 @@ export default function MainContentTitle({
             </h2>
             <div className="truncate text-[11px] leading-tight text-muted-foreground">{selectedProject.displayName}</div>
           </div>
-        ) : showChatNewSession ? (
+        ) : showProjectInbox ? (
           <div className="min-w-0">
-            <h2 className="text-base font-semibold leading-tight text-foreground">{t('mainContent.newSession')}</h2>
+            <h2 className="text-base font-semibold leading-tight text-foreground">Project Inbox</h2>
             <div className="truncate text-xs leading-tight text-muted-foreground">{selectedProject.displayName}</div>
           </div>
         ) : (

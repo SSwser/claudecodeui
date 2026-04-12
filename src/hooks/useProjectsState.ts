@@ -24,6 +24,43 @@ type FetchProjectsOptions = {
   showLoadingState?: boolean;
 };
 
+const isDbBackedProject = (
+  project: Record<string, unknown>,
+): project is Record<string, unknown> & { directoryPath: string } => {
+  return typeof project.directoryPath === 'string';
+};
+
+const normalizeProjectRecord = (project: Project): Project => {
+  if (!isDbBackedProject(project as Record<string, unknown>)) {
+    return {
+      ...project,
+      displayName: project.displayName || project.name,
+      fullPath: project.fullPath || project.path || '',
+      path: project.path || project.fullPath || '',
+      directoryPath: project.directoryPath || project.fullPath || project.path || '',
+    };
+  }
+
+  const directoryPath = project.directoryPath || project.fullPath || project.path || '';
+  const displayName =
+    typeof project.displayName === 'string' && project.displayName.trim()
+      ? project.displayName
+      : project.name;
+
+  return {
+    ...project,
+    displayName,
+    fullPath: project.fullPath || directoryPath,
+    path: project.path || directoryPath,
+    directoryPath,
+    multiWorkspaceEnabled: Boolean(project.multiWorkspaceEnabled),
+    sessions: project.sessions ?? [],
+    codexSessions: project.codexSessions ?? [],
+    cursorSessions: project.cursorSessions ?? [],
+    geminiSessions: project.geminiSessions ?? [],
+  };
+};
+
 const serialize = (value: unknown) => JSON.stringify(value ?? null);
 
 const projectsHaveChanges = (
@@ -223,7 +260,7 @@ export function useProjectsState({
         setIsLoadingProjects(true);
       }
       const response = await api.projects();
-      const projectData = (await response.json()) as Project[];
+      const projectData = ((await response.json()) as Project[]).map(normalizeProjectRecord);
 
       setProjects((prevProjects) => {
         if (prevProjects.length === 0) {
@@ -436,6 +473,7 @@ export function useProjectsState({
     (project: Project) => {
       setSelectedProject(project);
       setSelectedSession(null);
+      setActiveTab('chat');
       navigate('/');
 
       if (isMobile) {

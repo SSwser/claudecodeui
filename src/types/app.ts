@@ -41,10 +41,24 @@ export interface ProjectTaskmasterInfo {
 }
 
 export interface Project {
+  id?: number;
   name: string;
   displayName: string;
   fullPath: string;
   path?: string;
+  directoryPath?: string;
+  multiWorkspaceEnabled?: boolean;
+  activeSessionCount?: number;
+  workspaceCount?: number;
+  workspaces?: Array<{
+    id: number;
+    projectId: number;
+    name: string;
+    worktreePath: string | null;
+    worktreeBranch: string | null;
+    isDefault: boolean;
+    createdAt: string;
+  }>;
   sessions?: ProjectSession[];
   cursorSessions?: ProjectSession[];
   codexSessions?: ProjectSession[];
