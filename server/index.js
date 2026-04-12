@@ -102,6 +102,7 @@ import codexRoutes from './routes/codex.js';
 import geminiRoutes from './routes/gemini.js';
 import pluginsRoutes from './routes/plugins.js';
 import messagesRoutes from './routes/messages.js';
+import searchRoutes from './routes/search.js';
 import { createNormalizedMessage } from './providers/types.js';
 import {
   startEnabledPluginServers,
@@ -467,6 +468,9 @@ app.use('/api/plugins', authenticateToken, pluginsRoutes);
 
 // Unified session messages route (protected)
 app.use('/api/sessions', authenticateToken, messagesRoutes);
+
+// Search API Routes (protected)
+app.use('/api/search', authenticateToken, searchRoutes);
 
 // Agent API Routes (uses API key authentication)
 app.use('/api/agent', agentRoutes);

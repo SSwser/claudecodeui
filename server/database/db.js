@@ -4,23 +4,92 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { runMigration as runFts5Migration } from './migrations/002-fts5-search.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // ANSI color codes for terminal output
 const colors = {
-    reset: '\x1b[0m',
-    bright: '\x1b[1m',
-    cyan: '\x1b[36m',
-    dim: '\x1b[2m',
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  cyan: '\x1b[36m',
+  dim: '\x1b[2m',
 };
 
 const c = {
-    info: (text) => `${colors.cyan}${text}${colors.reset}`,
-    bright: (text) => `${colors.bright}${text}${colors.reset}`,
-    dim: (text) => `${colors.dim}${text}${colors.reset}`,
+  info: (text) => `${colors.cyan}${text}${colors.reset}`,
+  bright: (text) => `${colors.bright}${text}${colors.reset}`,
+  dim: (text) => `${colors.dim}${text}${colors.reset}`,
 };
+
+const phaseTwoSchemaStatements = [
+  {
+    name: 'projects table',
+    sql: `CREATE TABLE IF NOT EXISTS projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      display_name TEXT,
+      directory_path TEXT NOT NULL,
+      multi_workspace_enabled BOOLEAN DEFAULT 0,
+      is_deleted BOOLEAN DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`,
+  },
+  {
+    name: 'projects active path index',
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_path
+      ON projects(directory_path)
+      WHERE is_deleted = 0`,
+  },
+  {
+    name: 'workspaces table',
+    sql: `CREATE TABLE IF NOT EXISTS workspaces (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      name TEXT NOT NULL DEFAULT 'default',
+      worktree_path TEXT,
+      worktree_branch TEXT,
+      is_default BOOLEAN DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )`,
+  },
+  {
+    name: 'workspaces project index',
+    sql: 'CREATE INDEX IF NOT EXISTS idx_workspaces_project ON workspaces(project_id)',
+  },
+  {
+    name: 'session_state table',
+    sql: `CREATE TABLE IF NOT EXISTS session_state (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL,
+      workspace_id INTEGER NOT NULL,
+      provider TEXT NOT NULL DEFAULT 'claude',
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'frozen', 'archived', 'deleted')),
+      title TEXT,
+      summary TEXT,
+      last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
+      frozen_at DATETIME,
+      archived_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
+    )`,
+  },
+  {
+    name: 'session_state workspace index',
+    sql: 'CREATE INDEX IF NOT EXISTS idx_session_state_workspace ON session_state(workspace_id)',
+  },
+  {
+    name: 'session_state status index',
+    sql: 'CREATE INDEX IF NOT EXISTS idx_session_state_status ON session_state(status)',
+  },
+  {
+    name: 'session_state lookup index',
+    sql: 'CREATE UNIQUE INDEX IF NOT EXISTS idx_session_state_lookup ON session_state(session_id, provider)',
+  },
+];
 
 // Use DATABASE_PATH environment variable if set, otherwise use default location
 const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'auth.db');
@@ -82,8 +151,8 @@ console.log('');
 
 const runMigrations = () => {
   try {
-    const tableInfo = db.prepare("PRAGMA table_info(users)").all();
-    const columnNames = tableInfo.map(col => col.name);
+    const tableInfo = db.prepare('PRAGMA table_info(users)').all();
+    const columnNames = tableInfo.map((col) => col.name);
 
     if (!columnNames.includes('git_name')) {
       console.log('Running migration: Adding git_name column');
@@ -146,7 +215,23 @@ const runMigrations = () => {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(session_id, provider)
     )`);
-    db.exec('CREATE INDEX IF NOT EXISTS idx_session_names_lookup ON session_names(session_id, provider)');
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_session_names_lookup ON session_names(session_id, provider)'
+    );
+
+    // Phase 2 builds project/workspace/session metadata on top of the auth DB.
+    // Keeping these migrations idempotent lets existing installations upgrade in place.
+    for (const statement of phaseTwoSchemaStatements) {
+      console.log(`Running migration: Ensuring ${statement.name}`);
+      db.exec(statement.sql);
+    }
+
+    try {
+      console.log('Running migration: Ensuring session_search FTS5 table');
+      runFts5Migration(db);
+    } catch (ftsError) {
+      console.warn('FTS5 migration skipped:', ftsError.message);
+    }
 
     console.log('Database migrations completed successfully');
   } catch (error) {
@@ -194,7 +279,9 @@ const userDb = {
   // Get user by username
   getUserByUsername: (username) => {
     try {
-      const row = db.prepare('SELECT * FROM users WHERE username = ? AND is_active = 1').get(username);
+      const row = db
+        .prepare('SELECT * FROM users WHERE username = ? AND is_active = 1')
+        .get(username);
       return row;
     } catch (err) {
       throw err;
@@ -213,7 +300,11 @@ const userDb = {
   // Get user by ID
   getUserById: (userId) => {
     try {
-      const row = db.prepare('SELECT id, username, created_at, last_login FROM users WHERE id = ? AND is_active = 1').get(userId);
+      const row = db
+        .prepare(
+          'SELECT id, username, created_at, last_login FROM users WHERE id = ? AND is_active = 1'
+        )
+        .get(userId);
       return row;
     } catch (err) {
       throw err;
@@ -222,7 +313,11 @@ const userDb = {
 
   getFirstUser: () => {
     try {
-      const row = db.prepare('SELECT id, username, created_at, last_login FROM users WHERE is_active = 1 LIMIT 1').get();
+      const row = db
+        .prepare(
+          'SELECT id, username, created_at, last_login FROM users WHERE is_active = 1 LIMIT 1'
+        )
+        .get();
       return row;
     } catch (err) {
       throw err;
@@ -263,7 +358,7 @@ const userDb = {
     } catch (err) {
       throw err;
     }
-  }
+  },
 };
 
 // API Keys database operations
@@ -288,7 +383,11 @@ const apiKeysDb = {
   // Get all API keys for a user
   getApiKeys: (userId) => {
     try {
-      const rows = db.prepare('SELECT id, key_name, api_key, created_at, last_used, is_active FROM api_keys WHERE user_id = ? ORDER BY created_at DESC').all(userId);
+      const rows = db
+        .prepare(
+          'SELECT id, key_name, api_key, created_at, last_used, is_active FROM api_keys WHERE user_id = ? ORDER BY created_at DESC'
+        )
+        .all(userId);
       return rows;
     } catch (err) {
       throw err;
@@ -298,16 +397,22 @@ const apiKeysDb = {
   // Validate API key and get user
   validateApiKey: (apiKey) => {
     try {
-      const row = db.prepare(`
+      const row = db
+        .prepare(
+          `
         SELECT u.id, u.username, ak.id as api_key_id
         FROM api_keys ak
         JOIN users u ON ak.user_id = u.id
         WHERE ak.api_key = ? AND ak.is_active = 1 AND u.is_active = 1
-      `).get(apiKey);
+      `
+        )
+        .get(apiKey);
 
       if (row) {
         // Update last_used timestamp
-        db.prepare('UPDATE api_keys SET last_used = CURRENT_TIMESTAMP WHERE id = ?').run(row.api_key_id);
+        db.prepare('UPDATE api_keys SET last_used = CURRENT_TIMESTAMP WHERE id = ?').run(
+          row.api_key_id
+        );
       }
 
       return row;
@@ -336,15 +441,23 @@ const apiKeysDb = {
     } catch (err) {
       throw err;
     }
-  }
+  },
 };
 
 // User credentials database operations (for GitHub tokens, GitLab tokens, etc.)
 const credentialsDb = {
   // Create a new credential
-  createCredential: (userId, credentialName, credentialType, credentialValue, description = null) => {
+  createCredential: (
+    userId,
+    credentialName,
+    credentialType,
+    credentialValue,
+    description = null
+  ) => {
     try {
-      const stmt = db.prepare('INSERT INTO user_credentials (user_id, credential_name, credential_type, credential_value, description) VALUES (?, ?, ?, ?, ?)');
+      const stmt = db.prepare(
+        'INSERT INTO user_credentials (user_id, credential_name, credential_type, credential_value, description) VALUES (?, ?, ?, ?, ?)'
+      );
       const result = stmt.run(userId, credentialName, credentialType, credentialValue, description);
       return { id: result.lastInsertRowid, credentialName, credentialType };
     } catch (err) {
@@ -355,7 +468,8 @@ const credentialsDb = {
   // Get all credentials for a user, optionally filtered by type
   getCredentials: (userId, credentialType = null) => {
     try {
-      let query = 'SELECT id, credential_name, credential_type, description, created_at, is_active FROM user_credentials WHERE user_id = ?';
+      let query =
+        'SELECT id, credential_name, credential_type, description, created_at, is_active FROM user_credentials WHERE user_id = ?';
       const params = [userId];
 
       if (credentialType) {
@@ -375,7 +489,11 @@ const credentialsDb = {
   // Get active credential value for a user by type (returns most recent active)
   getActiveCredential: (userId, credentialType) => {
     try {
-      const row = db.prepare('SELECT credential_value FROM user_credentials WHERE user_id = ? AND credential_type = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1').get(userId, credentialType);
+      const row = db
+        .prepare(
+          'SELECT credential_value FROM user_credentials WHERE user_id = ? AND credential_type = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1'
+        )
+        .get(userId, credentialType);
       return row?.credential_value || null;
     } catch (err) {
       throw err;
@@ -396,25 +514,27 @@ const credentialsDb = {
   // Toggle credential active status
   toggleCredential: (userId, credentialId, isActive) => {
     try {
-      const stmt = db.prepare('UPDATE user_credentials SET is_active = ? WHERE id = ? AND user_id = ?');
+      const stmt = db.prepare(
+        'UPDATE user_credentials SET is_active = ? WHERE id = ? AND user_id = ?'
+      );
       const result = stmt.run(isActive ? 1 : 0, credentialId, userId);
       return result.changes > 0;
     } catch (err) {
       throw err;
     }
-  }
+  },
 };
 
 const DEFAULT_NOTIFICATION_PREFERENCES = {
   channels: {
     inApp: false,
-    webPush: false
+    webPush: false,
   },
   events: {
     actionRequired: true,
     stop: true,
-    error: true
-  }
+    error: true,
+  },
 };
 
 const normalizeNotificationPreferences = (value) => {
@@ -423,20 +543,22 @@ const normalizeNotificationPreferences = (value) => {
   return {
     channels: {
       inApp: source.channels?.inApp === true,
-      webPush: source.channels?.webPush === true
+      webPush: source.channels?.webPush === true,
     },
     events: {
       actionRequired: source.events?.actionRequired !== false,
       stop: source.events?.stop !== false,
-      error: source.events?.error !== false
-    }
+      error: source.events?.error !== false,
+    },
   };
 };
 
 const notificationPreferencesDb = {
   getPreferences: (userId) => {
     try {
-      const row = db.prepare('SELECT preferences_json FROM user_notification_preferences WHERE user_id = ?').get(userId);
+      const row = db
+        .prepare('SELECT preferences_json FROM user_notification_preferences WHERE user_id = ?')
+        .get(userId);
       if (!row) {
         const defaults = normalizeNotificationPreferences(DEFAULT_NOTIFICATION_PREFERENCES);
         db.prepare(
@@ -471,7 +593,7 @@ const notificationPreferencesDb = {
     } catch (err) {
       throw err;
     }
-  }
+  },
 };
 
 const pushSubscriptionsDb = {
@@ -492,7 +614,11 @@ const pushSubscriptionsDb = {
 
   getSubscriptions: (userId) => {
     try {
-      return db.prepare('SELECT endpoint, keys_p256dh, keys_auth FROM push_subscriptions WHERE user_id = ?').all(userId);
+      return db
+        .prepare(
+          'SELECT endpoint, keys_p256dh, keys_auth FROM push_subscriptions WHERE user_id = ?'
+        )
+        .all(userId);
     } catch (err) {
       throw err;
     }
@@ -512,26 +638,28 @@ const pushSubscriptionsDb = {
     } catch (err) {
       throw err;
     }
-  }
+  },
 };
 
 // Session custom names database operations
 const sessionNamesDb = {
   // Set (insert or update) a custom session name
   setName: (sessionId, provider, customName) => {
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO session_names (session_id, provider, custom_name)
       VALUES (?, ?, ?)
       ON CONFLICT(session_id, provider)
       DO UPDATE SET custom_name = excluded.custom_name, updated_at = CURRENT_TIMESTAMP
-    `).run(sessionId, provider, customName);
+    `
+    ).run(sessionId, provider, customName);
   },
 
   // Get a single custom session name
   getName: (sessionId, provider) => {
-    const row = db.prepare(
-      'SELECT custom_name FROM session_names WHERE session_id = ? AND provider = ?'
-    ).get(sessionId, provider);
+    const row = db
+      .prepare('SELECT custom_name FROM session_names WHERE session_id = ? AND provider = ?')
+      .get(sessionId, provider);
     return row?.custom_name || null;
   },
 
@@ -539,18 +667,22 @@ const sessionNamesDb = {
   getNames: (sessionIds, provider) => {
     if (!sessionIds.length) return new Map();
     const placeholders = sessionIds.map(() => '?').join(',');
-    const rows = db.prepare(
-      `SELECT session_id, custom_name FROM session_names
+    const rows = db
+      .prepare(
+        `SELECT session_id, custom_name FROM session_names
        WHERE session_id IN (${placeholders}) AND provider = ?`
-    ).all(...sessionIds, provider);
-    return new Map(rows.map(r => [r.session_id, r.custom_name]));
+      )
+      .all(...sessionIds, provider);
+    return new Map(rows.map((r) => [r.session_id, r.custom_name]));
   },
 
   // Delete a custom session name
   deleteName: (sessionId, provider) => {
-    return db.prepare(
-      'DELETE FROM session_names WHERE session_id = ? AND provider = ?'
-    ).run(sessionId, provider).changes > 0;
+    return (
+      db
+        .prepare('DELETE FROM session_names WHERE session_id = ? AND provider = ?')
+        .run(sessionId, provider).changes > 0
+    );
   },
 };
 
@@ -558,7 +690,7 @@ const sessionNamesDb = {
 function applyCustomSessionNames(sessions, provider) {
   if (!sessions?.length) return;
   try {
-    const ids = sessions.map(s => s.id);
+    const ids = sessions.map((s) => s.id);
     const customNames = sessionNamesDb.getNames(ids, provider);
     for (const session of sessions) {
       const custom = customNames.get(session.id);
@@ -593,13 +725,19 @@ const appConfigDb = {
       appConfigDb.set('jwt_secret', secret);
     }
     return secret;
-  }
+  },
 };
 
 // Backward compatibility - keep old names pointing to new system
 const githubTokensDb = {
   createGithubToken: (userId, tokenName, githubToken, description = null) => {
-    return credentialsDb.createCredential(userId, tokenName, 'github_token', githubToken, description);
+    return credentialsDb.createCredential(
+      userId,
+      tokenName,
+      'github_token',
+      githubToken,
+      description
+    );
   },
   getGithubTokens: (userId) => {
     return credentialsDb.getCredentials(userId, 'github_token');
@@ -612,7 +750,7 @@ const githubTokensDb = {
   },
   toggleGithubToken: (userId, tokenId, isActive) => {
     return credentialsDb.toggleCredential(userId, tokenId, isActive);
-  }
+  },
 };
 
 export {
@@ -626,5 +764,5 @@ export {
   sessionNamesDb,
   applyCustomSessionNames,
   appConfigDb,
-  githubTokensDb // Backward compatibility
+  githubTokensDb, // Backward compatibility
 };
