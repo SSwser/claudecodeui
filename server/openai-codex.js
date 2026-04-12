@@ -15,6 +15,11 @@
 
 import { Codex } from '@openai/codex-sdk';
 import { notifyRunFailed, notifyRunStopped } from './services/notification-orchestrator.js';
+import {
+  clearProcessRegistration,
+  markProcessRuntimeFailure,
+  registerProcess,
+} from './services/sessionLifecycleService.js';
 import { codexAdapter } from './providers/codex/adapter.js';
 import { createNormalizedMessage } from './providers/types.js';
 
@@ -209,6 +214,7 @@ export async function queryCodex(command, options = {}, ws) {
   let currentSessionId = sessionId;
   let terminalFailure = null;
   const abortController = new AbortController();
+  let registeredLifecycleSessionId = null;
 
   try {
     // Initialize Codex SDK
@@ -232,6 +238,30 @@ export async function queryCodex(command, options = {}, ws) {
 
     // Get the thread ID
     currentSessionId = thread.id || sessionId || `codex-${Date.now()}`;
+
+    const registerLifecycleRuntime = (runtimeSessionId) => {
+      if (!runtimeSessionId || registeredLifecycleSessionId === runtimeSessionId) {
+        return;
+      }
+
+      registeredLifecycleSessionId = runtimeSessionId;
+
+      try {
+        registerProcess({
+          sessionId: runtimeSessionId,
+          provider: 'codex',
+          runtimeType: 'virtual',
+          projectPath: workingDirectory,
+          title: sessionSummary || null,
+          summary: sessionSummary || null,
+          stop: () => abortCodexSession(runtimeSessionId),
+        });
+      } catch (error) {
+        console.warn(`[codex] Failed to register lifecycle state for ${runtimeSessionId}:`, error.message);
+      }
+    };
+
+    registerLifecycleRuntime(currentSessionId);
 
     // Track the session
     activeCodexSessions.set(currentSessionId, {
@@ -260,6 +290,8 @@ export async function queryCodex(command, options = {}, ws) {
       if (event.type === 'item.started' || event.type === 'item.updated') {
         continue;
       }
+
+      registerLifecycleRuntime(currentSessionId);
 
       const transformed = transformCodexEvent(event);
 
@@ -290,6 +322,7 @@ export async function queryCodex(command, options = {}, ws) {
     // Send completion event
     if (!terminalFailure) {
       sendMessage(ws, createNormalizedMessage({ kind: 'complete', actualSessionId: thread.id, sessionId: currentSessionId, provider: 'codex' }));
+      clearProcessRegistration(currentSessionId, 'codex');
       notifyRunStopped({
         userId: ws?.userId || null,
         provider: 'codex',
@@ -297,6 +330,8 @@ export async function queryCodex(command, options = {}, ws) {
         sessionName: sessionSummary,
         stopReason: 'completed'
       });
+    } else if (currentSessionId) {
+      await markProcessRuntimeFailure(currentSessionId, 'codex', terminalFailure);
     }
 
   } catch (error) {
@@ -309,6 +344,9 @@ export async function queryCodex(command, options = {}, ws) {
     if (!wasAborted) {
       console.error('[Codex] Error:', error);
       sendMessage(ws, createNormalizedMessage({ kind: 'error', content: error.message, sessionId: currentSessionId, provider: 'codex' }));
+      if (currentSessionId) {
+        await markProcessRuntimeFailure(currentSessionId, 'codex', error);
+      }
       if (!terminalFailure) {
         notifyRunFailed({
           userId: ws?.userId || null,
@@ -321,6 +359,10 @@ export async function queryCodex(command, options = {}, ws) {
     }
 
   } finally {
+    if (currentSessionId && activeCodexSessions.get(currentSessionId)?.status === 'aborted') {
+      clearProcessRegistration(currentSessionId, 'codex');
+    }
+
     // Update session status
     if (currentSessionId) {
       const session = activeCodexSessions.get(currentSessionId);

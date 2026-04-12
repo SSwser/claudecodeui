@@ -94,6 +94,7 @@ import commandsRoutes from './routes/commands.js';
 import settingsRoutes from './routes/settings.js';
 import agentRoutes from './routes/agent.js';
 import projectManagementRoutes from './routes/project-management.js';
+import sessionLifecycleRoutes from './routes/sessionLifecycle.js';
 import projectsRoutes, { WORKSPACES_ROOT, validateWorkspacePath } from './routes/projects.js';
 import cliAuthRoutes from './routes/cli-auth.js';
 import userRoutes from './routes/user.js';
@@ -113,6 +114,7 @@ import {
   applyCustomSessionNames,
   userDb,
 } from './database/db.js';
+import { setSessionLifecycleBroadcaster } from './services/sessionLifecycleService.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from './constants/config.js';
@@ -380,6 +382,15 @@ wss.on('error', (error) => {
 // Make WebSocket server available to routes
 app.locals.wss = wss;
 
+setSessionLifecycleBroadcaster((payload) => {
+  const message = JSON.stringify(payload);
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  }
+});
+
 app.use(cors({ exposedHeaders: ['X-Refreshed-Token'] }));
 app.use(
   express.json({
@@ -426,6 +437,9 @@ app.use('/api/cursor', authenticateToken, cursorRoutes);
 
 // TaskMaster API Routes (protected)
 app.use('/api/taskmaster', authenticateToken, taskmasterRoutes);
+
+// Session lifecycle API Routes (protected)
+app.use('/api/sessions', authenticateToken, sessionLifecycleRoutes);
 
 // MCP utilities
 app.use('/api/mcp-utils', authenticateToken, mcpUtilsRoutes);

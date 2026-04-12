@@ -9,6 +9,7 @@ import os from 'os';
 import sessionManager from './sessionManager.js';
 import GeminiResponseHandler from './gemini-response-handler.js';
 import { notifyRunFailed, notifyRunStopped } from './services/notification-orchestrator.js';
+import { registerProcess } from './services/sessionLifecycleService.js';
 import { createNormalizedMessage } from './providers/types.js';
 
 let activeGeminiProcesses = new Map(); // Track active processes by session ID
@@ -18,6 +19,7 @@ async function spawnGemini(command, options = {}, ws) {
     let capturedSessionId = sessionId; // Track session ID throughout the process
     let sessionCreatedSent = false; // Track if we've already sent session-created event
     let assistantBlocks = []; // Accumulate the full response blocks including tools
+    let registeredRuntimeSessionId = null;
 
     // Use tools settings passed from frontend, or defaults
     const settings = toolsSettings || {
@@ -212,6 +214,33 @@ async function spawnGemini(command, options = {}, ws) {
         const processKey = capturedSessionId || sessionId || Date.now().toString();
         activeGeminiProcesses.set(processKey, geminiProcess);
 
+        const registerRuntime = (runtimeSessionId) => {
+            if (!runtimeSessionId || registeredRuntimeSessionId === runtimeSessionId) {
+                return;
+            }
+
+            registeredRuntimeSessionId = runtimeSessionId;
+
+            try {
+                registerProcess({
+                    sessionId: runtimeSessionId,
+                    provider: 'gemini',
+                    pid: geminiProcess.pid,
+                    process: geminiProcess,
+                    runtimeType: 'child-process',
+                    projectPath: workingDir,
+                    title: sessionSummary || null,
+                    summary: sessionSummary || null,
+                });
+            } catch (error) {
+                console.warn(`[gemini-cli] Failed to register lifecycle state for ${runtimeSessionId}:`, error.message);
+            }
+        };
+
+        if (sessionId) {
+            registerRuntime(sessionId);
+        }
+
         // Store sessionId on the process object for debugging
         geminiProcess.sessionId = processKey;
 
@@ -309,6 +338,8 @@ async function spawnGemini(command, options = {}, ws) {
                     activeGeminiProcesses.delete(processKey);
                     activeGeminiProcesses.set(capturedSessionId, geminiProcess);
                 }
+
+                registerRuntime(capturedSessionId);
 
                 ws.setSessionId && typeof ws.setSessionId === 'function' && ws.setSessionId(capturedSessionId);
 

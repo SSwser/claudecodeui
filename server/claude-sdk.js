@@ -24,6 +24,11 @@ import {
   notifyRunStopped,
   notifyUserIfEnabled
 } from './services/notification-orchestrator.js';
+import {
+  clearProcessRegistration,
+  markProcessRuntimeFailure,
+  registerProcess,
+} from './services/sessionLifecycleService.js';
 import { claudeAdapter } from './providers/claude/adapter.js';
 import { createNormalizedMessage } from './providers/types.js';
 
@@ -471,6 +476,7 @@ async function queryClaudeSDK(command, options = {}, ws) {
   let sessionCreatedSent = false;
   let tempImagePaths = [];
   let tempDir = null;
+  let registeredLifecycleSessionId = null;
 
   const emitNotification = (event) => {
     notifyUserIfEnabled({
@@ -621,6 +627,32 @@ async function queryClaudeSDK(command, options = {}, ws) {
       addSession(capturedSessionId, queryInstance, tempImagePaths, tempDir, ws);
     }
 
+    const registerLifecycleRuntime = (runtimeSessionId) => {
+      if (!runtimeSessionId || registeredLifecycleSessionId === runtimeSessionId) {
+        return;
+      }
+
+      registeredLifecycleSessionId = runtimeSessionId;
+
+      try {
+        registerProcess({
+          sessionId: runtimeSessionId,
+          provider: 'claude',
+          runtimeType: 'virtual',
+          projectPath: sdkOptions.cwd || options.projectPath || process.cwd(),
+          title: sessionSummary || null,
+          summary: sessionSummary || null,
+          stop: () => abortClaudeSDKSession(runtimeSessionId),
+        });
+      } catch (error) {
+        console.warn(`[claude-sdk] Failed to register lifecycle state for ${runtimeSessionId}:`, error.message);
+      }
+    };
+
+    if (capturedSessionId) {
+      registerLifecycleRuntime(capturedSessionId);
+    }
+
     // Process streaming messages
     console.log('Starting async generator loop for session:', capturedSessionId || 'NEW');
     for await (const message of queryInstance) {
@@ -643,6 +675,8 @@ async function queryClaudeSDK(command, options = {}, ws) {
       } else {
         // session_id already captured
       }
+
+      registerLifecycleRuntime(capturedSessionId || sessionId);
 
       // Transform and normalize message via adapter
       const transformedMessage = transformMessage(message);
@@ -674,6 +708,7 @@ async function queryClaudeSDK(command, options = {}, ws) {
     // Clean up session on completion
     if (capturedSessionId) {
       removeSession(capturedSessionId);
+      clearProcessRegistration(capturedSessionId, 'claude');
     }
 
     // Clean up temporary image files
@@ -696,6 +731,10 @@ async function queryClaudeSDK(command, options = {}, ws) {
     // Clean up session on error
     if (capturedSessionId) {
       removeSession(capturedSessionId);
+    }
+
+    if (capturedSessionId || sessionId) {
+      await markProcessRuntimeFailure(capturedSessionId || sessionId, 'claude', error);
     }
 
     // Clean up temporary image files on error

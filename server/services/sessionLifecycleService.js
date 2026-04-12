@@ -339,6 +339,10 @@ function broadcastSessionState(state, extra = {}) {
   });
 }
 
+function emitSessionStateChange(state, extra = {}) {
+  broadcastSessionState(state, extra);
+}
+
 function handleRuntimeClose(key, metadata = {}) {
   const entry = processRegistry.get(key);
   if (!entry) {
@@ -620,6 +624,7 @@ function setSessionLifecycleBroadcaster(broadcaster) {
 export {
   processRegistry,
   setSessionLifecycleBroadcaster,
+  emitSessionStateChange,
   registerProcess,
   clearProcessRegistration,
   markProcessRuntimeFailure,

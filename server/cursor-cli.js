@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import crossSpawn from 'cross-spawn';
 import { notifyRunFailed, notifyRunStopped } from './services/notification-orchestrator.js';
+import { registerProcess } from './services/sessionLifecycleService.js';
 import { cursorAdapter } from './providers/cursor/adapter.js';
 import { createNormalizedMessage } from './providers/types.js';
 
@@ -31,6 +32,7 @@ async function spawnCursor(command, options = {}, ws) {
     let sessionCreatedSent = false; // Track if we've already sent session-created event
     let hasRetriedWithTrust = false;
     let settled = false;
+    let registeredRuntimeSessionId = null;
 
     // Use tools settings passed from frontend, or defaults
     const settings = toolsSettings || {
@@ -128,6 +130,33 @@ async function spawnCursor(command, options = {}, ws) {
         env: { ...process.env } // Inherit all environment variables
       });
 
+      const registerRuntime = (runtimeSessionId) => {
+        if (!runtimeSessionId || registeredRuntimeSessionId === runtimeSessionId) {
+          return;
+        }
+
+        registeredRuntimeSessionId = runtimeSessionId;
+
+        try {
+          registerProcess({
+            sessionId: runtimeSessionId,
+            provider: 'cursor',
+            pid: cursorProcess.pid,
+            process: cursorProcess,
+            runtimeType: 'child-process',
+            projectPath: workingDir,
+            title: sessionSummary || null,
+            summary: sessionSummary || null,
+          });
+        } catch (error) {
+          console.warn(`[cursor-cli] Failed to register lifecycle state for ${runtimeSessionId}:`, error.message);
+        }
+      };
+
+      if (sessionId) {
+        registerRuntime(sessionId);
+      }
+
       activeCursorProcesses.set(processKey, cursorProcess);
 
       const shouldSuppressForTrustRetry = (text) => {
@@ -165,6 +194,8 @@ async function spawnCursor(command, options = {}, ws) {
                     activeCursorProcesses.delete(processKey);
                     activeCursorProcesses.set(capturedSessionId, cursorProcess);
                   }
+
+                  registerRuntime(capturedSessionId);
 
                   // Set session ID on writer (for API endpoint compatibility)
                   if (ws.setSessionId && typeof ws.setSessionId === 'function') {
