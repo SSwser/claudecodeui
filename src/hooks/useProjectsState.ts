@@ -574,11 +574,8 @@ export function useProjectsState({
     () => ({
       projects,
       selectedProject,
-      selectedSession,
       onProjectSelect: handleProjectSelect,
-      onSessionSelect: handleSessionSelect,
-      onNewSession: handleNewSession,
-      onSessionDelete: handleSessionDelete,
+      onOpenSession: handleSessionSelect,
       onProjectDelete: handleProjectDelete,
       isLoading: isLoadingProjects,
       loadingProgress,
@@ -590,10 +587,8 @@ export function useProjectsState({
       isMobile,
     }),
     [
-      handleNewSession,
       handleProjectDelete,
       handleProjectSelect,
-      handleSessionDelete,
       handleSessionSelect,
       handleSidebarRefresh,
       isLoadingProjects,
@@ -602,7 +597,6 @@ export function useProjectsState({
       projects,
       settingsInitialTab,
       selectedProject,
-      selectedSession,
       showSettings,
     ],
   );

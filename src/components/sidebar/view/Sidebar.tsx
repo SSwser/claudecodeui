@@ -5,27 +5,22 @@ import { useVersionCheck } from '../../../hooks/useVersionCheck'
 import { useUiPreferences } from '../../../hooks/useUiPreferences'
 import { useSidebarController } from '../hooks/useSidebarController'
 import { useTaskMaster } from '../../../contexts/TaskMasterContext'
-import { useTasksSettings } from '../../../contexts/TasksSettingsContext'
 import type { Project, SessionProvider } from '../../../types/app'
-import type { MCPServerStatus, SidebarProps } from '../types/types'
+import type { SidebarProps } from '../types/types'
+import { getAllSessions } from '../utils/utils'
 import SidebarCollapsed from './subcomponents/SidebarCollapsed'
 import SidebarContent from './subcomponents/SidebarContent'
 import SidebarModals from './subcomponents/SidebarModals'
-import type { SidebarProjectListProps } from './subcomponents/SidebarProjectList'
 
 type TaskMasterSidebarContext = {
 	setCurrentProject: (project: Project) => void
-	mcpServerStatus: MCPServerStatus
 }
 
 function Sidebar({
 	projects,
 	selectedProject,
-	selectedSession,
 	onProjectSelect,
-	onSessionSelect,
-	onNewSession,
-	onSessionDelete,
+	onOpenSession,
 	onProjectDelete,
 	isLoading,
 	loadingProgress,
@@ -44,21 +39,14 @@ function Sidebar({
 	)
 	const { preferences, setPreference } = useUiPreferences()
 	const { sidebarVisible } = preferences
-	const { setCurrentProject, mcpServerStatus } = useTaskMaster() as TaskMasterSidebarContext
-	const { tasksEnabled } = useTasksSettings()
+	const { setCurrentProject } = useTaskMaster() as TaskMasterSidebarContext
 
 	const {
 		isSidebarCollapsed,
-		expandedProjects,
 		editingProject,
 		showNewProject,
 		editingName,
-		loadingSessions,
-		initialSessionsLoaded,
-		currentTime,
 		isRefreshing,
-		editingSession,
-		editingSessionName,
 		searchFilter,
 		searchMode,
 		setSearchMode,
@@ -68,46 +56,34 @@ function Sidebar({
 		clearConversationResults,
 		deletingProjects,
 		deleteConfirmation,
-		sessionDeleteConfirmation,
 		showVersionModal,
-		filteredProjects,
-		toggleProject,
-		handleSessionClick,
-		toggleStarProject,
-		isProjectStarred,
-		getProjectSessions,
+		sidebarProjects,
+		recentSessions,
+		activeWorkspaceName,
 		startEditing,
 		cancelEditing,
 		saveProjectName,
-		showDeleteSessionConfirmation,
-		confirmDeleteSession,
 		requestProjectDelete,
 		confirmDeleteProject,
-		loadMoreSessions,
 		handleProjectSelect,
+		openSessionFromSidebar,
 		refreshProjects,
-		updateSessionSummary,
 		collapseSidebar: handleCollapseSidebar,
 		expandSidebar: handleExpandSidebar,
 		setShowNewProject,
 		setEditingName,
-		setEditingSession,
-		setEditingSessionName,
 		setSearchFilter,
 		setDeleteConfirmation,
-		setSessionDeleteConfirmation,
 		setShowVersionModal,
 	} = useSidebarController({
 		projects,
 		selectedProject,
-		selectedSession,
 		isLoading,
 		isMobile,
 		t,
 		onRefresh,
 		onProjectSelect,
-		onSessionSelect,
-		onSessionDelete,
+		onOpenSession,
 		onProjectDelete,
 		setCurrentProject,
 		setSidebarVisible: visible => setPreference('sidebarVisible', visible),
@@ -144,57 +120,6 @@ function Sidebar({
 		window.location.reload()
 	}
 
-	const projectListProps: SidebarProjectListProps = {
-		projects,
-		filteredProjects,
-		selectedProject,
-		selectedSession,
-		isLoading,
-		loadingProgress,
-		expandedProjects,
-		editingProject,
-		editingName,
-		loadingSessions,
-		initialSessionsLoaded,
-		currentTime,
-		editingSession,
-		editingSessionName,
-		deletingProjects,
-		tasksEnabled,
-		mcpServerStatus,
-		getProjectSessions,
-		isProjectStarred,
-		onEditingNameChange: setEditingName,
-		onToggleProject: toggleProject,
-		onProjectSelect: handleProjectSelect,
-		onToggleStarProject: toggleStarProject,
-		onStartEditingProject: startEditing,
-		onCancelEditingProject: cancelEditing,
-		onSaveProjectName: projectName => {
-			void saveProjectName(projectName)
-		},
-		onDeleteProject: requestProjectDelete,
-		onSessionSelect: handleSessionClick,
-		onDeleteSession: showDeleteSessionConfirmation,
-		onLoadMoreSessions: project => {
-			void loadMoreSessions(project)
-		},
-		onNewSession,
-		onEditingSessionNameChange: setEditingSessionName,
-		onStartEditingSession: (sessionId, initialName) => {
-			setEditingSession(sessionId)
-			setEditingSessionName(initialName)
-		},
-		onCancelEditingSession: () => {
-			setEditingSession(null)
-			setEditingSessionName('')
-		},
-		onSaveEditingSession: (projectName: string, sessionId: string, summary: string, provider: SessionProvider) => {
-			void updateSessionSummary(projectName, sessionId, summary, provider)
-		},
-		t,
-	}
-
 	return (
 		<>
 			<SidebarModals
@@ -208,9 +133,6 @@ function Sidebar({
 				deleteConfirmation={deleteConfirmation}
 				onCancelDeleteProject={() => setDeleteConfirmation(null)}
 				onConfirmDeleteProject={confirmDeleteProject}
-				sessionDeleteConfirmation={sessionDeleteConfirmation}
-				onCancelDeleteSession={() => setSessionDeleteConfirmation(null)}
-				onConfirmDeleteSession={confirmDeleteSession}
 				showVersionModal={showVersionModal}
 				onCloseVersionModal={() => setShowVersionModal(false)}
 				releaseInfo={releaseInfo}
@@ -229,70 +151,81 @@ function Sidebar({
 					t={t}
 				/>
 			) : (
-				<>
-					<SidebarContent
-						isPWA={isPWA}
-						isMobile={isMobile}
-						isLoading={isLoading}
-						projects={projects}
-						searchFilter={searchFilter}
-						onSearchFilterChange={setSearchFilter}
-						onClearSearchFilter={() => setSearchFilter('')}
-						searchMode={searchMode}
-						onSearchModeChange={(mode: 'projects' | 'conversations') => {
-							setSearchMode(mode)
-							if (mode === 'projects') clearConversationResults()
-						}}
-						conversationResults={conversationResults}
-						isSearching={isSearching}
-						searchProgress={searchProgress}
-						onConversationResultClick={(
-							projectName: string,
-							sessionId: string,
-							provider: string,
-							messageTimestamp?: string | null,
-							messageSnippet?: string | null,
-						) => {
-							const resolvedProvider = (provider || 'claude') as SessionProvider
-							const project = projects.find(p => p.name === projectName)
-							const searchTarget = {
-								__searchTargetTimestamp: messageTimestamp || null,
-								__searchTargetSnippet: messageSnippet || null,
-							}
-							const sessionObj = {
+				<SidebarContent
+					isPWA={isPWA}
+					isMobile={isMobile}
+					isLoading={isLoading}
+					loadingProgress={loadingProgress}
+					projects={projects}
+					selectedProject={selectedProject}
+					recentSessions={recentSessions}
+					sidebarProjects={sidebarProjects}
+					activeWorkspaceName={activeWorkspaceName}
+					searchFilter={searchFilter}
+					onSearchFilterChange={setSearchFilter}
+					onClearSearchFilter={() => setSearchFilter('')}
+					searchMode={searchMode}
+					onSearchModeChange={(mode: 'projects' | 'conversations') => {
+						setSearchMode(mode)
+						if (mode === 'projects') clearConversationResults()
+					}}
+					conversationResults={conversationResults}
+					isSearching={isSearching}
+					searchProgress={searchProgress}
+					onConversationResultClick={(
+						projectName: string,
+						sessionId: string,
+						provider: string,
+						messageTimestamp?: string | null,
+						messageSnippet?: string | null,
+					) => {
+						const resolvedProvider = (provider || 'claude') as SessionProvider
+						const project = projects.find(entry => entry.name === projectName) || null
+						const searchTarget = {
+							__searchTargetTimestamp: messageTimestamp || null,
+							__searchTargetSnippet: messageSnippet || null,
+						}
+						const existingSession = project
+							? getAllSessions(project, {}).find(session => session.id === sessionId)
+							: null
+						const sessionObj = existingSession
+							? { ...existingSession, ...searchTarget }
+							: {
 								id: sessionId,
 								__provider: resolvedProvider,
 								__projectName: projectName,
 								...searchTarget,
-							}
-							if (project) {
-								handleProjectSelect(project)
-								const sessions = getProjectSessions(project)
-								const existing = sessions.find(s => s.id === sessionId)
-								if (existing) {
-									handleSessionClick({ ...existing, ...searchTarget }, projectName)
-								} else {
-									handleSessionClick(sessionObj, projectName)
-								}
-							} else {
-								handleSessionClick(sessionObj, projectName)
-							}
-						}}
-						onRefresh={() => {
-							void refreshProjects()
-						}}
-						isRefreshing={isRefreshing}
-						onCreateProject={() => setShowNewProject(true)}
-						onCollapseSidebar={handleCollapseSidebar}
-						updateAvailable={updateAvailable}
-						releaseInfo={releaseInfo}
-						latestVersion={latestVersion}
-						onShowVersionModal={() => setShowVersionModal(true)}
-						onShowSettings={onShowSettings}
-						projectListProps={projectListProps}
-						t={t}
-					/>
-				</>
+							  }
+
+						openSessionFromSidebar(sessionObj, project)
+					}}
+					onRefresh={() => {
+						void refreshProjects()
+					}}
+					isRefreshing={isRefreshing}
+					onCreateProject={() => setShowNewProject(true)}
+					editingProject={editingProject}
+					editingName={editingName}
+					deletingProjects={deletingProjects}
+					onEditingNameChange={setEditingName}
+					onProjectSelect={handleProjectSelect}
+					onStartEditingProject={startEditing}
+					onCancelEditingProject={cancelEditing}
+					onSaveProjectName={projectName => {
+						void saveProjectName(projectName)
+					}}
+					onDeleteProject={requestProjectDelete}
+					onRecentSessionSelect={recentSession => {
+						openSessionFromSidebar(recentSession.session, recentSession.project)
+					}}
+					onCollapseSidebar={handleCollapseSidebar}
+					updateAvailable={updateAvailable}
+					releaseInfo={releaseInfo}
+					latestVersion={latestVersion}
+					onShowVersionModal={() => setShowVersionModal(true)}
+					onShowSettings={onShowSettings}
+					t={t}
+				/>
 			)}
 		</>
 	)

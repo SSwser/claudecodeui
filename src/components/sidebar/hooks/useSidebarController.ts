@@ -1,24 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type React from 'react';
 import type { TFunction } from 'i18next';
+import { useHomePreferences } from '../../../hooks/useHomePreferences';
+import type { Project, ProjectSession } from '../../../types/app';
+import { formatTimeAgo } from '../../../utils/dateUtils';
 import { api } from '../../../utils/api';
-import type { Project, ProjectSession, SessionProvider } from '../../../types/app';
 import type {
-  AdditionalSessionsByProject,
   DeleteProjectConfirmation,
-  LoadingSessionsByProject,
-  ProjectSortOrder,
-  SessionDeleteConfirmation,
-  SessionWithProvider,
+  SidebarProjectListItem,
+  SidebarRecentSession,
 } from '../types/types';
-import {
-  filterProjects,
-  getAllSessions,
-  loadStarredProjects,
-  persistStarredProjects,
-  readProjectSortOrder,
-  sortProjects,
-} from '../utils/utils';
+import { getAllSessions, getProjectLastActivity, getSessionDate, getSessionName } from '../utils/utils';
 
 type SnippetHighlight = {
   start: number;
@@ -61,55 +52,83 @@ export type SearchProgress = {
 type UseSidebarControllerArgs = {
   projects: Project[];
   selectedProject: Project | null;
-  selectedSession: ProjectSession | null;
   isLoading: boolean;
   isMobile: boolean;
   t: TFunction;
   onRefresh: () => Promise<void> | void;
   onProjectSelect: (project: Project) => void;
-  onSessionSelect: (session: ProjectSession) => void;
-  onSessionDelete?: (sessionId: string) => void;
+  onOpenSession: (session: ProjectSession) => void;
   onProjectDelete?: (projectName: string) => void;
   setCurrentProject: (project: Project) => void;
   setSidebarVisible: (visible: boolean) => void;
   sidebarVisible: boolean;
 };
 
+const EMPTY_ADDITIONAL_SESSIONS = {};
+const ACTIVE_SESSION_WINDOW_MS = 10 * 60 * 1000;
+
+const splitPathSegments = (pathValue?: string): string[] => {
+  if (!pathValue) {
+    return [];
+  }
+
+  return pathValue.replace(/\\/g, '/').split('/').filter(Boolean);
+};
+
+const getWorkspaceLabel = (project: Project): string => {
+  const segments = splitPathSegments(project.fullPath || project.path);
+  return segments[segments.length - 1] || project.displayName || project.name;
+};
+
+const isMultiWorkspaceEnabled = (project: Project | null): boolean => {
+  if (!project) {
+    return false;
+  }
+
+  return Boolean(
+    (project as { multi_workspace_enabled?: boolean }).multi_workspace_enabled ??
+      (project as { multiWorkspaceEnabled?: boolean }).multiWorkspaceEnabled,
+  );
+};
+
+const resolveActivityTimestamp = (session: ProjectSession): string => {
+  const candidates = [session.lastActivity, session.updated_at, session.createdAt, session.created_at];
+  const value = candidates.find((candidate) => typeof candidate === 'string' && candidate.length > 0);
+  return value || new Date(0).toISOString();
+};
+
+const matchesSearch = (values: Array<string | undefined>, searchValue: string): boolean => {
+  if (!searchValue) {
+    return true;
+  }
+
+  return values.some((value) => (value || '').toLowerCase().includes(searchValue));
+};
+
 export function useSidebarController({
   projects,
   selectedProject,
-  selectedSession,
   isLoading,
   isMobile,
   t,
   onRefresh,
   onProjectSelect,
-  onSessionSelect,
-  onSessionDelete,
+  onOpenSession,
   onProjectDelete,
   setCurrentProject,
   setSidebarVisible,
   sidebarVisible,
 }: UseSidebarControllerArgs) {
-  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const { preferences, markFavoriteAccessed } = useHomePreferences();
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [editingName, setEditingName] = useState('');
-  const [loadingSessions, setLoadingSessions] = useState<LoadingSessionsByProject>({});
-  const [additionalSessions, setAdditionalSessions] = useState<AdditionalSessionsByProject>({});
-  const [initialSessionsLoaded, setInitialSessionsLoaded] = useState<Set<string>>(new Set());
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [projectSortOrder, setProjectSortOrder] = useState<ProjectSortOrder>('name');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [projectHasMoreOverrides, setProjectHasMoreOverrides] = useState<Record<string, boolean>>({});
-  const [editingSession, setEditingSession] = useState<string | null>(null);
-  const [editingSessionName, setEditingSessionName] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
   const [deletingProjects, setDeletingProjects] = useState<Set<string>>(new Set());
   const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteProjectConfirmation | null>(null);
-  const [sessionDeleteConfirmation, setSessionDeleteConfirmation] = useState<SessionDeleteConfirmation | null>(null);
   const [showVersionModal, setShowVersionModal] = useState(false);
-  const [starredProjects, setStarredProjects] = useState<Set<string>>(() => loadStarredProjects());
   const [searchMode, setSearchMode] = useState<'projects' | 'conversations'>('projects');
   const [conversationResults, setConversationResults] = useState<ConversationSearchResults | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -126,64 +145,6 @@ export function useSidebarController({
     }, 60000);
 
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    setAdditionalSessions({});
-    setInitialSessionsLoaded(new Set());
-    setProjectHasMoreOverrides({});
-  }, [projects]);
-
-  useEffect(() => {
-    if (selectedProject) {
-      setExpandedProjects((prev) => {
-        if (prev.has(selectedProject.name)) {
-          return prev;
-        }
-        const next = new Set(prev);
-        next.add(selectedProject.name);
-        return next;
-      });
-    }
-  }, [selectedSession, selectedProject]);
-
-  useEffect(() => {
-    if (projects.length > 0 && !isLoading) {
-      const loadedProjects = new Set<string>();
-      projects.forEach((project) => {
-        if (project.sessions && project.sessions.length >= 0) {
-          loadedProjects.add(project.name);
-        }
-      });
-      setInitialSessionsLoaded(loadedProjects);
-    }
-  }, [projects, isLoading]);
-
-  useEffect(() => {
-    const loadSortOrder = () => {
-      setProjectSortOrder(readProjectSortOrder());
-    };
-
-    loadSortOrder();
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'claude-settings') {
-        loadSortOrder();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    const interval = setInterval(() => {
-      if (document.hasFocus()) {
-        loadSortOrder();
-      }
-    }, 1000);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
   }, []);
 
   // Debounced conversation search with SSE streaming
@@ -281,87 +242,99 @@ export function useSidebarController({
     };
   }, [searchFilter, searchMode]);
 
-  const handleTouchClick = useCallback(
-    (callback: () => void) =>
-      (event: React.TouchEvent<HTMLElement>) => {
-        const target = event.target as HTMLElement;
-        if (target.closest('.overflow-y-auto') || target.closest('[data-scroll-container]')) {
-          return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-        callback();
-      },
-    [],
-  );
-
-  const toggleProject = useCallback((projectName: string) => {
-    setExpandedProjects((prev) => {
-      const next = new Set<string>();
-      if (!prev.has(projectName)) {
-        next.add(projectName);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleSessionClick = useCallback(
-    (session: SessionWithProvider, projectName: string) => {
-      onSessionSelect({ ...session, __projectName: projectName });
-    },
-    [onSessionSelect],
-  );
-
-  const toggleStarProject = useCallback((projectName: string) => {
-    setStarredProjects((prev) => {
-      const next = new Set(prev);
-      if (next.has(projectName)) {
-        next.delete(projectName);
-      } else {
-        next.add(projectName);
-      }
-
-      persistStarredProjects(next);
-      return next;
-    });
-  }, []);
-
-  const isProjectStarred = useCallback(
-    (projectName: string) => starredProjects.has(projectName),
-    [starredProjects],
-  );
-
-  const getProjectSessions = useCallback(
-    (project: Project) => getAllSessions(project, additionalSessions),
-    [additionalSessions],
-  );
-
-  const projectsWithSessionMeta = useMemo(
+  const favoriteSessionIds = useMemo(
     () =>
-      projects.map((project) => {
-        const hasMoreOverride = projectHasMoreOverrides[project.name];
-        if (hasMoreOverride === undefined) {
-          return project;
-        }
+      new Set(
+        preferences.favorites
+          .filter((favorite) => favorite.kind === 'session')
+          .map((favorite) => favorite.sessionId),
+      ),
+    [preferences.favorites],
+  );
+
+  const normalizedSearch = searchFilter.trim().toLowerCase();
+
+  const sidebarProjects = useMemo<SidebarProjectListItem[]>(() => {
+    return projects
+      .map((project) => {
+        const sessions = getAllSessions(project, EMPTY_ADDITIONAL_SESSIONS);
+        const latestActivity = getProjectLastActivity(project, EMPTY_ADDITIONAL_SESSIONS);
+        const hasActiveSessions = sessions.some(
+          (session) => currentTime.getTime() - getSessionDate(session).getTime() < ACTIVE_SESSION_WINDOW_MS,
+        );
 
         return {
-          ...project,
-          sessionMeta: { ...project.sessionMeta, hasMore: hasMoreOverride },
+          project,
+          displayName: project.displayName || project.name,
+          workspaceName: getWorkspaceLabel(project),
+          hasActiveSessions,
+          latestActivity,
         };
-      }),
-    [projectHasMoreOverrides, projects],
-  );
+      })
+      .filter((projectItem) =>
+        matchesSearch(
+          [projectItem.displayName, projectItem.project.name, projectItem.workspaceName],
+          normalizedSearch,
+        ),
+      )
+      .sort((left, right) => {
+        const activityDiff = right.latestActivity.getTime() - left.latestActivity.getTime();
+        if (activityDiff !== 0) {
+          return activityDiff;
+        }
 
-  const sortedProjects = useMemo(
-    () => sortProjects(projectsWithSessionMeta, projectSortOrder, starredProjects, additionalSessions),
-    [additionalSessions, projectSortOrder, projectsWithSessionMeta, starredProjects],
-  );
+        return left.displayName.localeCompare(right.displayName);
+      })
+      .map(({ latestActivity: _latestActivity, ...projectItem }) => projectItem);
+  }, [currentTime, normalizedSearch, projects]);
 
-  const filteredProjects = useMemo(
-    () => filterProjects(sortedProjects, searchFilter),
-    [searchFilter, sortedProjects],
-  );
+  const recentSessions = useMemo<SidebarRecentSession[]>(() => {
+    return projects
+      .flatMap((project) => {
+        const workspaceName = getWorkspaceLabel(project);
+
+        return getAllSessions(project, EMPTY_ADDITIONAL_SESSIONS).map((session) => ({
+          project,
+          session,
+          title: getSessionName(session, t),
+          displayProjectName: project.displayName || project.name,
+          workspaceName: isMultiWorkspaceEnabled(project) ? workspaceName : undefined,
+          summary: typeof session.summary === 'string' ? session.summary : undefined,
+          lastActivityLabel: formatTimeAgo(resolveActivityTimestamp(session), currentTime, t),
+          isFavorite: favoriteSessionIds.has(session.id),
+          lastActivity: getSessionDate(session),
+        }));
+      })
+      .filter((recentSession) =>
+        matchesSearch(
+          [
+            recentSession.title,
+            recentSession.displayProjectName,
+            recentSession.project.name,
+            recentSession.workspaceName,
+            recentSession.summary,
+          ],
+          normalizedSearch,
+        ),
+      )
+      .sort((left, right) => {
+        if (left.isFavorite !== right.isFavorite) {
+          return left.isFavorite ? -1 : 1;
+        }
+
+        return right.lastActivity.getTime() - left.lastActivity.getTime();
+      })
+      .slice(0, 10)
+      .map(({ lastActivity: _lastActivity, ...recentSession }) => recentSession);
+  }, [currentTime, favoriteSessionIds, normalizedSearch, projects, t]);
+
+  const activeWorkspaceName = useMemo(() => {
+    if (!isMultiWorkspaceEnabled(selectedProject)) {
+      return null;
+    }
+
+    return getWorkspaceLabel(selectedProject);
+  }, [selectedProject]);
 
   const startEditing = useCallback((project: Project) => {
     setEditingProject(project.name);
@@ -396,60 +369,14 @@ export function useSidebarController({
     [editingName],
   );
 
-  const showDeleteSessionConfirmation = useCallback(
-    (
-      projectName: string,
-      sessionId: string,
-      sessionTitle: string,
-      provider: SessionDeleteConfirmation['provider'] = 'claude',
-    ) => {
-      setSessionDeleteConfirmation({ projectName, sessionId, sessionTitle, provider });
-    },
-    [],
-  );
-
-  const confirmDeleteSession = useCallback(async () => {
-    if (!sessionDeleteConfirmation) {
-      return;
-    }
-
-    const { projectName, sessionId, provider } = sessionDeleteConfirmation;
-    setSessionDeleteConfirmation(null);
-
-    try {
-      let response;
-      if (provider === 'codex') {
-        response = await api.deleteCodexSession(sessionId);
-      } else if (provider === 'gemini') {
-        response = await api.deleteGeminiSession(sessionId);
-      } else {
-        response = await api.deleteSession(projectName, sessionId);
-      }
-
-      if (response.ok) {
-        onSessionDelete?.(sessionId);
-      } else {
-        const errorText = await response.text();
-        console.error('[Sidebar] Failed to delete session:', {
-          status: response.status,
-          error: errorText,
-        });
-        alert(t('messages.deleteSessionFailed'));
-      }
-    } catch (error) {
-      console.error('[Sidebar] Error deleting session:', error);
-      alert(t('messages.deleteSessionError'));
-    }
-  }, [onSessionDelete, sessionDeleteConfirmation, t]);
-
   const requestProjectDelete = useCallback(
     (project: Project) => {
       setDeleteConfirmation({
         project,
-        sessionCount: getProjectSessions(project).length,
+        sessionCount: getAllSessions(project, EMPTY_ADDITIONAL_SESSIONS).length,
       });
     },
-    [getProjectSessions],
+    [],
   );
 
   const confirmDeleteProject = useCallback(async () => {
@@ -484,55 +411,30 @@ export function useSidebarController({
     }
   }, [deleteConfirmation, onProjectDelete, t]);
 
-  const loadMoreSessions = useCallback(
-    async (project: Project) => {
-      const hasMoreOverride = projectHasMoreOverrides[project.name];
-      const canLoadMore =
-        hasMoreOverride !== undefined ? hasMoreOverride : project.sessionMeta?.hasMore === true;
-      if (!canLoadMore || loadingSessions[project.name]) {
-        return;
-      }
-
-      setLoadingSessions((prev) => ({ ...prev, [project.name]: true }));
-
-      try {
-        const currentSessionCount =
-          (project.sessions?.length || 0) + (additionalSessions[project.name]?.length || 0);
-        const response = await api.sessions(project.name, 5, currentSessionCount);
-
-        if (!response.ok) {
-          return;
-        }
-
-        const result = (await response.json()) as {
-          sessions?: ProjectSession[];
-          hasMore?: boolean;
-        };
-
-        setAdditionalSessions((prev) => ({
-          ...prev,
-          [project.name]: [...(prev[project.name] || []), ...(result.sessions || [])],
-        }));
-
-        if (result.hasMore === false) {
-          // Keep hasMore state in local hook state instead of mutating the project prop object.
-          setProjectHasMoreOverrides((prev) => ({ ...prev, [project.name]: false }));
-        }
-      } catch (error) {
-        console.error('Error loading more sessions:', error);
-      } finally {
-        setLoadingSessions((prev) => ({ ...prev, [project.name]: false }));
-      }
-    },
-    [additionalSessions, loadingSessions, projectHasMoreOverrides],
-  );
-
   const handleProjectSelect = useCallback(
     (project: Project) => {
       onProjectSelect(project);
       setCurrentProject(project);
     },
     [onProjectSelect, setCurrentProject],
+  );
+
+  const openSessionFromSidebar = useCallback(
+    (session: ProjectSession, project: Project | null = null) => {
+      const projectName = project?.name || session.__projectName;
+      const sessionToOpen = projectName ? { ...session, __projectName: projectName } : session;
+
+      if (project) {
+        handleProjectSelect(project);
+      }
+
+      if (favoriteSessionIds.has(session.id)) {
+        markFavoriteAccessed(`session:${session.id}`);
+      }
+
+      onOpenSession(sessionToOpen);
+    },
+    [favoriteSessionIds, handleProjectSelect, markFavoriteAccessed, onOpenSession],
   );
 
   const refreshProjects = useCallback(async () => {
@@ -544,33 +446,6 @@ export function useSidebarController({
     }
   }, [onRefresh]);
 
-  const updateSessionSummary = useCallback(
-    async (_projectName: string, sessionId: string, summary: string, provider: SessionProvider) => {
-      const trimmed = summary.trim();
-      if (!trimmed) {
-        setEditingSession(null);
-        setEditingSessionName('');
-        return;
-      }
-      try {
-        const response = await api.renameSession(sessionId, trimmed, provider);
-        if (response.ok) {
-          await onRefresh();
-        } else {
-          console.error('[Sidebar] Failed to rename session:', response.status);
-          alert(t('messages.renameSessionFailed'));
-        }
-      } catch (error) {
-        console.error('[Sidebar] Error renaming session:', error);
-        alert(t('messages.renameSessionError'));
-      } finally {
-        setEditingSession(null);
-        setEditingSessionName('');
-      }
-    },
-    [onRefresh, t],
-  );
-
   const collapseSidebar = useCallback(() => {
     setSidebarVisible(false);
   }, [setSidebarVisible]);
@@ -579,67 +454,50 @@ export function useSidebarController({
     setSidebarVisible(true);
   }, [setSidebarVisible]);
 
+  const clearConversationResults = useCallback(() => {
+    searchSeqRef.current += 1;
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    setIsSearching(false);
+    setSearchProgress(null);
+    setConversationResults(null);
+  }, []);
+
   return {
     isSidebarCollapsed,
-    expandedProjects,
     editingProject,
     showNewProject,
     editingName,
-    loadingSessions,
-    additionalSessions,
-    initialSessionsLoaded,
-    currentTime,
-    projectSortOrder,
     isRefreshing,
-    editingSession,
-    editingSessionName,
     searchFilter,
     deletingProjects,
     deleteConfirmation,
-    sessionDeleteConfirmation,
     showVersionModal,
-    starredProjects,
-    filteredProjects,
-    toggleProject,
-    handleSessionClick,
-    toggleStarProject,
-    isProjectStarred,
-    getProjectSessions,
+    sidebarProjects,
+    recentSessions,
+    activeWorkspaceName,
     startEditing,
     cancelEditing,
     saveProjectName,
-    showDeleteSessionConfirmation,
-    confirmDeleteSession,
     requestProjectDelete,
     confirmDeleteProject,
-    loadMoreSessions,
     handleProjectSelect,
+    openSessionFromSidebar,
     refreshProjects,
-    updateSessionSummary,
     collapseSidebar,
     expandSidebar,
     setShowNewProject,
     setEditingName,
-    setEditingSession,
-    setEditingSessionName,
     searchMode,
     setSearchMode,
     conversationResults,
     isSearching,
     searchProgress,
-    clearConversationResults: useCallback(() => {
-      searchSeqRef.current += 1;
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-      setIsSearching(false);
-      setSearchProgress(null);
-      setConversationResults(null);
-    }, []),
+    clearConversationResults,
     setSearchFilter,
     setDeleteConfirmation,
-    setSessionDeleteConfirmation,
     setShowVersionModal,
   };
 }

@@ -2,12 +2,15 @@ import { type ReactNode } from 'react';
 import { Folder, MessageSquare, Search } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { ScrollArea } from '../../../../shared/view/ui';
-import type { Project } from '../../../../types/app';
+import type { LoadingProgress, Project } from '../../../../types/app';
 import type { ReleaseInfo } from '../../../../types/sharedTypes';
 import type { ConversationSearchResults, SearchProgress } from '../../hooks/useSidebarController';
+import type { SidebarProjectListItem, SidebarRecentSession } from '../../types/types';
 import SidebarFooter from './SidebarFooter';
+import GlobalRecentsSection from './GlobalRecentsSection';
 import SidebarHeader from './SidebarHeader';
-import SidebarProjectList, { type SidebarProjectListProps } from './SidebarProjectList';
+import SidebarProjectListSection from './SidebarProjectListSection';
+import WorkspaceIndicator from './WorkspaceIndicator';
 
 type SearchMode = 'projects' | 'conversations';
 
@@ -20,19 +23,19 @@ function HighlightedSnippet({
 }) {
   const parts: ReactNode[] = [];
   let cursor = 0;
-  for (const h of highlights) {
-    if (h.start > cursor) {
-      parts.push(snippet.slice(cursor, h.start));
+  for (const highlight of highlights) {
+    if (highlight.start > cursor) {
+      parts.push(snippet.slice(cursor, highlight.start));
     }
     parts.push(
       <mark
-        key={h.start}
+        key={highlight.start}
         className="rounded-sm bg-yellow-200 px-0.5 text-foreground dark:bg-yellow-800"
       >
-        {snippet.slice(h.start, h.end)}
-      </mark>
+        {snippet.slice(highlight.start, highlight.end)}
+      </mark>,
     );
-    cursor = h.end;
+    cursor = highlight.end;
   }
   if (cursor < snippet.length) {
     parts.push(snippet.slice(cursor));
@@ -44,7 +47,12 @@ type SidebarContentProps = {
   isPWA: boolean;
   isMobile: boolean;
   isLoading: boolean;
+  loadingProgress: LoadingProgress | null;
   projects: Project[];
+  selectedProject: Project | null;
+  recentSessions: SidebarRecentSession[];
+  sidebarProjects: SidebarProjectListItem[];
+  activeWorkspaceName: string | null;
   searchFilter: string;
   onSearchFilterChange: (value: string) => void;
   onClearSearchFilter: () => void;
@@ -58,18 +66,27 @@ type SidebarContentProps = {
     sessionId: string,
     provider: string,
     messageTimestamp?: string | null,
-    messageSnippet?: string | null
+    messageSnippet?: string | null,
   ) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
   onCreateProject: () => void;
+  editingProject: string | null;
+  editingName: string;
+  deletingProjects: Set<string>;
+  onEditingNameChange: (value: string) => void;
+  onProjectSelect: (project: Project) => void;
+  onStartEditingProject: (project: Project) => void;
+  onCancelEditingProject: () => void;
+  onSaveProjectName: (projectName: string) => void;
+  onDeleteProject: (project: Project) => void;
+  onRecentSessionSelect: (recentSession: SidebarRecentSession) => void;
   onCollapseSidebar: () => void;
   updateAvailable: boolean;
   releaseInfo: ReleaseInfo | null;
   latestVersion: string | null;
   onShowVersionModal: () => void;
   onShowSettings: () => void;
-  projectListProps: SidebarProjectListProps;
   t: TFunction;
 };
 
@@ -77,7 +94,12 @@ export default function SidebarContent({
   isPWA,
   isMobile,
   isLoading,
+  loadingProgress,
   projects,
+  selectedProject,
+  recentSessions,
+  sidebarProjects,
+  activeWorkspaceName,
   searchFilter,
   onSearchFilterChange,
   onClearSearchFilter,
@@ -90,23 +112,31 @@ export default function SidebarContent({
   onRefresh,
   isRefreshing,
   onCreateProject,
+  editingProject,
+  editingName,
+  deletingProjects,
+  onEditingNameChange,
+  onProjectSelect,
+  onStartEditingProject,
+  onCancelEditingProject,
+  onSaveProjectName,
+  onDeleteProject,
+  onRecentSessionSelect,
   onCollapseSidebar,
   updateAvailable,
   releaseInfo,
   latestVersion,
   onShowVersionModal,
   onShowSettings,
-  projectListProps,
   t,
 }: SidebarContentProps) {
   const showConversationSearch = searchMode === 'conversations' && searchFilter.trim().length >= 2;
-  const hasPartialResults = conversationResults && conversationResults.results.length > 0;
+  const hasPartialResults = Boolean(conversationResults && conversationResults.results.length > 0);
 
   return (
     <div
       data-testid="sidebar"
       className="flex h-full flex-col bg-background/80 backdrop-blur-sm md:w-72 md:select-none"
-      style={{}}
     >
       <SidebarHeader
         isPWA={isPWA}
@@ -133,12 +163,12 @@ export default function SidebarContent({
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
               </div>
               <p className="text-sm text-muted-foreground">{t('search.searching')}</p>
-              {searchProgress && (
+              {searchProgress ? (
                 <p className="mt-1 text-xs text-muted-foreground/60">
                   {t('search.projectsScanned', { count: searchProgress.scannedProjects })}/
                   {searchProgress.totalProjects}
                 </p>
-              )}
+              ) : null}
             </div>
           ) : !isSearching && conversationResults && conversationResults.results.length === 0 ? (
             <div className="px-4 py-12 text-center md:py-8">
@@ -150,22 +180,22 @@ export default function SidebarContent({
               </h3>
               <p className="text-sm text-muted-foreground">{t('search.tryDifferentQuery')}</p>
             </div>
-          ) : hasPartialResults ? (
+          ) : hasPartialResults && conversationResults ? (
             <div className="space-y-3 px-2">
               <div className="flex items-center justify-between px-1">
                 <p className="text-xs text-muted-foreground">
                   {t('search.matches', { count: conversationResults.totalMatches })}
                 </p>
-                {isSearching && searchProgress && (
+                {isSearching && searchProgress ? (
                   <div className="flex items-center gap-1.5">
                     <div className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-muted-foreground/40 border-t-primary" />
                     <p className="text-[10px] text-muted-foreground/60">
                       {searchProgress.scannedProjects}/{searchProgress.totalProjects}
                     </p>
                   </div>
-                )}
+                ) : null}
               </div>
-              {isSearching && searchProgress && (
+              {isSearching && searchProgress ? (
                 <div className="mx-1 h-0.5 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-primary/60 transition-all duration-300"
@@ -174,7 +204,7 @@ export default function SidebarContent({
                     }}
                   />
                 </div>
-              )}
+              ) : null}
               {conversationResults.results.map((projectResult) => (
                 <div key={projectResult.projectName} className="space-y-1">
                   <div className="flex items-center gap-1.5 px-1 py-1">
@@ -193,7 +223,7 @@ export default function SidebarContent({
                           session.sessionId,
                           session.provider || session.matches[0]?.provider || 'claude',
                           session.matches[0]?.timestamp,
-                          session.matches[0]?.snippet
+                          session.matches[0]?.snippet,
                         )
                       }
                     >
@@ -202,15 +232,15 @@ export default function SidebarContent({
                         <span className="truncate text-xs font-medium text-foreground">
                           {session.sessionSummary}
                         </span>
-                        {session.provider && session.provider !== 'claude' && (
+                        {session.provider && session.provider !== 'claude' ? (
                           <span className="flex-shrink-0 rounded bg-muted px-1 py-0.5 text-[9px] uppercase text-muted-foreground">
                             {session.provider}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <div className="space-y-1 pl-4">
-                        {session.matches.map((match, idx) => (
-                          <div key={idx} className="flex items-start gap-1">
+                        {session.matches.map((match, index) => (
+                          <div key={index} className="flex items-start gap-1">
                             <span className="mt-0.5 flex-shrink-0 text-[10px] font-medium uppercase text-muted-foreground/60">
                               {match.role === 'user' ? 'U' : 'A'}
                             </span>
@@ -228,9 +258,34 @@ export default function SidebarContent({
             </div>
           ) : null
         ) : (
-          <SidebarProjectList {...projectListProps} />
+          <div className="flex min-h-full flex-col">
+            <GlobalRecentsSection
+              sessions={recentSessions}
+              onSessionSelect={onRecentSessionSelect}
+            />
+            <div className="mx-3 border-t border-sidebar-border/70" />
+            <SidebarProjectListSection
+              projects={sidebarProjects}
+              selectedProject={selectedProject}
+              isLoading={isLoading}
+              loadingProgress={loadingProgress}
+              searchFilter={searchFilter}
+              editingProject={editingProject}
+              editingName={editingName}
+              deletingProjects={deletingProjects}
+              onEditingNameChange={onEditingNameChange}
+              onProjectSelect={onProjectSelect}
+              onStartEditingProject={onStartEditingProject}
+              onCancelEditingProject={onCancelEditingProject}
+              onSaveProjectName={onSaveProjectName}
+              onDeleteProject={onDeleteProject}
+              onCreateProject={onCreateProject}
+            />
+          </div>
         )}
       </ScrollArea>
+
+      {activeWorkspaceName ? <WorkspaceIndicator workspaceName={activeWorkspaceName} /> : null}
 
       <SidebarFooter
         updateAvailable={updateAvailable}
