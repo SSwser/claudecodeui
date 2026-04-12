@@ -40,6 +40,24 @@ export type SidebarProps = {
   isMobile: boolean;
 };
 
+export type SidebarRecentSession = {
+  project: Project;
+  session: SessionWithProvider;
+  title: string;
+  displayProjectName: string;
+  workspaceName?: string;
+  summary?: string;
+  lastActivityLabel: string;
+  isFavorite: boolean;
+};
+
+export type SidebarProjectListItem = {
+  project: Project;
+  displayName: string;
+  workspaceName: string;
+  hasActiveSessions: boolean;
+};
+
 export type SessionViewModel = {
   isCursorSession: boolean;
   isCodexSession: boolean;
