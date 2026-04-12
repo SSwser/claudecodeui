@@ -193,10 +193,14 @@ Plans:
 
 ```
 Phase 1 (Foundation)
-       │       ├── Phase 2 (Core Sessions)
-       │        │       │        └── Phase 3 (Virtual Sessions)
-       │                  │       │                  └── Phase 5 (Multi-Pane + Kanban)
-       │       └── Phase 4 (UI Migration) [can run parallel to Phase 2-3]
+       │
+       ├── Phase 2 (Core Sessions)
+       │         │
+       │         └── Phase 3 (Virtual Sessions)
+       │                   │
+       │                   └── Phase 5 (Multi-Pane + Kanban)
+       │
+       └── Phase 4 (UI Migration) [can run parallel to Phase 2-3]
 ```
 
 ---
