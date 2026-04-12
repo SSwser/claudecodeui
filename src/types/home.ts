@@ -2,7 +2,7 @@ import type { AppTab, SessionProvider } from './app';
 
 export type StartupBehavior = 'restore-all' | 'restore-last' | 'landing';
 
-export type RootViewMode = 'landing' | 'empty';
+export type RootViewMode = 'home' | 'empty';
 
 export type HomeLayoutMode = 'single' | 'dual';
 

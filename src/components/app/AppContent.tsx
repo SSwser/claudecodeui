@@ -12,7 +12,7 @@ import MobileNav from './MobileNav';
 
 export default function AppContent() {
   const navigate = useNavigate();
-  const { sessionId } = useParams<{ sessionId?: string }>();
+  const { sessionId, projectId } = useParams<{ sessionId?: string; projectId?: string }>();
   const { t } = useTranslation('common');
   const { isMobile } = useDeviceSettings({ trackPWA: false });
   const { ws, sendMessage, latestMessage, isConnected } = useWebSocket();
@@ -60,27 +60,24 @@ export default function AppContent() {
     projects,
   } = useProjectsState({
     sessionId,
+    projectId,
     navigate,
     latestMessage,
     isMobile,
     activeSessions,
   });
 
-  const {
-    rootViewMode,
-    startupRestoreSessionId,
-    openLandingView,
-    openEmptyShell,
-  } = useAppTabs({
-    projects,
-    selectedProject,
-    selectedSession,
-    sessionId,
-    startupBehavior,
-    lastOpenedSessionId,
-    navigate,
-    onRequestClearSession: clearSelectedSessionSelection,
-  });
+  const { rootViewMode, startupRestoreSessionId, openHomeView, openRootEmptyView, openEmptyShell } =
+    useAppTabs({
+      projects,
+      selectedProject,
+      selectedSession,
+      sessionId,
+      startupBehavior,
+      lastOpenedSessionId,
+      navigate,
+      onRequestClearSession: clearSelectedSessionSelection,
+    });
 
   const resolveSessionContext = useMemo(
     () => (targetSessionId: string) => {
@@ -105,7 +102,7 @@ export default function AppContent() {
     [projects]
   );
 
-  const showDesktopSidebar = rootViewMode === 'empty';
+  const showDesktopSidebar = true;
 
   useEffect(() => {
     // Chat/session flows call this bridge to refresh sidebar data without forcing a full loading state.
@@ -131,6 +128,13 @@ export default function AppContent() {
   useEffect(() => {
     if (sessionId) {
       startupResolvedRef.current = true;
+      openEmptyShell();
+      return;
+    }
+
+    if (projectId) {
+      startupResolvedRef.current = true;
+      openEmptyShell();
       return;
     }
 
@@ -145,13 +149,15 @@ export default function AppContent() {
       navigate(`/session/${startupRestoreSessionId}`, { replace: true });
       return;
     }
-    // Root-route landings must clear any stale selected session so the landing view stays chrome-light.
-    openLandingView();
+    // The default root surface in Phase 2 is a global recent-sessions home, not the retired
+    // landing page, so users can always recover into a navigable shell.
+    openHomeView();
   }, [
     isLoadingProjects,
     navigate,
     openEmptyShell,
-    openLandingView,
+    openHomeView,
+    projectId,
     sessionId,
     startupRestoreSessionId,
   ]);
@@ -180,7 +186,7 @@ export default function AppContent() {
         return;
       }
 
-      openLandingView();
+      openHomeView();
       navigate('/');
     };
 
@@ -189,7 +195,7 @@ export default function AppContent() {
     return () => {
       navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
     };
-  }, [navigate, openLandingView, refreshProjectsSilently, setActiveTab, setSidebarOpen]);
+  }, [navigate, openHomeView, refreshProjectsSilently, setActiveTab, setSidebarOpen]);
 
   // Permission recovery: query pending permissions on WebSocket reconnect or session change
   useEffect(() => {
@@ -281,8 +287,8 @@ export default function AppContent() {
               onCreateProjectSession={handleNewSession}
               onShowSettings={() => setShowSettings(true)}
               externalMessageUpdate={externalMessageUpdate}
-              showLandingPage={!sessionId && rootViewMode === 'landing'}
-              forceEmptyState={!sessionId && rootViewMode === 'empty' && !selectedProject}
+              showLandingPage={!sessionId && !projectId && rootViewMode === 'home'}
+              forceEmptyState={!sessionId && Boolean(projectId) && !selectedProject}
               landingPageData={landingPageData}
               onLandingFiltersChange={{
                 onSearchChange: setLandingSearch,
@@ -319,8 +325,6 @@ export default function AppContent() {
                     handleNewSession(projects[0]);
                     return;
                   }
-
-                  window.dispatchEvent(new CustomEvent('project-wizard:open'));
                 },
                 onCreateWorkspace: () => {
                   window.dispatchEvent(new CustomEvent('project-wizard:open'));

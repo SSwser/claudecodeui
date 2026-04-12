@@ -44,7 +44,13 @@ vi.mock('../sidebar/view/Sidebar', () => ({
 }));
 
 vi.mock('../main-content/view/MainContent', () => ({
-  default: ({ showLandingPage, forceEmptyState }: { showLandingPage: boolean; forceEmptyState: boolean }) => (
+  default: ({
+    showLandingPage,
+    forceEmptyState,
+  }: {
+    showLandingPage: boolean;
+    forceEmptyState: boolean;
+  }) => (
     <div
       data-testid="main-content"
       data-show-landing={showLandingPage ? 'true' : 'false'}
@@ -86,6 +92,7 @@ const createProjectsStateMock = (overrides: Record<string, unknown> = {}) => ({
   startupBehavior: 'landing',
   lastOpenedSessionId: null,
   landingPageData: {
+    projectCount: 1,
     filters: { search: '', project: null, workspace: null, sessionType: 'all' },
     favoriteWorkspaces: [],
     favoriteSessions: [],
@@ -135,6 +142,15 @@ function renderApp(initialEntry = '/') {
             </>
           }
         />
+        <Route
+          path="/project/:projectId"
+          element={
+            <>
+              <LocationProbe />
+              <AppContent />
+            </>
+          }
+        />
       </Routes>
     </MemoryRouter>
   );
@@ -150,7 +166,7 @@ describe('AppContent', () => {
     vi.clearAllMocks();
   });
 
-  it('falls back to a chrome-light landing view on root when restore intent is invalid', async () => {
+  it('falls back to the home shell on root when restore intent is invalid', async () => {
     const clearSelectedSessionSelection = vi.fn();
 
     mockedUseProjectsState.mockReturnValue(
@@ -168,7 +184,7 @@ describe('AppContent', () => {
     });
 
     expect(screen.getByTestId('main-content').dataset.forceEmpty).toBe('false');
-    expect(screen.queryByTestId('sidebar')).toBeNull();
+    expect(screen.getByTestId('sidebar')).toBeTruthy();
     expect(clearSelectedSessionSelection).toHaveBeenCalled();
     expect(screen.getByTestId('location').textContent).toBe('/');
   });

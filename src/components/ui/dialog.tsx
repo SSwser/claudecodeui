@@ -1,4 +1,5 @@
 import {
+  useCallback,
   cloneElement,
   createContext,
   isValidElement,
@@ -49,13 +50,16 @@ export function Dialog({
   const isControlled = typeof open === 'boolean';
   const resolvedOpen = isControlled ? open : internalOpen;
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!isControlled) {
-      setInternalOpen(nextOpen);
-    }
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(nextOpen);
+      }
 
-    onOpenChange?.(nextOpen);
-  };
+      onOpenChange?.(nextOpen);
+    },
+    [isControlled, onOpenChange]
+  );
 
   const value = {
     open: resolvedOpen,

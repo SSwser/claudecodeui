@@ -1,6 +1,6 @@
 import { Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import LandingPage from '../../../home/view/LandingPage';
+import GlobalRecentsSection from '../../../home/view/GlobalRecentsSection';
 import AppLoadingScreen from '../../../../shared/view/ui/AppLoadingScreen';
 import type { MainContentStateViewProps } from '../../types/types';
 import MobileMenuButton from './MobileMenuButton';
@@ -25,19 +25,12 @@ export default function MainContentStateView({
             <MobileMenuButton onMenuClick={onMenuClick} compact />
           </div>
         )}
-
-        <LandingPage
-          viewModel={landingPageData}
-          onSearchChange={onLandingFiltersChange.onSearchChange}
-          onProjectChange={onLandingFiltersChange.onProjectChange}
-          onWorkspaceChange={onLandingFiltersChange.onWorkspaceChange}
-          onSessionTypeChange={onLandingFiltersChange.onSessionTypeChange}
-          onOpenWorkspace={onLandingActions.onOpenWorkspace}
+        <GlobalRecentsSection
+          data={landingPageData}
           onOpenSession={onLandingActions.onOpenSession}
-          onToggleWorkspaceFavorite={onLandingActions.onToggleWorkspaceFavorite}
           onToggleSessionFavorite={onLandingActions.onToggleSessionFavorite}
+          onCreateProject={onLandingActions.onCreateWorkspace}
           onCreateSession={onLandingActions.onCreateSession}
-          onCreateWorkspace={onLandingActions.onCreateWorkspace}
         />
       </div>
     );

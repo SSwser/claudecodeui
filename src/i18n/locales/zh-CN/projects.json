@@ -39,12 +39,12 @@
       "browsePrompt": "请输入本地文件夹路径",
       "errors": {
         "required": "必须提供本地目录。",
-        "missingLocalPath": "该本地目录不存在。请改用已有文件夹，或提供 git 仓库 URL 让系统先克隆。"
+        "missingLocalPath": "该本地目录不存在。请使用“浏览”选择或创建目录，或提供 git 仓库 URL 让系统先克隆。"
       },
       "validation": {
         "validating": "正在检查目录是否存在...",
         "exists": "目录已找到，可以继续。",
-        "missing": "目录不存在。本地导入需要一个已经存在的文件夹。",
+        "missing": "目录不存在。请使用“浏览”选择或创建一个可用的本地目录。",
         "cloneTargetMissing": "目录暂时不存在；如果下一步会先克隆仓库，这没有问题。"
       }
     },

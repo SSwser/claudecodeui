@@ -40,6 +40,14 @@ export default function App() {
                             </ProtectedRoute>
                           }
                         />
+                        <Route
+                          path="/project/:projectId"
+                          element={
+                            <ProtectedRoute>
+                              <AppContent />
+                            </ProtectedRoute>
+                          }
+                        />
                       </Routes>
                     </Router>
                   </TaskMasterProvider>

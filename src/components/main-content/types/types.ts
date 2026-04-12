@@ -140,6 +140,7 @@ export type RecentSessionSummary = {
 };
 
 export type LandingPageData = {
+  projectCount: number;
   filters: {
     search: string;
     project: string | null;

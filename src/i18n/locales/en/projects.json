@@ -39,12 +39,12 @@
       "browsePrompt": "Enter the local folder path",
       "errors": {
         "required": "A local directory is required.",
-        "missingLocalPath": "That local directory does not exist yet. Pick an existing folder or provide a git repository URL."
+        "missingLocalPath": "That local directory does not exist yet. Use Browse to pick or create a folder, or provide a git repository URL."
       },
       "validation": {
         "validating": "Checking whether the folder exists...",
         "exists": "Folder found. You can continue.",
-        "missing": "Folder not found. Local imports need an existing directory.",
+        "missing": "Folder not found. Use Browse to choose or create an existing local directory.",
         "cloneTargetMissing": "Folder not found yet. That is okay if the repository clone will create it."
       }
     },

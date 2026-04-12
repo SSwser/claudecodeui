@@ -35,9 +35,17 @@ const useWebSocketProviderState = (): WebSocketContextType => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { token } = useAuth();
 
+  const dispatchBrowserEvent = useCallback((eventName: string, detail: Record<string, unknown>) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent(eventName, { detail }));
+  }, []);
+
   useEffect(() => {
     connect();
-    
+
     return () => {
       unmountedRef.current = true;
       if (reconnectTimeoutRef.current) {
@@ -56,7 +64,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
       const wsUrl = buildWebSocketUrl(token);
 
       if (!wsUrl) return console.warn('No authentication token found for WebSocket connection');
-      
+
       const websocket = new WebSocket(wsUrl);
 
       websocket.onopen = () => {
@@ -72,6 +80,40 @@ const useWebSocketProviderState = (): WebSocketContextType => {
       websocket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          switch (data?.type) {
+            case 'session_state_changed':
+              dispatchBrowserEvent('session-state-changed', {
+                sessionId: data.sessionId,
+                status: data.status,
+                provider: data.provider,
+                timestamp: Date.now(),
+              });
+              break;
+            case 'project_updated':
+              dispatchBrowserEvent('project-updated', {
+                projectId: data.projectId,
+                action: data.action,
+                timestamp: Date.now(),
+              });
+              break;
+            case 'project_created':
+              dispatchBrowserEvent('project-updated', {
+                projectId: data.project?.id ?? null,
+                action: 'created',
+                project: data.project ?? null,
+                timestamp: Date.now(),
+              });
+              break;
+            case 'project_deleted':
+              dispatchBrowserEvent('project-updated', {
+                projectId: data.projectId,
+                action: 'deleted',
+                timestamp: Date.now(),
+              });
+              break;
+            default:
+              break;
+          }
           setLatestMessage(data);
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -81,7 +123,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
       websocket.onclose = () => {
         setIsConnected(false);
         wsRef.current = null;
-        
+
         // Attempt to reconnect after 3 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
           if (unmountedRef.current) return; // Prevent reconnection if unmounted
@@ -96,7 +138,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
     } catch (error) {
       console.error('Error creating WebSocket connection:', error);
     }
-  }, [token]); // everytime token changes, we reconnect
+  }, [dispatchBrowserEvent, token]); // everytime token changes, we reconnect
 
   const sendMessage = useCallback((message: any) => {
     const socket = wsRef.current;
@@ -120,7 +162,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
 
 export const WebSocketProvider = ({ children }: { children: React.ReactNode }) => {
   const webSocketData = useWebSocketProviderState();
-  
+
   return (
     <WebSocketContext.Provider value={webSocketData}>
       {children}
