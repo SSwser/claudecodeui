@@ -29,18 +29,23 @@ This phase delivers Project Management and Session Lifecycle capabilities: users
 
 - **D-08:** Complete Sidebar redesign. Sessions list is NO LONGER in the Sidebar — it moves to the MainContent area (Project Inbox).
 - **D-09:** Sidebar has two distinct sections:
-  - **Top section:** Global recent sessions (last 10 across all projects). Clicking a recent session navigates directly to the chat interface.
+  - **Top section:** Global recent sessions (last 10 across all projects). Clicking a recent session navigates directly to the chat interface. Favorite sessions appear pinned at the top of this list.
   - **Bottom section:** Project list. Each project shows only name + status indicator (dot if has active sessions). Clicking a project opens its Project Inbox in MainContent.
+  - **Favorites live in Project Inbox**, not in the Sidebar. The Sidebar top section shows global recents only.
 - **D-10:** Project Inbox in MainContent is a simplified Inbox-style view for Phase 2: session list with status, search, and CRUD operations. Designed to evolve into a richer Inbox experience in later phases (multi-session views, kanban, split-pane — this is WHY these later phases exist).
 - **D-11:** Session items in Project Inbox display: name + last message timestamp + status Badge (Active/Frozen/Archived) + AI provider icon. Hover (desktop) or long-press (mobile) shows last message preview.
 
 ### Workspace Model
 
-- **D-12:** By default, each Project = one implicit Workspace. No multi-Workspace UI exposed unless explicitly enabled.
-- **D-13:** Users can enable multi-Workspace management per project during creation or in project settings. Once enabled, it CANNOT be disabled (irreversible).
-- **D-14:** When multi-Workspace is enabled, Workspaces are backed by git worktrees. Each Workspace = a worktree branch.
-- **D-15:** Active Workspace can be switched via MainContent header (within Project Inbox) or a dedicated Sidebar section (similar to the existing update notification area).
-- **D-16:** Use case: parallel work streams within one project (like channels/topics/branches), not frequent cross-project switching.
+- **D-12:** By default, each Project = one implicit Workspace. No multi-Workspace UI is exposed unless explicitly enabled — the project behaves as a single workspace silently.
+- **D-13:** Users can enable multi-Workspace management per project at creation time (optional, advanced feature). Once enabled, it CANNOT be disabled (irreversible).
+- **D-14:** When multi-Workspace is enabled, Workspaces are backed by git worktrees. Each Workspace = a worktree branch. Two paths to create Workspaces:
+  a. Create a new Workspace directly (creates a new git worktree branch)
+  b. Promote an existing git worktree from GitPanel to a Workspace (changes the git entry from a raw branch view to a managed Workspace)
+- **D-15:** Active Workspace is surfaced in two places (Option C):
+  - **Sidebar bottom section:** Passive indicator showing the current Workspace name (always visible when multi-Workspace is enabled; similar to the update notification chip). Read-only.
+  - **MainContent header:** Provides the active Workspace switcher dropdown. This is the action location.
+- **D-16:** Use case: parallel work streams within one project (like channels/topics/branches), not frequent cross-project switching. When multi-Workspace is enabled, session cards in Project Inbox display a worktree label.
 
 ### Project Creation Flow
 
@@ -48,7 +53,9 @@ This phase delivers Project Management and Session Lifecycle capabilities: users
   1. Project basics (name only currently)
   2. Directory selection (local folder or git repo URL)
   3. Enable Workspace management toggle (optional, off by default)
-- **D-18:** Local project scanning is manual — user triggers "Import project" action, not automatic on first launch.
+- **D-18:** Project import is fully manual — user triggers the wizard to import each project. **After a project is created/imported**, the backend auto-scans that specific project directory for existing session history. No automatic directory-wide scouting on startup.
+- **D-27:** Landing Page is removed entirely. On app launch, MainContent shows a minimal welcome/empty placeholder. The Sidebar (with global recent sessions + project list) is the primary navigation surface. There is no intermediate "home" page — users go directly from launch to the Sidebar-based navigation experience.
+- **D-28:** When importing a project that contains existing git worktrees, the system automatically detects them and shows them in GitPanel (not silently ignored). If the project later has multi-Workspace mode enabled, the user can promote those GitPanel worktrees to managed Workspaces. Auto-detection applies to the imported project directory only — there is no system-wide worktree scan.
 
 ### Session Search
 
@@ -141,7 +148,9 @@ This phase delivers Project Management and Session Lifecycle capabilities: users
 - **Tab visual redesign** — Current tab design doesn't match user expectations. Needs dedicated discussion before implementation. May affect Phase 2 Tab behavior decisions.
 - **Idle auto-sleep / scheduled wake-up** — Automatically freeze idle sessions; wake frozen sessions on schedule to execute tasks. Phase 3+ scope.
 - **Rich Inbox evolution** — The simplified Inbox in Phase 2 is designed to grow into multi-session monitoring views, kanban boards, and split-pane in Phase 5.
-- **Landing Page redesign** — User noted the current Landing Page is "太难看且信息混乱" (ugly and information is chaotic). Needs design attention but not in Phase 2 scope.
+- **Batch project import suggestion** — For users with many local projects, a future "suggest projects to import" flow could make onboarding smoother. Deferred until the manual import flow is stable and user feedback collected.
+
+> Note: Landing Page was **removed** (not deferred). The Sidebar navigation design in Phase 2 replaces it.
 
 </deferred>
 

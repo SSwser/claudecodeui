@@ -8,8 +8,8 @@
 
 ## Phases
 
-- [~] **Phase 1: Foundation** - Landing Page + Layout Infrastructure
-- [ ] **Phase 2: Core Sessions** - Project Management + Session Lifecycle
+- [~] **Phase 1: Foundation** - App Shell + Layout Infrastructure (Landing Page removed)
+- [ ] **Phase 2: Core Sessions** - Project Management + Session Lifecycle + Sidebar/Inbox Navigation
 - [ ] **Phase 3: Virtual Sessions** - Hybrid Branching + Timeline
 - [x] **Phase 4: UI Migration** - Component Library + i18n
 - [ ] **Phase 5: Multi-Pane + Kanban** - v2 Transition (v2 scope)
@@ -18,16 +18,18 @@
 
 ## Coverage
 
-| Requirement Category  | Count | Phase   |
-| --------------------- | ----- | ------- |
-| Landing Page          | 7     | Phase 1 |
-| Layout Infrastructure | 5     | Phase 1 |
-| Project Management    | 6     | Phase 2 |
-| Session Management    | 8     | Phase 2 |
-| Virtual Sessions      | 10    | Phase 3 |
-| UI Component Library  | 7     | Phase 4 |
+| Requirement Category   | Count | Phase   |
+| ---------------------- | ----- | ------- |
+| Navigation & App Shell | 5     | Phase 2 |
+| Layout Infrastructure  | 5     | Phase 1 |
+| Project Management     | 6     | Phase 2 |
+| Session Management     | 8     | Phase 2 |
+| Virtual Sessions       | 10    | Phase 3 |
+| UI Component Library   | 7     | Phase 4 |
 
-**Total v1 Coverage:** 43/43 requirements mapped
+> Landing Page (LAND-01~07) removed 2026-04-12 and replaced by NAV-01~05 under Phase 2.
+
+**Total v1 Coverage:** 41/41 requirements mapped
 
 ---
 
@@ -35,23 +37,21 @@
 
 ### Phase 1: Foundation
 
-**Goal:** Users land on a welcoming page that shows recent projects and sessions, with the layout system ready for multi-pane expansion.
+**Goal:** The app shell is established with layout infrastructure (CSS Grid, layout context, tabs). No Landing Page — startup navigates to an empty/welcome MainContent area with the redesigned Sidebar as the primary navigation surface.
 
 **Depends on:** Nothing (first phase)
 
-**Requirements:** LAND-01, LAND-02, LAND-03, LAND-04, LAND-05, LAND-06, LAND-07, LAY-01, LAY-02, LAY-03, LAY-04, LAY-05
+**Requirements:** LAY-01, LAY-02, LAY-03, LAY-04, LAY-05
 
 **Success Criteria** (what must be TRUE):
 
-1. User sees Landing Page on app launch instead of direct session entry
-2. User sees list of 10 most recent projects on Landing Page
-3. User sees list of 10 most recent sessions on Landing Page
-4. User can mark projects or sessions as favorites, which appear in dedicated section above recent items
-5. User can click any project or session to enter that context
-6. User can initiate new project or session creation from Landing Page
-7. Layout persists across page refreshes (localStorage)
-8. User can switch between single-view and dual-view layout modes
-9. Layout mode switcher is accessible from any view
+1. App launches to a minimal welcome/empty state in MainContent (no Landing Page)
+2. Layout persists across page refreshes (localStorage)
+3. User can switch between single-view and dual-view layout modes
+4. Layout mode switcher is accessible from any view
+5. Browser-style Tab shell is functional (add, close, switch tabs)
+
+> Note: Landing Page success criteria (original SC#1-6) were removed 2026-04-12 along with LAND-01~07. Navigation surface (Sidebar redesign + global recent sessions) is now Phase 2 scope under NAV-01~05.
 
 **Plans:** 4 plans
 
@@ -68,26 +68,28 @@ Plans:
 
 ### Phase 2: Core Sessions
 
-**Goal:** Users can organize work into Projects and Workspaces, managing the full session lifecycle from creation through archival.
+**Goal:** Users can organize work into Projects and Workspaces, managing the full session lifecycle from creation through archival, via a redesigned Sidebar + Project Inbox navigation architecture.
 
 **Depends on:** Phase 1
 
-**Requirements:** PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05, PROJ-06, SESS-01, SESS-02, SESS-03, SESS-04, SESS-05, SESS-06, SESS-07, SESS-08
+**Requirements:** PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05, PROJ-06, SESS-01, SESS-02, SESS-03, SESS-04, SESS-05, SESS-06, SESS-07, SESS-08, NAV-01, NAV-02, NAV-03, NAV-04, NAV-05
 
 **Success Criteria** (what must be TRUE):
 
-1. System automatically discovers and displays projects in user directory
-2. Git worktrees are detected and shown as separate entries under parent project
-3. User can create, rename, and delete Workspaces within a project
+1. User manually creates or imports projects via a 3-step wizard; after creation, system auto-scans that project’s existing session files
+2. Importing a project with existing git worktrees auto-detects and shows them in GitPanel; user can promote to Workspace when multi-Workspace mode is enabled
+3. When multi-Workspace mode is enabled for a project, user can create, rename, and delete Workspaces within that project
 4. Each Workspace maintains independent session history and configuration
 5. User can create new sessions within a Workspace
 6. User can freeze a running session, releasing background resources
-7. User can resume a frozen session, restoring full context state
+7. User can resume a frozen session: backend process restarts, conversation history is always readable; user sees a summary and manually decides next steps
 8. User can archive sessions they want to keep but not actively use
 9. User can delete sessions after confirmation
 10. Session list supports search by name or content
 11. Multiple tabs can be open simultaneously, each showing different sessions
 12. Each tab remembers its own scroll position and context
+13. Sidebar shows global recent sessions (top) and project list (bottom); no Landing Page
+14. Project Inbox opens in MainContent when a project is selected
 
 **Plans:** TBD
 

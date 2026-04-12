@@ -207,3 +207,98 @@
 - Idle auto-sleep / scheduled wake-up for frozen sessions
 - Landing Page visual redesign — user stated current design is "ugly and chaotic"
 - Rich Inbox evolution into kanban/multi-pane (Phase 5)
+
+---
+
+## Architecture Review Session — 2026-04-12 (Post-Discussion Consistency Pass)
+
+> Triggered by: user-initiated review of inconsistencies between CONTEXT.md decisions and ROADMAP/REQUIREMENTS.
+> All decisions below amend or supersede earlier decisions in this log.
+> Corresponding changes applied to: CONTEXT.md, REQUIREMENTS.md, ROADMAP.md.
+
+---
+
+### Issue #1: 项目扫描方式（PROJ-01 / SC#1 矛盾）
+
+**问题：** Roadmap SC#1 和 PROJ-01 写的是"系统自动发现项目"，但初次讨论决定了手动导入。
+
+**User's choice:** (Free text) 用户手动添加项目，走完新建项目向导（3步）之后，系统自动扫描**该项目目录**下的已有会话历史。未来待手动流程成熟后，再考虑"批量导入建议"（适合本地项目较多的情况）作为可选功能引入。
+
+**Impact:** PROJ-01 措辞更新为手动向导 + 创建后自动扫描。Roadmap SC#1 同步修改。批量导入建议列入 Deferred。
+
+---
+
+### Issue #2: Workspace CRUD 可见性（PROJ-02/03/05 / SC#3 矛盾）
+
+**问题：** PROJ-05 和 SC#3 写的是"User can create/rename/delete Workspaces"（始终可用），但实际决策是默认隐式单 Workspace、opt-in 才显示多 Workspace 管理 UI。
+
+**User's choice:** (Free text) 详细补充如下：
+
+1. 默认每个项目 = 一个隐式 Workspace，不暴露任何 Workspace 管理 UI
+2. New Project 时可主动选择启用多 Workspace（可选高级功能），启用后不可关闭
+3. 默认 worktree 只在 GitPanel 显示；也可通过 GitPanel 将 worktree **提升**为 Workspace
+4. Workspace 切换在 MainContent header 操作；Sidebar 底部也有区域展示当前 Workspace（类更新通知组件）
+5. 启用多 Workspace 后，Project Inbox 中的会话卡片显示 worktree label
+
+**还回答了 "为什么是 Workspace 而不是直接叫 Worktree"：**
+Claude 解释：①抽象隔离（worktree 是 git 底层，Workspace 是会话管理上层）；②未来可扩展到非 git 场景；③操作边界不同（GitPanel 管 git，Project Inbox header 管活跃 Workspace）。用户用了"提升（promote）"这个词，自然验证了分层概念。
+
+**Impact:** D-12~D-16 更新，PROJ-02/03/05 措辞修订，Roadmap SC#2/3 更新。
+
+---
+
+### Issue #3: SESS-03 措辞歧义
+
+**问题：** "保留完整的上下文状态" 容易被误解为 VM 级进程快照恢复。
+
+**User's choice:** A — 修正文案，明确"清醒入现场"而不是"快照恢复"。
+
+**Impact:** SESS-03 改为"重启后端进程，展示对话摘要供用户手动决定，会话历史始终可读无需运行进程"。
+
+---
+
+### Issue #4: 导入含 worktree 的 git 项目处理
+
+**问题：** 手动导入项目后，如果项目已有多个 worktree，PROJ-02 原文不清楚。
+
+**User's choice:** A — 自动检测已有 worktree 并展示在 GitPanel；不自动变成 Workspace，用户手动提升。
+
+**Impact:** D-28 新增，PROJ-02 措辞补充"自动检测展示于 GitPanel + 手动提升路径"。
+
+---
+
+### Issue #5: Sidebar 重构未在 Requirements 中覆盖
+
+**问题：** Phase 2 最大的 UI 架构变化（Sidebar 整体重设计）在 Requirements 里没有任何对应条目，执行者无法用 requirements 验收。
+
+**User's choice:** A — 新增 NAV-01~05 系列需求到 REQUIREMENTS，覆盖 Sidebar 结构、Project Inbox、Workspace 切换 UI。
+
+**Impact:** REQUIREMENTS.md 新增 `### Navigation & App Shell` 章节，REQUIREMENTS 需求总数调整，Roadmap Phase 2 requirements 列表补充 NAV-01~05。
+
+---
+
+### Issue #6: Landing Page 与 Sidebar 最近会话的架构关系
+
+**问题：** Phase 1 Landing Page (LAND-02/03) 和 Phase 2 Sidebar Top 都要展示"全局最近 10 个会话"，存在双重冗余或架构不清晰。
+
+**User's choice:** (Free text) **移除 Landing Page**。最近会话列表是全局的，由 Sidebar 承担。
+
+**追问：移除后应用启动进入什么页面？**
+**User's choice:** A — 启动后 MainContent 是空白/欢迎占位页，Sidebar 内容（全局最近 + 项目列表）即为全部导航。
+
+**收藏功能去向：**
+**User's choice:** (Free text) 在 Project Inbox 里。Sidebar Top 只展示全局最近会话（不含收藏专区）。
+
+**Impact:** LAND-01~07 整批移除（标记为 Superseded），替换为 NAV-01~05。D-09 更新（收藏在 Inbox，Sidebar Top 只显示最近）。D-27 新增（Landing Page 移除声明）。Phase 1 Roadmap 目标/SC 更新，去掉 Landing Page 相关 SC。
+
+---
+
+### Issue #7: Workspace 切换 UI 的 "or" 歧义（D-15）
+
+**问题：** D-15 写的是 "via MainContent header **OR** a dedicated Sidebar section"，到底实现哪个？
+
+**Claude 建议方案 C 的理由：** 类比 VS Code 底部状态栏显示分支名（被动看），切换分支点状态栏（同处操作）。Sidebar 底部 = 被动感知"我在哪个 Workspace"；MainContent header = 主动操作切换。
+
+**User's choice:** 同意 C — Sidebar 底部展示当前 Workspace 名（常驻被动展示），MainContent header 提供切换下拉（操作入口）。
+
+**Impact:** D-15 精确化为"方案 C"，NAV-05 需求条文对应更新。
