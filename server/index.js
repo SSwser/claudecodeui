@@ -93,6 +93,7 @@ import mcpUtilsRoutes from './routes/mcp-utils.js';
 import commandsRoutes from './routes/commands.js';
 import settingsRoutes from './routes/settings.js';
 import agentRoutes from './routes/agent.js';
+import projectManagementRoutes from './routes/project-management.js';
 import projectsRoutes, { WORKSPACES_ROOT, validateWorkspacePath } from './routes/projects.js';
 import cliAuthRoutes from './routes/cli-auth.js';
 import userRoutes from './routes/user.js';
@@ -412,6 +413,7 @@ app.use('/api/auth', authRoutes);
 
 // Projects API Routes (protected)
 app.use('/api/projects', authenticateToken, projectsRoutes);
+app.use('/api/projects', authenticateToken, projectManagementRoutes);
 
 // Git API Routes (protected)
 app.use('/api/git', authenticateToken, gitRoutes);
