@@ -10,7 +10,7 @@ import type { ReleaseInfo } from '../../../../types/sharedTypes';
 import type { InstallMode } from '../../../../hooks/useVersionCheck';
 import { normalizeProjectForSettings } from '../../utils/utils';
 import type { DeleteProjectConfirmation, SettingsProject } from '../../types/types';
-import ProjectCreationWizard from '../../../project-creation-wizard';
+import ProjectWizard from '../../../project-wizard';
 
 type SidebarModalsProps = {
   projects: Project[];
@@ -72,14 +72,17 @@ export default function SidebarModals({
 
   return (
     <>
-      {showNewProject &&
-        ReactDOM.createPortal(
-          <ProjectCreationWizard
-            onClose={onCloseNewProject}
-            onProjectCreated={onProjectCreated}
-          />,
-          document.body,
-        )}
+      {showNewProject ? (
+        <ProjectWizard
+          open={showNewProject}
+          onOpenChange={(open) => {
+            if (!open) {
+              onCloseNewProject();
+            }
+          }}
+          onProjectCreated={onProjectCreated}
+        />
+      ) : null}
 
       {showSettings &&
         ReactDOM.createPortal(

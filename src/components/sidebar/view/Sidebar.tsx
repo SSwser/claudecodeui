@@ -12,6 +12,31 @@ import SidebarCollapsed from './subcomponents/SidebarCollapsed'
 import SidebarContent from './subcomponents/SidebarContent'
 import SidebarModals from './subcomponents/SidebarModals'
 
+function normalizeCreatedProject(project?: Record<string, unknown> | null): Project | null {
+	if (!project || typeof project.name !== 'string') {
+		return null
+	}
+
+	const directoryPath = typeof project.directoryPath === 'string' ? project.directoryPath : ''
+	const displayName = typeof project.displayName === 'string' && project.displayName.trim()
+		? project.displayName
+		: project.name
+
+	return {
+		id: typeof project.id === 'number' ? project.id : undefined,
+		name: project.name,
+		displayName,
+		fullPath: directoryPath,
+		path: directoryPath,
+		directoryPath,
+		multiWorkspaceEnabled: Boolean(project.multiWorkspaceEnabled),
+		sessions: [],
+		cursorSessions: [],
+		codexSessions: [],
+		geminiSessions: [],
+	}
+}
+
 type TaskMasterSidebarContext = {
 	setCurrentProject: (project: Project) => void
 }
@@ -111,9 +136,16 @@ function Sidebar({
 		}
 	}, [setShowNewProject])
 
-	const handleProjectCreated = () => {
+	const handleProjectCreated = async (project?: Record<string, unknown>) => {
+		const normalizedProject = normalizeCreatedProject(project)
+
 		if (window.refreshProjects) {
-			void window.refreshProjects()
+			await window.refreshProjects()
+		}
+
+		if (normalizedProject) {
+			handleProjectSelect(normalizedProject)
+			setShowNewProject(false)
 			return
 		}
 
