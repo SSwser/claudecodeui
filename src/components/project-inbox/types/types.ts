@@ -12,11 +12,12 @@ export type ProjectInboxProps = {
 export type SessionCardProps = {
   session: SessionState & { workspaceName?: string | null };
   onSelect: (session: SessionState & { workspaceName?: string | null }) => void;
-  onFreeze: (session: SessionState & { workspaceName?: string | null }) => void;
-  onArchive: (session: SessionState & { workspaceName?: string | null }) => void;
-  onDelete: (session: SessionState & { workspaceName?: string | null }) => void;
+  onFreeze?: (session: SessionState & { workspaceName?: string | null }) => void;
+  onResume?: (session: SessionState & { workspaceName?: string | null }) => void;
+  onArchive?: (session: SessionState & { workspaceName?: string | null }) => void;
+  onDelete?: (session: SessionState & { workspaceName?: string | null }) => void;
   onRename?: (session: SessionState & { workspaceName?: string | null }) => void;
-  actionsEnabled?: Partial<Record<'freeze' | 'archive' | 'rename' | 'delete', boolean>>;
+  actionsEnabled?: Partial<Record<'freeze' | 'resume' | 'archive' | 'rename' | 'delete', boolean>>;
 };
 
 export type InboxStatusFilter = 'all' | SessionStatus;

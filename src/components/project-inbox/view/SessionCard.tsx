@@ -1,28 +1,33 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Archive, Clock3, MoreHorizontal, Snowflake, Trash2 } from 'lucide-react';
+import { Archive, Clock3, MoreHorizontal, Pause, Play, Snowflake, Trash2 } from 'lucide-react';
 import { Badge, Button, Tooltip } from '../../../shared/view/ui';
 import { cn } from '../../../lib/utils';
 import SessionProviderLogo from '../../llm-logo-provider/SessionProviderLogo';
 import { formatTimeAgo } from '../../../utils/dateUtils';
 import { useTranslation } from 'react-i18next';
 import type { SessionCardProps } from '../types/types';
+import { useSessionLifecycle } from '../../../hooks/useSessionLifecycle';
 
 const STATUS_META = {
   active: {
     label: 'Active',
-    badgeClass: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300',
+    badgeClass:
+      'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300',
   },
   frozen: {
     label: 'Frozen',
-    badgeClass: 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300',
+    badgeClass:
+      'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300',
   },
   archived: {
     label: 'Archived',
-    badgeClass: 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300',
+    badgeClass:
+      'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300',
   },
   deleted: {
     label: 'Deleted',
-    badgeClass: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300',
+    badgeClass:
+      'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300',
   },
 } as const;
 
@@ -30,6 +35,7 @@ export default function SessionCard({
   session,
   onSelect,
   onFreeze,
+  onResume,
   onArchive,
   onDelete,
   onRename,
@@ -41,6 +47,7 @@ export default function SessionCard({
   const [previewOpen, setPreviewOpen] = useState(false);
   const longPressTriggeredRef = useRef(false);
   const longPressTimerRef = useRef<number | null>(null);
+  const lifecycle = useSessionLifecycle();
 
   useEffect(() => {
     return () => {
@@ -51,7 +58,10 @@ export default function SessionCard({
   }, []);
 
   const previewText = session.summary || session.title || session.sessionId;
-  const statusMeta = STATUS_META[session.status] || STATUS_META.active;
+  // Effective status: prefer real-time WS override over prop-derived status
+  const effectiveStatus = lifecycle.getStatus(session.sessionId, session.status);
+  const statusMeta = STATUS_META[effectiveStatus] || STATUS_META.active;
+  const isLoading = lifecycle.loadingIds.has(session.sessionId);
 
   const openPreview = () => setPreviewOpen(true);
   const closePreview = () => setPreviewOpen(false);
@@ -133,7 +143,7 @@ export default function SessionCard({
 
               <div className="flex items-center gap-2">
                 <Badge className={cn('px-2 py-0.5 text-[11px] font-medium', statusMeta.badgeClass)}>
-                  {session.status === 'frozen' ? <Snowflake className="mr-1 h-3 w-3" /> : null}
+                  {effectiveStatus === 'frozen' ? <Snowflake className="mr-1 h-3 w-3" /> : null}
                   {statusMeta.label}
                 </Badge>
                 <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
@@ -166,48 +176,81 @@ export default function SessionCard({
 
       {menuOpen ? (
         <div className="absolute right-3 top-14 z-30 w-52 rounded-large border border-border/70 bg-card p-1.5 shadow-ring">
+          {/* Resume — shown for frozen or archived sessions */}
+          {(effectiveStatus === 'frozen' || effectiveStatus === 'archived') && (
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={async () => {
+                setMenuOpen(false);
+                const success = await lifecycle.resumeSession(session.sessionId);
+                if (success) onResume?.(session);
+              }}
+              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Play className="h-4 w-4" />
+              Resume
+            </button>
+          )}
+
+          {/* Freeze — shown for active sessions */}
+          {effectiveStatus === 'active' && (
+            <button
+              type="button"
+              disabled={isLoading || actionsEnabled?.freeze === false}
+              onClick={async () => {
+                setMenuOpen(false);
+                const success = await lifecycle.freezeSession(session.sessionId);
+                if (success) onFreeze?.(session);
+              }}
+              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Pause className="h-4 w-4" />
+              Freeze
+            </button>
+          )}
+
+          {/* Archive — all non-archived statuses */}
+          {effectiveStatus !== 'archived' && (
+            <button
+              type="button"
+              disabled={isLoading || actionsEnabled?.archive === false}
+              onClick={async () => {
+                setMenuOpen(false);
+                const success = await lifecycle.archiveSession(session.sessionId);
+                if (success) onArchive?.(session);
+              }}
+              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Archive className="h-4 w-4" />
+              Archive
+            </button>
+          )}
+
+          {/* Rename — active only */}
+          {effectiveStatus === 'active' && (
+            <button
+              type="button"
+              disabled={actionsEnabled?.rename === false}
+              onClick={() => {
+                setMenuOpen(false);
+                onRename?.(session);
+              }}
+              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              Rename
+            </button>
+          )}
+
+          {/* Delete — always available */}
           <button
             type="button"
-            disabled={!actionsEnabled?.freeze}
-            onClick={() => {
+            disabled={isLoading || actionsEnabled?.delete === false}
+            onClick={async () => {
               setMenuOpen(false);
-              onFreeze(session);
-            }}
-            className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Snowflake className="h-4 w-4" />
-            Freeze
-          </button>
-          <button
-            type="button"
-            disabled={!actionsEnabled?.archive}
-            onClick={() => {
-              setMenuOpen(false);
-              onArchive(session);
-            }}
-            className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Archive className="h-4 w-4" />
-            Archive
-          </button>
-          <button
-            type="button"
-            disabled={!actionsEnabled?.rename}
-            onClick={() => {
-              setMenuOpen(false);
-              onRename?.(session);
-            }}
-            className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-            Rename
-          </button>
-          <button
-            type="button"
-            disabled={!actionsEnabled?.delete}
-            onClick={() => {
-              setMenuOpen(false);
-              onDelete(session);
+              const success = await lifecycle.deleteSession(session.sessionId);
+              if (success) onDelete?.(session);
             }}
             className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-destructive transition hover:bg-destructive/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
