@@ -1,19 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Check, FolderOpen, MoreHorizontal, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '../../../../lib/utils';
-import { Button, Input } from '../../../../shared/view/ui';
-import type { LoadingProgress, Project } from '../../../../types/app';
-import type { SidebarProjectListItem } from '../../types/types';
-
-type ContextMenuState = {
-  project: Project;
-  x: number;
-  y: number;
-};
+import { cn } from '@/lib/utils';
+import { Input } from '@/shared/view/ui';
+import type { LoadingProgress, Project } from '@/types/app';
+import type { SidebarProjectGroup, SidebarProjectListItem } from '@/components/sidebar/types/types';
+import StreamRow from './StreamRow';
+import StreamDividerHeader from './StreamDividerHeader';
+import ProjectContextMenu from './ProjectContextMenu';
 
 type SidebarProjectListSectionProps = {
   projects: SidebarProjectListItem[];
+  groupedProjects: SidebarProjectGroup[];
   selectedProject: Project | null;
   isLoading: boolean;
   loadingProgress: LoadingProgress | null;
@@ -27,25 +25,14 @@ type SidebarProjectListSectionProps = {
   onCancelEditingProject: () => void;
   onSaveProjectName: (projectName: string) => void;
   onDeleteProject: (project: Project) => void;
+  onRefreshProject?: () => void;
+  onNewSession?: (project: Project) => void;
   onCreateProject: () => void;
 };
 
-function getViewportSafePosition(clientX: number, clientY: number) {
-  const width = 188;
-  const height = 112;
-  const padding = 12;
-
-  const x = Math.min(clientX, window.innerWidth - width - padding);
-  const y = Math.min(clientY, window.innerHeight - height - padding);
-
-  return {
-    x: Math.max(padding, x),
-    y: Math.max(padding, y),
-  };
-}
-
 export default function SidebarProjectListSection({
   projects,
+  groupedProjects,
   selectedProject,
   isLoading,
   loadingProgress,
@@ -59,31 +46,41 @@ export default function SidebarProjectListSection({
   onCancelEditingProject,
   onSaveProjectName,
   onDeleteProject,
+  onRefreshProject,
+  onNewSession,
   onCreateProject,
 }: SidebarProjectListSectionProps) {
   const { t } = useTranslation('sidebar');
-  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(() => new Set());
 
-  useEffect(() => {
-    if (!contextMenu) {
-      return;
-    }
-
-    const handleClose = () => setContextMenu(null);
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setContextMenu(null);
+  const getCollapsedProjectItem = useCallback(
+    (group: SidebarProjectGroup) => {
+      if (!selectedProject) {
+        return group.main;
       }
-    };
 
-    document.addEventListener('mousedown', handleClose);
-    document.addEventListener('keydown', handleEscape);
+      if (group.main.project.name === selectedProject.name) {
+        return group.main;
+      }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClose);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [contextMenu]);
+      return (
+        group.children.find((child) => child.project.name === selectedProject.name) ?? group.main
+      );
+    },
+    [selectedProject]
+  );
+
+  const toggleExpand = useCallback((projectName: string) => {
+    setExpandedProjects((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectName)) {
+        next.delete(projectName);
+      } else {
+        next.add(projectName);
+      }
+      return next;
+    });
+  }, []);
 
   const emptyMessage = useMemo(() => {
     if (isLoading) {
@@ -94,178 +91,127 @@ export default function SidebarProjectListSection({
       return t('projects.loadingProjects');
     }
 
-    return searchFilter.trim()
-      ? t('projects.noMatchingProjects')
-      : t('projects.noProjects');
+    return searchFilter.trim() ? t('projects.noMatchingProjects') : t('projects.noProjects');
   }, [isLoading, loadingProgress?.currentProject, searchFilter, t]);
 
-  const openContextMenu = (event: Pick<MouseEvent, 'clientX' | 'clientY'>, project: Project) => {
-    const { x, y } = getViewportSafePosition(event.clientX, event.clientY);
-    setContextMenu({ project, x, y });
+  /**
+   * Render a single stream row, handling editing and context-menu states.
+   * `extraStreamCount` is passed only for multi-stream collapsed rows (§3.2).
+   */
+  const renderStreamRow = (projectItem: SidebarProjectListItem, extraStreamCount?: number) => {
+    const { project } = projectItem;
+    const isSelected = selectedProject?.name === project.name;
+    const isDeleting = deletingProjects.has(project.name);
+    const isEditing = editingProject === project.name;
+
+    if (isEditing) {
+      return (
+        <div key={project.name} className="flex items-center gap-2 px-4 py-2">
+          <Input
+            value={editingName}
+            onChange={(event) => onEditingNameChange(event.target.value)}
+            className="h-8 flex-1 border-label-dim bg-muted text-xs text-foreground"
+            placeholder={t('projects.projectNamePlaceholder')}
+            autoFocus
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                onSaveProjectName(project.name);
+              }
+              if (event.key === 'Escape') {
+                onCancelEditingProject();
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <ProjectContextMenu
+        key={project.name}
+        project={project}
+        onRename={() => onStartEditingProject(project)}
+        onDelete={() => onDeleteProject(project)}
+        onRefresh={() => onRefreshProject?.()}
+        onNewSession={() => onNewSession?.(project)}
+      >
+        <div className={cn(isDeleting && 'pointer-events-none opacity-50')}>
+          <StreamRow
+            name={projectItem.displayName}
+            branch={projectItem.branch}
+            status={
+              projectItem.hasWaitingSessions
+                ? 'running-waiting'
+                : projectItem.hasActiveSessions
+                  ? 'running'
+                  : 'idle'
+            }
+            isSelected={isSelected}
+            extraStreamCount={extraStreamCount}
+            onClick={() => onProjectSelect(project)}
+            onBadgeClick={
+              extraStreamCount != null
+                ? (e) => {
+                    e.stopPropagation();
+                    toggleExpand(project.name);
+                  }
+                : undefined
+            }
+          />
+        </div>
+      </ProjectContextMenu>
+    );
   };
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col px-3 py-3">
-      <div className="mb-3 flex items-center gap-2 px-1">
-        <FolderOpen className="h-4 w-4 text-sidebar-foreground/70" />
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/70">
+    <section className="flex min-h-0 flex-1 flex-col">
+      {/* Projects section header — 36px, border-bottom #16181a */}
+      <div className="flex h-9 flex-shrink-0 items-center justify-between border-b border-border-subtle px-[14px]">
+        <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-label-dim">
           {t('projects.title')}
-        </h2>
+        </span>
+        <button
+          type="button"
+          onClick={onCreateProject}
+          className="flex h-4 w-4 items-center justify-center rounded bg-surface-3 text-white transition-colors hover:bg-border"
+          aria-label={t('projects.newProject')}
+        >
+          <Plus className="h-[13px] w-[13px]" />
+        </button>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-1.5">
+      {/* Stream list */}
+      <div className="min-h-0 flex-1">
         {projects.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-sidebar-border/70 bg-sidebar-accent/20 px-3 py-4 text-sm text-sidebar-foreground/65">
-            {emptyMessage}
-          </div>
+          <div className="px-4 py-4 text-xs text-dim-foreground">{emptyMessage}</div>
         ) : (
-          projects.map((projectItem) => {
-            const { project } = projectItem;
-            const isSelected = selectedProject?.name === project.name;
-            const isDeleting = deletingProjects.has(project.name);
-            const isEditing = editingProject === project.name;
+          groupedProjects.map((group) => {
+            const { main, children } = group;
+            const isMultiStream = children.length > 0;
+            const isExpanded = isMultiStream && expandedProjects.has(main.project.name);
+            const collapsedProject = getCollapsedProjectItem(group);
 
-            return (
-              <div
-                key={project.name}
-                className={cn(
-                  'rounded-xl border border-sidebar-border/60 bg-sidebar transition-colors',
-                  isSelected && 'border-sidebar-ring bg-sidebar-accent',
-                  isDeleting && 'pointer-events-none opacity-50',
-                )}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  openContextMenu(event.nativeEvent, project);
-                }}
-              >
-                {isEditing ? (
-                  <div className="flex items-center gap-2 p-2.5">
-                    <Input
-                      value={editingName}
-                      onChange={(event) => onEditingNameChange(event.target.value)}
-                      className="h-9 border-sidebar-border bg-sidebar-accent text-sidebar-foreground"
-                      placeholder={t('projects.projectNamePlaceholder')}
-                      autoFocus
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          onSaveProjectName(project.name);
-                        }
+            if (isMultiStream && isExpanded) {
+              // §3.3 — Expanded: divider header + main row + child stream rows
+              return (
+                <div key={main.project.name}>
+                  <StreamDividerHeader
+                    name={main.displayName}
+                    onClick={() => toggleExpand(main.project.name)}
+                  />
+                  {/* Main stream row */}
+                  {renderStreamRow(main)}
+                  {/* Child stream rows — flush with normal rows, no indent */}
+                  {children.map((child) => renderStreamRow(child))}
+                </div>
+              );
+            }
 
-                        if (event.key === 'Escape') {
-                          onCancelEditingProject();
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-9 w-9 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400"
-                      onClick={() => onSaveProjectName(project.name)}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-9 w-9 text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                      onClick={onCancelEditingProject}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 p-2.5">
-                    <button
-                      type="button"
-                      onClick={() => onProjectSelect(project)}
-                      className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 text-left text-sidebar-foreground transition-colors hover:bg-sidebar-accent"
-                    >
-                      <span
-                        className={cn(
-                          'h-2.5 w-2.5 flex-shrink-0 rounded-full',
-                          projectItem.hasActiveSessions ? 'bg-emerald-500' : 'bg-slate-400',
-                        )}
-                        title={t(projectItem.hasActiveSessions ? 'status.active' : 'status.inactive')}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-sidebar-foreground">
-                          {projectItem.displayName}
-                        </p>
-                        <p className="truncate text-xs text-sidebar-foreground/60">
-                          {projectItem.workspaceName}
-                        </p>
-                      </div>
-                    </button>
-
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                      onClick={(event) => {
-                        const rect = event.currentTarget.getBoundingClientRect();
-                        openContextMenu({ clientX: rect.right, clientY: rect.bottom }, project);
-                      }}
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            );
+            // §3.1 / §3.2 — Single-stream or collapsed multi-stream
+            return renderStreamRow(collapsedProject, isMultiStream ? children.length : undefined);
           })
         )}
       </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="mt-3 w-full justify-center gap-2 border-sidebar-border bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent"
-        onClick={onCreateProject}
-      >
-        <Plus className="h-4 w-4" />
-        {t('projects.newProject')}
-      </Button>
-
-      {contextMenu ? (
-        <>
-          <button
-            type="button"
-            className="fixed inset-0 z-[75] cursor-default"
-            onClick={() => setContextMenu(null)}
-            aria-label="Close project menu"
-          />
-          <div
-            className="fixed z-[76] min-w-44 rounded-2xl border border-sidebar-border bg-popover p-1.5 shadow-2xl"
-            style={{ left: contextMenu.x, top: contextMenu.y }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                onStartEditingProject(contextMenu.project);
-                setContextMenu(null);
-              }}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground transition hover:bg-muted"
-            >
-              <Pencil className="h-4 w-4" />
-              {t('actions.rename')}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onDeleteProject(contextMenu.project);
-                setContextMenu(null);
-              }}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
-            >
-              <Trash2 className="h-4 w-4" />
-              {t('actions.delete')}
-            </button>
-          </div>
-        </>
-      ) : null}
     </section>
   );
 }
