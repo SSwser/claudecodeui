@@ -2,7 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { db } from '../database/db.js';
-import { addProjectManually, getProjects as discoverProjects } from '../projects.js';
+import {
+  addProjectManually,
+  getProjects as discoverProjects,
+  getGitCommonDir,
+  getGitBranch,
+} from '../projects.js';
 
 const PROJECT_SORTS = {
   name: 'LOWER(COALESCE(p.display_name, p.name)) ASC',
@@ -260,7 +265,11 @@ export async function scanProjectSessions(projectId, directoryPath) {
     const title = session.title || session.name || session.summary || null;
     const summary = session.summary || session.name || null;
     const lastActivity =
-      session.lastActivity || session.updated_at || session.createdAt || session.created_at || new Date().toISOString();
+      session.lastActivity ||
+      session.updated_at ||
+      session.createdAt ||
+      session.created_at ||
+      new Date().toISOString();
 
     upsertSession.run(
       session.id,
@@ -269,7 +278,7 @@ export async function scanProjectSessions(projectId, directoryPath) {
       'active',
       title,
       summary,
-      lastActivity,
+      lastActivity
     );
   }
 
@@ -337,7 +346,10 @@ export async function createProject(
   });
 
   void scanProjectSessions(projectId, resolvedPath).catch((error) => {
-    console.warn(`[projectService] Failed to scan sessions for project ${projectId}:`, error.message);
+    console.warn(
+      `[projectService] Failed to scan sessions for project ${projectId}:`,
+      error.message
+    );
   });
 
   return {
@@ -364,7 +376,20 @@ export async function getProjects({ sort = 'recent', includeDeleted = false } = 
     )
     .all();
 
-  return rows.map(mapProjectRow);
+  const projects = rows.map(mapProjectRow);
+
+  // Add git metadata for multi-stream grouping and branch chip display.
+  // The DB stores directory_path but not the git common dir or branch; compute them here.
+  await Promise.all(
+    projects.map(async (project) => {
+      [project.gitCommonDir, project.gitBranch] = await Promise.all([
+        getGitCommonDir(project.directoryPath),
+        getGitBranch(project.directoryPath),
+      ]);
+    })
+  );
+
+  return projects;
 }
 
 export async function getProjectById(projectId) {

@@ -89,6 +89,7 @@ export type MainContentStateViewProps = {
   mode: 'loading' | 'empty' | 'home';
   isMobile: boolean;
   onMenuClick: () => void;
+  onCreateProject?: () => void;
   landingPageData?: LandingPageData;
   onLandingFiltersChange?: MainContentProps['onLandingFiltersChange'];
   onLandingActions?: MainContentProps['onLandingActions'];

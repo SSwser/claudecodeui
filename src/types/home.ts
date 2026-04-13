@@ -77,7 +77,7 @@ export type LayoutPreferences = {
 };
 
 export type HomePreferences = {
-  version: 1;
+  version: number;
   startupBehavior: StartupBehavior;
   favorites: HomeFavoriteEntry[];
   filters: HomeFilters;

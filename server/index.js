@@ -116,7 +116,7 @@ import {
   userDb,
 } from './database/db.js';
 import { setSessionLifecycleBroadcaster } from './services/sessionLifecycleService.js';
-import { createProject, getProjects } from './services/projectService.js';
+import { createProject } from './services/projectService.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 import { IS_PLATFORM, IS_LOCAL_DEV } from './constants/config.js';
@@ -513,7 +513,7 @@ app.post('/api/system/update', authenticateToken, async (req, res) => {
     const updateCommand =
       installMode === 'git'
         ? 'git checkout main && git pull && npm install'
-        : 'npm install -g @cloudcli-ai/cloudcli@latest';
+        : 'npm install -g @anthropic-ai/chorus@latest';
 
     const child = spawn('sh', ['-c', updateCommand], {
       cwd: installMode === 'git' ? projectRoot : os.homedir(),
@@ -2739,7 +2739,7 @@ async function listenWithReuse(serverInstance, port, host) {
         if (existingServer) {
           console.log('');
           console.log(
-            `${c.warn('[WARN]')} Port ${port} is already used by an existing CloudCLI server.`
+            `${c.warn('[WARN]')} Port ${port} is already used by an existing Chorus server.`
           );
           console.log(
             `${c.info('[INFO]')} Reusing existing server at ${c.bright(`http://127.0.0.1:${port}`)}`
@@ -2785,24 +2785,42 @@ async function startServer() {
         console.log(`${c.ok('[DEV]')} Created dev user (username: dev, password: dev)`);
       } else {
         console.log(
-          `${c.dim('[DEV]')} DEV_AUTO_LOGIN enabled - using existing user: ${existingUser.username}`
+          `${c.dim('[DEV]')} IS_LOCAL_DEV enabled - using existing user: ${existingUser.username}`
         );
       }
 
-      // Seed dev project — insert repo root as default project if none exist yet.
-      // Keeps dev environment zero-config: open the app and the current project is
-      // already in the sidebar without manual setup.
-      // createProject() is idempotent via the unique index on directory_path; the
-      // "Project already exists" error is silently swallowed so restarts are safe.
-      const existingProjects = await getProjects();
-      if (existingProjects.length === 0) {
-        const repoRoot = path.resolve(path.join(__dirname, '..'));
+      // Seed dev projects — insert repo root(s) so the sidebar is populated on first run.
+      // If running from a git worktree (.git is a file, not a directory), also seed the
+      // main repo so both the worktree and the canonical project appear in the sidebar.
+      // createProject() throws "Project already exists" for already-registered paths;
+      // that error is silently swallowed so restarts are safe.
+      const seedProject = async (dir) => {
         try {
-          await createProject({ name: path.basename(repoRoot), directoryPath: repoRoot }, { wss });
-          console.log(`${c.ok('[DEV]')} Seeded default project: ${repoRoot}`);
+          await createProject({ name: path.basename(dir), directoryPath: dir }, { wss });
+          console.log(`${c.ok('[DEV]')} Seeded project: ${dir}`);
         } catch (err) {
           if (!err.message.includes('Project already exists')) {
-            console.warn(`${c.warn('[DEV]')} Could not seed default project: ${err.message}`);
+            console.warn(`${c.warn('[DEV]')} Could not seed project ${dir}: ${err.message}`);
+          }
+        }
+      };
+
+      const repoRoot = path.resolve(path.join(__dirname, '..'));
+      await seedProject(repoRoot);
+
+      // Detect git worktree: .git is a plain file (not a directory) in a worktree checkout.
+      // The file contains: "gitdir: /path/to/main/.git/worktrees/<name>"
+      // Go up 3 levels from that gitdir to reach the main repo root.
+      const gitEntry = path.join(repoRoot, '.git');
+      if (fs.existsSync(gitEntry) && fs.lstatSync(gitEntry).isFile()) {
+        const gitFileContent = fs.readFileSync(gitEntry, 'utf8').trim();
+        const match = gitFileContent.match(/^gitdir:\s*(.+)$/m);
+        if (match) {
+          const worktreeGitDir = path.resolve(repoRoot, match[1].trim());
+          // worktreeGitDir is <mainRepo>/.git/worktrees/<name> — go up 3 levels
+          const mainRepo = path.resolve(worktreeGitDir, '..', '..', '..');
+          if (mainRepo !== repoRoot && fs.existsSync(mainRepo)) {
+            await seedProject(mainRepo);
           }
         }
       }
@@ -2838,14 +2856,14 @@ async function startServer() {
 
     console.log('');
     console.log(c.dim('═'.repeat(63)));
-    console.log(`  ${c.bright('Claude Code UI Server - Ready')}`);
+    console.log(`  ${c.bright('Chorus Server - Ready')}`);
     console.log(c.dim('═'.repeat(63)));
     console.log('');
     console.log(
       `${c.info('[INFO]')} Server URL:  ${c.bright('http://' + DISPLAY_HOST + ':' + SERVER_PORT)}`
     );
     console.log(`${c.info('[INFO]')} Installed at: ${c.dim(appInstallPath)}`);
-    console.log(`${c.tip('[TIP]')}  Run "cloudcli status" for full configuration details`);
+    console.log(`${c.tip('[TIP]')}  Run "chorus status" for full configuration details`);
     console.log('');
 
     // Start watching the projects folder for changes

@@ -65,6 +65,13 @@ export interface Project {
   geminiSessions?: ProjectSession[];
   sessionMeta?: ProjectSessionMeta;
   taskmaster?: ProjectTaskmasterInfo;
+  /** Absolute path to this repo's main .git directory.
+   *  All worktrees of the same repository share the same value.
+   *  Used by the sidebar to group worktrees into multi-stream rows (design brief §3). */
+  gitCommonDir?: string | null;
+  /** Current git branch name for this project's working directory.
+   *  Used as the branch chip label in StreamRow subtitle. */
+  gitBranch?: string | null;
   [key: string]: unknown;
 }
 
