@@ -18,17 +18,23 @@ Use this document when converting Figma designs into code.
 
 ## Design Tokens
 
-Primary token sources:
+Authoritative token source: **`design/tokens.json`** — Pencil hex ↔ CSS token ↔ Tailwind class mapping for every design token.
 
-- `src/index.css`
-- `tailwind.config.js`
-- `src/contexts/ThemeContext.jsx`
+Derived artifacts (do not edit manually):
+
+- `design/TOKENS.md` — human-readable reference table; regenerate with `npm run tokens:build`
+
+Runtime sources (generated from `tokens.json`):
+
+- `src/index.css` — HSL CSS variables, dual theme (`:root` light + `.dark`)
+- `tailwind.config.js` — bridges CSS vars to Tailwind utilities via `hsl(var(--xxx))`
 
 Rules:
 
 - Use semantic classes first (`bg-background`, `text-foreground`, `border-border`, `text-muted-foreground`)
-- Add new CSS variables only when there is no existing semantic role
+- Add new tokens to `design/tokens.json` first, then propagate to `src/index.css` and `tailwind.config.js`
 - Do not introduce a second token system
+- Never hardcode hex colors in components
 
 ## Component Reuse
 

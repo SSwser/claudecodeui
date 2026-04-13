@@ -37,6 +37,7 @@
     "lint:fix": "eslint src/ --fix",
     "lint:i18n": "node scripts/check-hardcoded-strings.cjs",
     "lint:design-md": "node scripts/check-visual-hardcoded-colors.cjs",
+    "tokens:build": "node scripts/build-tokens.cjs",
     "test:visual": "playwright test tests/visual/",
     "test:visual:update": "playwright test tests/visual/ --update-snapshots",
     "start": "npm run build && npm run server",

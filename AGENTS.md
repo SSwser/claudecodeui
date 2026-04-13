@@ -190,6 +190,29 @@ Always use the current working directory (the worktree) for all file reads and e
 - Commit `.planning/` changes separately from source code changes
 - `gsd-code-review` runs before any phase is marked complete
 
+## Design Workflow
+
+### Token System
+
+- **Single source of truth**: `design/tokens.json` — all Pencil hex ↔ CSS token ↔ Tailwind class mappings
+- **Reference table**: `design/TOKENS.md` — auto-generated from `tokens.json`; run `npm run tokens:build` to regenerate; never edit manually
+- **CSS variables**: `src/index.css` — HSL-based, dual theme (`:root` light + `.dark`)
+- **Tailwind bridge**: `tailwind.config.js` — maps CSS vars to utilities via `hsl(var(--xxx))`
+
+When adding or changing a design token:
+
+1. Update `design/tokens.json`
+2. Update `src/index.css` (light + dark values)
+3. If new token, add Tailwind mapping in `tailwind.config.js`
+4. Run `npm run tokens:build` to regenerate `TOKENS.md`
+
+### Pencil ↔ Code Consistency
+
+- **Pencil wireframes** are the visual source of truth for layout, spacing, and appearance
+- **Code** is the behavior source of truth — after a phase ships, implementation is canonical
+- **Phase briefs** are ephemeral — they capture design intent ("why") per phase; archived after delivery, not actively maintained
+- Never hardcode hex colors in components — always use CSS tokens (`var(--xxx)`) or Tailwind classes
+
 ## Figma Integration (Reference Only)
 
 When implementing UI from Figma designs, consult the canonical docs:

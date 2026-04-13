@@ -1,77 +1,144 @@
-# ClaudeCodeUI — Design Token Reference
+# Design Tokens Reference
 
-**Role**: Single source of truth for color implementation. Resolves Pencil-origin hex values to CSS tokens and Tailwind classes.  
-**Maintained in**: `design/TOKENS.md` (repo root)  
-**Last updated**: 2026-04-13
+> **Auto-generated** from `design/tokens.json`. Do not edit manually.
+> Run `npm run tokens:build` to regenerate.
 
-> **Implementation rule**: always use the **CSS token** or **Tailwind class** column when writing code.  
-> Hex values are Pencil wireframe references only — hex values in production code are a bug.
+### Core Colors
 
----
+| Pencil Hex | CSS Token            | Tailwind                | Description                   |
+| ---------- | -------------------- | ----------------------- | ----------------------------- |
+| #07080a    | `--background`       | `bg-background`         | App background                |
+| #f9f9f9    | `--foreground`       | `text-foreground`       | Primary text                  |
+| #1b1c1e    | `--muted`            | `bg-muted`              | Hover row bg / border chip bg |
+| #6a6b6c    | `--muted-foreground` | `text-muted-foreground` | Idle / muted text             |
+| #161718    | `--border`           | `border-border`         | Divider / border              |
+| —          | `--ring`             | `ring-ring`             | Focus ring                    |
+| —          | `--input`            | —                       | Input border                  |
 
-## Core Color Tokens
+### Brand Colors
 
-| Role                            | Hex (Pencil)  | CSS token            | Tailwind class                |
-| ------------------------------- | ------------- | -------------------- | ----------------------------- |
-| App background                  | `#07080a`     | `--background`       | `bg-background`               |
-| Primary text                    | `#f9f9f9`     | `--foreground`       | `text-foreground`             |
-| Idle / muted text               | `#6a6b6c`     | `--muted-foreground` | `text-muted-foreground`       |
-| Selected row / elevated surface | `#101111`     | `--surface-2`        | `bg-surface-2`                |
-| Hover row bg / border chip bg   | `#1b1c1e`     | `--muted`            | `bg-muted`                    |
-| Divider / border                | `#161718`     | `--border`           | `bg-border` / `border-border` |
-| Left selected bar bg            | `#252627`     | `--surface-3`        | —                             |
-| **Section labels / dim icons**  | **`#434345`** | **⚠️ no token yet**  | `text-[#434345]` (temp)       |
+| Pencil Hex | CSS Token              | Tailwind                    | Description                     |
+| ---------- | ---------------------- | --------------------------- | ------------------------------- |
+| #FF6363    | `--brand`              | `bg-brand / text-brand`     | Brand / Waiting / Error accent  |
+| #ffffff    | `--brand-foreground`   | `text-brand-foreground`     | Text on brand color             |
+| #FF6363    | `--primary`            | `bg-primary / text-primary` | Primary action (alias of brand) |
+| #ffffff    | `--primary-foreground` | `text-primary-foreground`   | Text on primary                 |
 
-> **`#434345` gap**: Used for section labels (`PROJECT`, `RECENT`), chevrons, and search placeholder. It is darker than `--muted-foreground` (≈`#9b9ba0` in dark mode). A `--label` or `--icon-dim` token should be added to `src/index.css` before widespread use. Until then, use `text-[#434345]` as a temporary escape hatch, and flag it with a `// TODO: replace with CSS token` comment.
+### Semantic Colors
 
----
+| Pencil Hex | CSS Token                  | Tailwind                      | Description                |
+| ---------- | -------------------------- | ----------------------------- | -------------------------- |
+| #5fc992    | `--success`                | `text-success`                | Success state              |
+| —          | `--success-foreground`     | `text-success-foreground`     | Text on success            |
+| #fbbf24    | `--warning`                | `text-warning / bg-warning`   | Running / Warning / Accent |
+| —          | `--warning-foreground`     | `text-warning-foreground`     | Text on warning            |
+| #FF6363    | `--destructive`            | `bg-destructive`              | Destructive action         |
+| #ffffff    | `--destructive-foreground` | `text-destructive-foreground` | Text on destructive        |
 
-## Semantic / Status Color Tokens
+### Surface Colors
 
-| Role                                           | Hex (Pencil) | CSS token               | Tailwind class              |
-| ---------------------------------------------- | ------------ | ----------------------- | --------------------------- |
-| Brand / Waiting / Error                        | `#FF6363`    | `--brand` / `--primary` | `text-brand` `bg-brand`     |
-| Running / Warning / Accent                     | `#fbbf24`    | `--warning`             | `text-warning` `bg-warning` |
-| Success (legacy — retired from status dot use) | `#5fc992`    | `--success`             | `text-success`              |
+| Pencil Hex | CSS Token                | Tailwind                    | Description                               |
+| ---------- | ------------------------ | --------------------------- | ----------------------------------------- |
+| —          | `--card`                 | `bg-card`                   | Card background                           |
+| —          | `--card-foreground`      | `text-card-foreground`      | Card text                                 |
+| —          | `--popover`              | `bg-popover`                | Popover background                        |
+| —          | `--popover-foreground`   | `text-popover-foreground`   | Popover text                              |
+| —          | `--secondary`            | `bg-secondary`              | Secondary backgrounds                     |
+| —          | `--secondary-foreground` | `text-secondary-foreground` | Secondary text                            |
+| —          | `--accent`               | `bg-accent`                 | Accent backgrounds                        |
+| —          | `--accent-foreground`    | `text-accent-foreground`    | Accent text                               |
+| #07080a    | `--surface-1`            | `bg-surface-1`              | Surface level 1 (app shell)               |
+| #101111    | `--surface-2`            | `bg-surface-2`              | Surface level 2 (selected row / elevated) |
+| #252627    | `--surface-3`            | `bg-surface-3`              | Surface level 3 (bar bg)                  |
+| —          | `--surface-elevated`     | `bg-surface-elevated`       | Elevated surface                          |
 
----
+### Sidebar Colors
 
-## Elevation / Surface Border Tokens
+| Pencil Hex | CSS Token          | Tailwind                  | Description        |
+| ---------- | ------------------ | ------------------------- | ------------------ |
+| #07080a    | `--sidebar-bg`     | `bg-sidebar`              | Sidebar background |
+| #f9f9f9    | `--sidebar-fg`     | `text-sidebar-foreground` | Sidebar text       |
+| #161718    | `--sidebar-border` | `border-sidebar-border`   | Sidebar border     |
+| #FF6363    | `--sidebar-accent` | `bg-sidebar-accent`       | Sidebar accent     |
 
-These token names correspond to the 6-level elevation system in [`PRODUCT.md §6.3`](./PRODUCT.md#63-surface-elevation-system).
+### Status Colors
 
-| Role                                     | Hex (Pencil)                  | CSS token           | Tailwind class       |
-| ---------------------------------------- | ----------------------------- | ------------------- | -------------------- |
-| Level 1 divider edge                     | `#1b1c1e`                     | `--border`          | `border-border`      |
-| Level 2 card ring (outer)                | `#1b1c1e`                     | `--ring`            | `ring-1 ring-border` |
-| Level 2 inner highlight                  | `rgba(255,255,255,0.05)`      | `--highlight-inner` | —                    |
-| Level 3 input / card stroke              | `rgba(255,255,255,0.06)–0.10` | `--border-subtle`   | `border-border/60`   |
-| Level 3 user msg border (blue tint)      | `#1d3550`                     | —                   | `border-[#1d3550]`   |
-| Level 3 frozen notice border (blue tint) | `#2a3550`                     | —                   | `border-[#2a3550]`   |
-| Level 4–5 overlay border                 | `rgba(255,255,255,0.06)`      | `--border-overlay`  | —                    |
-| Level 5 modal drop shadow                | `rgba(0,0,0,0.50)`            | —                   | `shadow-xl`          |
+| Pencil Hex | CSS Token            | Tailwind                | Description                                           |
+| ---------- | -------------------- | ----------------------- | ----------------------------------------------------- |
+| #FF6363    | `--brand`            | `text-brand`            | Waiting (needs user) dot                              |
+| #fbbf24    | `--warning`          | `text-warning`          | Running (autonomous) dot                              |
+| #6a6b6c    | `--muted-foreground` | `text-muted-foreground` | Idle / Fresh dot                                      |
+| #4a6fa5    | —                    | —                       | Frozen dot ⚠️ No CSS token yet — needs --frozen token |
 
----
+### Elevation Colors
 
-## Status-Semantic Tints on Level 2 Cards
+| Pencil Hex | CSS Token | Tailwind           | Description                          |
+| ---------- | --------- | ------------------ | ------------------------------------ |
+| #1e2018    | —         | —                  | Running session card ring tint       |
+| #201818    | —         | —                  | Waiting/Error session card ring tint |
+| #1d3550    | —         | `border-[#1d3550]` | User message border (blue tint)      |
+| #2a3550    | —         | `border-[#2a3550]` | Frozen notice border (blue tint)     |
 
-Session card rings use status-tinted variants at Level 2 to communicate state at a glance:
+### Gaps Colors
 
-| Session state       | Ring color                  | Notes                               |
-| ------------------- | --------------------------- | ----------------------------------- |
-| `Running`           | `#1e2018` (green-warm dark) | Subtle green tint on the outer ring |
-| `Waiting` / `Error` | `#201818` (red-warm dark)   | Subtle red tint on the outer ring   |
-| `Idle` / `Frozen`   | `#1b1c1e`                   | Standard neutral ring               |
+| Pencil Hex | CSS Token | Tailwind         | Description                                                                                                                          |
+| ---------- | --------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| #434345    | —         | `text-[#434345]` | Section labels (PROJECT, RECENT), chevrons, search placeholder ⚠️ Darker than --muted-foreground. Needs --label or --icon-dim token. |
 
----
+### Border Radius
 
-## Session Status Dot — Color Reference
+| Name   | Value | CSS Token         | Tailwind        |
+| ------ | ----- | ----------------- | --------------- |
+| micro  | 3px   | `--radius-micro`  | `rounded-micro` |
+| small  | 6px   | `--radius-small`  | `rounded-sm`    |
+| medium | 8px   | `--radius-medium` | `rounded-md`    |
+| large  | 16px  | `--radius-large`  | `rounded-lg`    |
+| pill   | 86px  | `--radius-pill`   | `rounded-pill`  |
 
-See [`PRODUCT.md §4.1`](./PRODUCT.md#41-session-status--semantic-color-rules) for the full rules. Quick reference:
+### Font Size
 
-| State                | Dot color             | Token                |
-| -------------------- | --------------------- | -------------------- |
-| Waiting (needs user) | `#FF6363`             | `--brand`            |
-| Running (autonomous) | `#fbbf24`             | `--warning`          |
-| Idle / Fresh         | `#6a6b6c`             | `--muted-foreground` |
-| Frozen               | dim blue (≈`#4a6fa5`) | no token yet         |
+| Name | Size | Line Height | CSS Token     |
+| ---- | ---- | ----------- | ------------- |
+| xs   | 12px | 1rem        | `--text-xs`   |
+| sm   | 14px | 1.25rem     | `--text-sm`   |
+| base | 16px | 1.5rem      | `--text-base` |
+| lg   | 18px | 1.75rem     | `--text-lg`   |
+| xl   | 22px | 1.75rem     | `--text-xl`   |
+| 2xl  | 24px | 2rem        | `--text-2xl`  |
+
+### Font Weight
+
+| Name     | Value | CSS Token                |
+| -------- | ----- | ------------------------ |
+| normal   | 500   | `--font-weight-normal`   |
+| medium   | 500   | `--font-weight-medium`   |
+| semibold | 600   | `--font-weight-semibold` |
+| bold     | 700   | `--font-weight-bold`     |
+
+### Letter Spacing
+
+| Name    | Value | CSS Token            |
+| ------- | ----- | -------------------- |
+| body    | 0.2px | `--tracking-body`    |
+| ui      | 0.3px | `--tracking-ui`      |
+| display | 0.2px | `--tracking-display` |
+| code    | 0.3px | `--tracking-code`    |
+
+### Spacing Scale
+
+| Name | Value | CSS Token      |
+| ---- | ----- | -------------- |
+| 1    | 4px   | `--spacing-1`  |
+| 2    | 8px   | `--spacing-2`  |
+| 3    | 12px  | `--spacing-3`  |
+| 4    | 16px  | `--spacing-4`  |
+| 5    | 20px  | `--spacing-5`  |
+| 6    | 24px  | `--spacing-6`  |
+| 8    | 32px  | `--spacing-8`  |
+| 10   | 40px  | `--spacing-10` |
+| 12   | 48px  | `--spacing-12` |
+| 16   | 64px  | `--spacing-16` |
+| 20   | 80px  | `--spacing-20` |
+| 24   | 96px  | `--spacing-24` |
+| 32   | 128px | `--spacing-32` |
+| 40   | 160px | `--spacing-40` |
