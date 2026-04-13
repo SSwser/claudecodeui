@@ -287,7 +287,7 @@ export default function AppContent() {
               onCreateProjectSession={handleNewSession}
               onShowSettings={() => setShowSettings(true)}
               externalMessageUpdate={externalMessageUpdate}
-              showLandingPage={!sessionId && !projectId && rootViewMode === 'home'}
+              showLandingPage={false}
               forceEmptyState={!sessionId && Boolean(projectId) && !selectedProject}
               landingPageData={landingPageData}
               onLandingFiltersChange={{

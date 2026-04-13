@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '../../ui/dialog';
 import { ScrollArea } from '../../../shared/view/ui';
-import { authenticatedFetch, api } from '../../../utils/api';
+import { api } from '../../../utils/api';
 import type { ProjectSession } from '../../../types/app';
 import type { SessionState } from '../../../types/session';
 import { useProjectInbox } from '../hooks/useProjectInbox';
@@ -20,7 +20,10 @@ import type { ProjectInboxProps } from '../types/types';
 import ProjectInboxHeader from './ProjectInboxHeader';
 import SessionCard from './SessionCard';
 
-function toProjectSession(session: SessionState & { workspaceName?: string | null }, projectName?: string): ProjectSession {
+function toProjectSession(
+  session: SessionState & { workspaceName?: string | null },
+  projectName?: string
+): ProjectSession {
   return {
     id: session.sessionId,
     title: session.title || undefined,
@@ -102,11 +105,16 @@ export default function ProjectInbox({
     setSelectedWorkspaceId,
   } = useProjectInbox({ projectId });
   const [actionError, setActionError] = useState<string | null>(null);
-  const [renameTarget, setRenameTarget] = useState<(SessionState & { workspaceName?: string | null }) | null>(null);
+  const [renameTarget, setRenameTarget] = useState<
+    (SessionState & { workspaceName?: string | null }) | null
+  >(null);
   const [renameValue, setRenameValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const resolvedProjectName = useMemo(() => projectName || project?.name, [project?.name, projectName]);
+  const resolvedProjectName = useMemo(
+    () => projectName || project?.name,
+    [project?.name, projectName]
+  );
 
   const openRenameDialog = (session: SessionState & { workspaceName?: string | null }) => {
     setActionError(null);
@@ -126,7 +134,9 @@ export default function ProjectInbox({
       setRenameTarget(null);
       await refresh();
     } catch (renameError) {
-      setActionError(renameError instanceof Error ? renameError.message : 'Failed to rename session');
+      setActionError(
+        renameError instanceof Error ? renameError.message : 'Failed to rename session'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -143,7 +153,9 @@ export default function ProjectInbox({
       await deleteInboxSession(resolvedProjectName, session);
       await refresh();
     } catch (deleteError) {
-      setActionError(deleteError instanceof Error ? deleteError.message : 'Failed to delete session');
+      setActionError(
+        deleteError instanceof Error ? deleteError.message : 'Failed to delete session'
+      );
     }
   };
 
@@ -177,7 +189,11 @@ export default function ProjectInbox({
         ) : sessions.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-6 py-16 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/70 bg-background/90">
-              {searchQuery ? <FolderSearch className="h-6 w-6 text-muted-foreground" /> : <Sparkles className="h-6 w-6 text-primary" />}
+              {searchQuery ? (
+                <FolderSearch className="h-6 w-6 text-muted-foreground" />
+              ) : (
+                <Sparkles className="h-6 w-6 text-primary" />
+              )}
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground">
@@ -200,12 +216,18 @@ export default function ProjectInbox({
                 <SessionCard
                   key={`${session.provider}:${session.sessionId}`}
                   session={session}
-                  onSelect={(selectedSession) => onOpenSession(toProjectSession(selectedSession, resolvedProjectName))}
+                  onSelect={(selectedSession) =>
+                    onOpenSession(toProjectSession(selectedSession, resolvedProjectName))
+                  }
                   onFreeze={() => {
-                    setActionError('Freeze controls are waiting on the Phase 2 lifecycle backend endpoint.');
+                    setActionError(
+                      'Freeze controls are waiting on the Phase 2 lifecycle backend endpoint.'
+                    );
                   }}
                   onArchive={() => {
-                    setActionError('Archive controls are waiting on the Phase 2 lifecycle backend endpoint.');
+                    setActionError(
+                      'Archive controls are waiting on the Phase 2 lifecycle backend endpoint.'
+                    );
                   }}
                   onDelete={handleDelete}
                   onRename={openRenameDialog}
@@ -247,7 +269,11 @@ export default function ProjectInbox({
             <Button type="button" variant="outline" onClick={() => setRenameTarget(null)}>
               Cancel
             </Button>
-            <Button type="button" onClick={submitRename} disabled={isSubmitting || renameValue.trim().length === 0}>
+            <Button
+              type="button"
+              onClick={submitRename}
+              disabled={isSubmitting || renameValue.trim().length === 0}
+            >
               {isSubmitting ? 'Saving...' : 'Save title'}
             </Button>
           </DialogFooter>

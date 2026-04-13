@@ -54,6 +54,8 @@ const normalizeProjectRecord = (project: Project): Project => {
     fullPath: project.fullPath || directoryPath,
     path: project.path || directoryPath,
     directoryPath,
+    gitCommonDir: project.gitCommonDir ?? null,
+    gitBranch: project.gitBranch ?? null,
     multiWorkspaceEnabled: Boolean(project.multiWorkspaceEnabled),
     sessions: project.sessions ?? [],
     codexSessions: project.codexSessions ?? [],
@@ -240,6 +242,19 @@ export function useProjectsState({
   const [selectedSession, setSelectedSession] = useState<ProjectSession | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>(readPersistedTab);
 
+  // Guard: only run the startup redirect once so subsequent navigations aren't cleared.
+  const startupRedirectDoneRef = useRef(false);
+
+  // When 'landing' startup behavior is active, redirect away from any persisted project/session
+  // URL so the user always opens to the empty landing state rather than the last viewed project.
+  useEffect(() => {
+    if (startupRedirectDoneRef.current) return;
+    startupRedirectDoneRef.current = true;
+    if (homePreferences.startupBehavior === 'landing' && (projectId || sessionId)) {
+      navigate('/');
+    }
+  }, [homePreferences.startupBehavior, navigate, projectId, sessionId]);
+
   useEffect(() => {
     try {
       localStorage.setItem('activeTab', activeTab);
@@ -334,12 +349,19 @@ export function useProjectsState({
     void fetchProjects();
   }, [fetchProjects]);
 
-  // Auto-select the project when there is only one, so the user lands on the new session page
+  // Auto-select the project when there is only one, so the user lands on the new session page.
+  // Skipped when 'landing' startup behavior is active — the user should start at empty state.
   useEffect(() => {
-    if (!isLoadingProjects && projects.length === 1 && !selectedProject && !sessionId) {
+    if (
+      !isLoadingProjects &&
+      projects.length === 1 &&
+      !selectedProject &&
+      !sessionId &&
+      homePreferences.startupBehavior !== 'landing'
+    ) {
       setSelectedProject(projects[0]);
     }
-  }, [isLoadingProjects, projects, selectedProject, sessionId]);
+  }, [isLoadingProjects, projects, selectedProject, sessionId, homePreferences.startupBehavior]);
 
   useEffect(() => {
     if (!latestMessage) {

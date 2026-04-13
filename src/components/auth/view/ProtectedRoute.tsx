@@ -36,7 +36,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       <>
         {children}
         <div className="fixed bottom-2 right-2 z-50 rounded bg-yellow-500/90 px-2 py-1 font-mono text-xs text-black">
-          DEV AUTO-LOGIN
+          DEV MODE
         </div>
       </>
     );
