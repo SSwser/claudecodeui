@@ -1,13 +1,13 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { userDb, appConfigDb } from '../database/db.js';
-import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from '../constants/config.js';
+import { IS_PLATFORM, IS_LOCAL_DEV } from '../constants/config.js';
 
 // Use env var if set, otherwise auto-generate a unique secret per installation
 const JWT_SECRET = process.env.JWT_SECRET || appConfigDb.getOrCreateJwtSecret();
 
 // Keep auth bypass decisions in one place so HTTP and WebSocket flows stay aligned.
-const shouldSkipAuth = () => IS_PLATFORM || IS_DEV_AUTO_LOGIN;
+const shouldSkipAuth = () => IS_PLATFORM || IS_LOCAL_DEV;
 
 const ensureDevUser = async () => {
   let user = userDb.getFirstUser();
@@ -39,7 +39,7 @@ const authenticateToken = async (req, res, next) => {
   // Platform/dev mode: use the single database user instead of JWT validation.
   if (shouldSkipAuth()) {
     try {
-      const user = userDb.getFirstUser() || (IS_DEV_AUTO_LOGIN ? await ensureDevUser() : null);
+      const user = userDb.getFirstUser() || (IS_LOCAL_DEV ? await ensureDevUser() : null);
       if (!user) {
         return res.status(500).json({ error: 'Platform/dev mode: No user found in database' });
       }

@@ -116,9 +116,10 @@ import {
   userDb,
 } from './database/db.js';
 import { setSessionLifecycleBroadcaster } from './services/sessionLifecycleService.js';
+import { createProject, getProjects } from './services/projectService.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
-import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from './constants/config.js';
+import { IS_PLATFORM, IS_LOCAL_DEV } from './constants/config.js';
 import { getConnectableHost } from '../shared/networkHosts.js';
 
 const VALID_PROVIDERS = ['claude', 'codex', 'cursor', 'gemini'];
@@ -341,7 +342,7 @@ const wss = new WebSocketServer({
     console.log('WebSocket connection attempt to:', info.req.url);
 
     // Dev auto-login must follow the same synchronous WebSocket gate as platform mode.
-    if (IS_PLATFORM || IS_DEV_AUTO_LOGIN) {
+    if (IS_PLATFORM || IS_LOCAL_DEV) {
       const user = authenticateWebSocket(null); // Will return first user
       if (!user) {
         console.log('[WARN] Platform/dev mode: No user found in database');
@@ -2772,12 +2773,12 @@ async function startServer() {
     // Initialize authentication database
     await initializeDatabase();
 
-    // DEV_AUTO_LOGIN must guarantee a real user before any HTTP or WebSocket bypass runs.
-    if (IS_DEV_AUTO_LOGIN) {
+    // IS_LOCAL_DEV must guarantee a real user before any HTTP or WebSocket bypass runs.
+    if (IS_LOCAL_DEV) {
       const existingUser = userDb.getFirstUser();
       if (!existingUser) {
         console.log(
-          `${c.warn('[DEV]')} DEV_AUTO_LOGIN: no users found, creating default dev/dev user`
+          `${c.warn('[DEV]')} IS_LOCAL_DEV: no users found, creating default dev/dev user`
         );
         const hash = await bcrypt.hash('dev', 10);
         userDb.createUser('dev', hash);
@@ -2786,6 +2787,24 @@ async function startServer() {
         console.log(
           `${c.dim('[DEV]')} DEV_AUTO_LOGIN enabled - using existing user: ${existingUser.username}`
         );
+      }
+
+      // Seed dev project — insert repo root as default project if none exist yet.
+      // Keeps dev environment zero-config: open the app and the current project is
+      // already in the sidebar without manual setup.
+      // createProject() is idempotent via the unique index on directory_path; the
+      // "Project already exists" error is silently swallowed so restarts are safe.
+      const existingProjects = await getProjects();
+      if (existingProjects.length === 0) {
+        const repoRoot = path.resolve(path.join(__dirname, '..'));
+        try {
+          await createProject({ name: path.basename(repoRoot), directoryPath: repoRoot }, { wss });
+          console.log(`${c.ok('[DEV]')} Seeded default project: ${repoRoot}`);
+        } catch (err) {
+          if (!err.message.includes('Project already exists')) {
+            console.warn(`${c.warn('[DEV]')} Could not seed default project: ${err.message}`);
+          }
+        }
       }
     }
 
