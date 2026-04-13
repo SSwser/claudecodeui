@@ -2,7 +2,7 @@
 
 **Granularity:** Coarse (3-5 phases, 1-3 plans each)
 **Created:** 2026-04-10
-**Core Value:** 清晰的组织管理 - 让用户能够轻松管理多个项目、workspace 和会话
+**Core Value:** 清晰的组织管理 - 让用户能够轻松管理多个项目、stream 和会话
 
 ---
 
@@ -68,7 +68,7 @@ Plans:
 
 ### Phase 2: Core Sessions
 
-**Goal:** Users can organize work into Projects and Workspaces, managing the full session lifecycle from creation through archival, via a redesigned Sidebar + Project Inbox navigation architecture.
+**Goal:** Users can organize work into Projects and Streams, managing the full session lifecycle from creation through archival, via a redesigned Sidebar + Project Inbox navigation architecture.
 
 **Depends on:** Phase 1
 
@@ -77,10 +77,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
 1. User manually creates or imports projects via a 3-step wizard; after creation, system auto-scans that project’s existing session files
-2. Importing a project with existing git worktrees auto-detects and shows them in GitPanel; user can promote to Workspace when multi-Workspace mode is enabled
-3. When multi-Workspace mode is enabled for a project, user can create, rename, and delete Workspaces within that project
-4. Each Workspace maintains independent session history and configuration
-5. User can create new sessions within a Workspace
+2. Importing a project with existing git worktrees auto-detects and shows them in GitPanel; user can promote to Stream when multi-Stream mode is enabled
+3. When multi-Stream mode is enabled for a project, user can create, rename, and delete Streams within that project
+4. Each Stream maintains independent session history and configuration
+5. User can create new sessions within a Stream
 6. User can freeze a running session, releasing background resources
 7. User can resume a frozen session: backend process restarts, conversation history is always readable; user sees a summary and manually decides next steps
 8. User can archive sessions they want to keep but not actively use
@@ -96,7 +96,7 @@ Plans:
 Plans:
 
 - [ ] 02-01-PLAN.md — DB Schema + TypeScript Types (Wave 1)
-- [ ] 02-02-PLAN.md — Project/Workspace CRUD Backend (Wave 1)
+- [ ] 02-02-PLAN.md — Project/Stream CRUD Backend (Wave 1)
 - [ ] 02-03-PLAN.md — Sidebar Restructure (Wave 2)
 - [ ] 02-04-PLAN.md — Project Inbox Frontend + Project Wizard (Wave 2)
 - [ ] 02-05-PLAN.md — Session Lifecycle Backend (Wave 2)
@@ -182,7 +182,7 @@ Plans:
 3. Panes can be resized by user interaction
 4. Layout configuration persists across sessions
 5. Kanban view displays sessions as draggable cards organized in lanes
-6. Workspace lanes group sessions by their parent Workspace
+6. Stream lanes group sessions by their parent Stream
 7. Cards can be dragged between lanes to change session status
 
 **Plans:** TBD

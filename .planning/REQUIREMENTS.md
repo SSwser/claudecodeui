@@ -1,7 +1,7 @@
 # Requirements: CloudCLI UI - Desktop UX Enhancement
 
 **Defined:** 2026-04-10
-**Core Value:** 清晰的组织管理 - 让用户能够轻松管理多个项目、workspace 和会话
+**Core Value:** 清晰的组织管理 - 让用户能够轻松管理多个项目、stream 和会话
 
 ## v1 Requirements
 
@@ -13,7 +13,7 @@
 - [ ] **NAV-02**: Sidebar 重构为两区块：顶部显示全局最近 10 条会话（点击直接进入聊天）；底部显示项目列表（名称+活跃状态指示）
 - [ ] **NAV-03**: 最近会话列表支持收藏置顶，收藏在 Project Inbox 内管理（非全局 Sidebar）
 - [ ] **NAV-04**: 点击项目后 MainContent 切换为 Project Inbox（简化 Inbox 风格：会话列表、状态 Badge、时间戳、AI 提供商图标、搜索、CRUD）
-- [ ] **NAV-05**: 启用多 Workspace 时，Sidebar 底部展示当前活跃 Workspace 名称（被动展示）；MainContent header 提供 Workspace 切换下拉操作
+- [ ] **NAV-05**: 启用多 Stream 时，Sidebar 底部展示当前活跃 Stream 名称（被动展示）；MainContent header 提供 Stream 切换下拉操作
 
 ### Landing Page (Removed)
 
@@ -22,15 +22,15 @@
 ### Project Management
 
 - [ ] **PROJ-01**: 用户通过手动向导（3 步）创建或导入项目；项目创建/导入成功后，系统自动扫描该项目目录下的已有会话历史
-- [ ] **PROJ-02**: 导入含 git worktree 的项目时，自动检测已有 worktree 并在 GitPanel 中展示；用户可从 GitPanel 手动将 worktree 提升为 Workspace（仅当项目已启用多-Workspace 模式）
-- [ ] **PROJ-03**: 可选的多-Workspace 模式：在项目创建时启用（不可逆），同一项目可创建多个 Workspace（每个对应一个 git worktree）
-- [ ] **PROJ-04**: Workspace 包含独立的会话历史和配置（决策-14/D-16）
-- [ ] **PROJ-05**: 当多-Workspace 模式启用时，用户可在该项目内创建/重命名/删除 Workspace
+- [ ] **PROJ-02**: 导入含 git worktree 的项目时，自动检测已有 worktree 并在 GitPanel 中展示；用户可从 GitPanel 手动将 worktree 提升为 Stream（仅当项目已启用多-Stream 模式）
+- [ ] **PROJ-03**: 可选的多-Stream 模式：在项目创建时启用（不可逆），同一项目可创建多个 Stream（每个对应一个 git worktree）
+- [ ] **PROJ-04**: Stream 包含独立的会话历史和配置（决策-14/D-16）
+- [ ] **PROJ-05**: 当多-Stream 模式启用时，用户可在该项目内创建/重命名/删除 Stream
 - [ ] **PROJ-06**: 项目视图支持按名称/最近使用/收藏排序
 
 ### Session Management
 
-- [ ] **SESS-01**: 用户可在 Workspace 内创建新会话
+- [ ] **SESS-01**: 用户可在 Stream 内创建新会话
 - [ ] **SESS-02**: 会话支持冰结操作：安全 kill 后台进程（包括 Windows 进程树），释放系统资源
 - [ ] **SESS-03**: 冰结的会话可恢复：重启后台进程，展示对话摘要供用户手动决定继续方向（对话历史始终可读，不需要进程）
 - [ ] **SESS-04**: 用户可归档(archive)不再需要但想保留的会话
@@ -82,7 +82,7 @@
 ### Kanban Views
 
 - **KBN-01**: 看板视图支持卡片式会话管理
-- **KBN-02**: 支持泳道(按 Workspace 分组)
+- **KBN-02**: 支持泳道(按 Stream 分组)
 - **KBN-03**: 拖拽卡片改变会话状态
 - **KBN-04**: 待处理队列显示需要用户回复的会话
 - **KBN-05**: 快速回复组件(类似 AskUserQuestion)
