@@ -1,0 +1,505 @@
+{
+  "$version": "4.3",
+  "$updated": "2026-04-15",
+  "$description": "Machine-readable SSOT for Pencil canvas node IDs, statuses, and design ↔ code relationships. Filename convention: <pen-file>.index. Run `npm run build:canvas` to regenerate CANVAS-MAP.md. Never hand-edit CANVAS-MAP.md — edit this file instead.",
+  "$file": "design/main.pen",
+  "$schema": {
+    "status": {
+      "locked": "Design finalized — ready for code handoff. Do not edit without version bump.",
+      "wip": "Actively being iterated.",
+      "pending": "Planned but not yet drawn."
+    }
+  },
+
+  "rootFrames": {
+    "5NJPi": { "label": "01 — Pages", "rows": ["Global", "Project View", "Session View"] },
+    "Z3eP8": { "label": "02 — Sidebar" },
+    "nlmcQ": { "label": "03 — Session" },
+    "7fmkI": { "label": "04 — Overlays" }
+  },
+
+  "pages": {
+    "Global": {
+      "groupId": "PzPpA",
+      "contentId": "RMj5B",
+      "frames": [
+        {
+          "wrapperId": "45wl2",
+          "screenId": "ie1cs",
+          "name": "Page / App — Empty Launch",
+          "status": "locked",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#state-1-minimal-empty--launch",
+          "flowAnchor": "02-DESIGN-BRIEF-FLOWS.md#31-from-s0--app-empty-launch",
+          "implPath": null
+        },
+        {
+          "wrapperId": "tGAyK",
+          "screenId": "OFOdW",
+          "name": "Page / App — Loading",
+          "status": "wip",
+          "brief": null,
+          "flowAnchor": "App bootstrap / connecting",
+          "implPath": null
+        },
+        {
+          "wrapperId": "ocedw",
+          "screenId": "VDOQQ",
+          "name": "Page / App — Connection Error",
+          "status": "wip",
+          "brief": null,
+          "flowAnchor": "Server unreachable / WS failed",
+          "implPath": null
+        }
+      ]
+    },
+    "Project View": {
+      "groupId": "izj6z",
+      "contentId": "rfqvC",
+      "frames": [
+        {
+          "wrapperId": "CaGMV",
+          "screenId": "xtDTP",
+          "name": "Page / Project View — Empty",
+          "status": "wip",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#26-empty-state-no-sessions-in-project",
+          "flowAnchor": "02-DESIGN-BRIEF-FLOWS.md#32-from-s1--project-view",
+          "implPath": null
+        },
+        {
+          "wrapperId": "pg3Rz",
+          "screenId": "zadyX",
+          "name": "Page / Project View — Loading",
+          "status": "wip",
+          "brief": "02-DESIGN-BRIEF-PROJECT-VIEW.md#5-key-states",
+          "flowAnchor": null,
+          "implPath": null
+        },
+        {
+          "wrapperId": "6REQx",
+          "screenId": "cJEIL",
+          "name": "Page / Project View — Error",
+          "status": "wip",
+          "brief": "02-DESIGN-BRIEF-PROJECT-VIEW.md#5-key-states",
+          "flowAnchor": null,
+          "implPath": null
+        },
+        {
+          "wrapperId": "aefL4",
+          "screenId": "pEDCs",
+          "name": "Page / Project View",
+          "status": "wip",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#state-2-project-view",
+          "flowAnchor": "02-DESIGN-BRIEF-FLOWS.md#32-from-s1--project-view",
+          "implPath": null
+        },
+        {
+          "wrapperId": "iiVvH",
+          "screenId": "8VN4G",
+          "name": "Page / Project View — Search No Results",
+          "status": "wip",
+          "brief": "02-DESIGN-BRIEF-PROJECT-VIEW.md#5-key-states",
+          "flowAnchor": null,
+          "implPath": null
+        },
+        {
+          "wrapperId": "HzF6J",
+          "screenId": "Wuw5j",
+          "name": "Page / Project View — Filtered No Results",
+          "status": "wip",
+          "brief": "02-DESIGN-BRIEF-PROJECT-VIEW.md#5-key-states",
+          "flowAnchor": null,
+          "implPath": null
+        }
+      ]
+    },
+    "Session View": {
+      "groupId": "hwM48",
+      "contentId": "sbtOq",
+      "frames": [
+        {
+          "wrapperId": "R8izv",
+          "screenId": "WMUr3",
+          "name": "Page / Session View — Active",
+          "status": "locked",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#state-3-session-view",
+          "flowAnchor": "02-DESIGN-BRIEF-FLOWS.md#33-from-s2--session-view-active",
+          "implPath": null
+        },
+        {
+          "wrapperId": "2YJX1",
+          "screenId": "f23nJ",
+          "name": "Page / Session View — Frozen",
+          "status": "locked",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#34-frozen-session-state",
+          "flowAnchor": "02-DESIGN-BRIEF-FLOWS.md#34-from-s3--session-view-frozen",
+          "implPath": null
+        }
+      ]
+    }
+  },
+
+  "components": {
+    "sidebar": {
+      "frameId": "Z3eP8",
+      "label": "02 — Sidebar",
+      "items": [
+        {
+          "nodeId": "LBXG2",
+          "name": "Ref / Sidebar Active",
+          "status": "wip",
+          "type": "reference",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md",
+          "implPath": null
+        },
+        {
+          "nodeId": "x23KK",
+          "name": "Cmp / Stream Card States · 5 groups · 11 variants",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md#23-states",
+          "implPath": null,
+          "variantGroups": {
+            "active": {
+              "frameId": "XcXKB",
+              "label": "Active States",
+              "note": "Streams with running or waiting sessions",
+              "variants": {
+                "IDunE": "Fresh",
+                "anDTJ": "Running",
+                "nPean": "Waiting"
+              }
+            },
+            "terminal": {
+              "frameId": "MemPz",
+              "label": "Terminal States",
+              "note": "Idle project stream rows",
+              "variants": {
+                "CE4nf": "Idle"
+              }
+            },
+            "interaction": {
+              "frameId": "2e4MK",
+              "label": "Interaction States",
+              "note": "Visual feedback for user actions (hover, select, context menu)",
+              "variants": {
+                "egiNM": "Hover",
+                "aBwVM": "Selected",
+                "AgCZ6": "ContextMenu"
+              }
+            },
+            "display": {
+              "frameId": "o1L8A",
+              "label": "Display Modes",
+              "note": "Multi-stream collapsed/expanded views",
+              "variants": {
+                "BKSWO": "MultiCollapsed",
+                "UUzNq": "MultiExpanded"
+              }
+            },
+            "meta": {
+              "frameId": "L19PB",
+              "label": "Meta States",
+              "note": "Loading skeleton, empty state",
+              "variants": {
+                "4ItZR": "Skeleton",
+                "N2YzK": "Empty"
+              }
+            }
+          }
+        },
+        {
+          "nodeId": "mLw4m",
+          "name": "Cmp / Sidebar Rail",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md#9-collapsed-rail-48px-wide",
+          "implPath": null
+        },
+        {
+          "nodeId": "U1nEZ",
+          "name": "Cmp / Recent Item · 3 states",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md",
+          "implPath": null
+        },
+        {
+          "nodeId": "272uN",
+          "name": "Cmp / Sidebar Filter · 2 states",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md",
+          "implPath": null
+        },
+        {
+          "nodeId": "fiA5n",
+          "name": "Cmp / Workspace Indicator",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md#61-workspace-indicator",
+          "implPath": null
+        }
+      ]
+    },
+    "session": {
+      "frameId": "nlmcQ",
+      "label": "03 — Session",
+      "items": [
+        {
+          "nodeId": "ja1S0",
+          "name": "Cmp / Session Card States · v2",
+          "status": "locked",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-PROJECT-VIEW.md#8-session-card-anatomy",
+          "implPath": null,
+          "variantGroups": {
+            "active": {
+              "frameId": "B6nw6",
+              "label": "Active States",
+              "note": "Cards currently running or needing user action",
+              "variants": {
+                "J7orz": "Running",
+                "wNfjI": "Waiting-perm",
+                "ljc6o": "Waiting-prompt"
+              }
+            },
+            "terminal": {
+              "frameId": "pIs8E",
+              "label": "Terminal States",
+              "note": "Completed, idle, frozen, or archived sessions",
+              "variants": {
+                "PuKGN": "Idle",
+                "RLyt3": "Complete-ok",
+                "wYAtR": "Complete-error",
+                "wNAmX": "Frozen",
+                "WIuCB": "Archived"
+              }
+            },
+            "interaction": {
+              "frameId": "HddjZ",
+              "label": "Interaction States",
+              "note": "Visual feedback for user actions (hover, select, drag, context menu)",
+              "variants": {
+                "AVpEt": "Hover",
+                "i1Tts": "Selected",
+                "Qr4YK": "Dragging",
+                "5UPFT": "ContextMenu"
+              }
+            },
+            "meta": {
+              "frameId": "BM7A1",
+              "label": "Meta States",
+              "note": "Loading skeleton, empty state",
+              "variants": {
+                "Z0oyM": "Skeleton"
+              }
+            }
+          }
+        },
+        {
+          "nodeId": "7GtoT",
+          "name": "Cmp / Session View Header",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#31-session-header",
+          "implPath": null
+        },
+        {
+          "nodeId": "OyNmD",
+          "name": "Cmp / Status Bar · 2 states",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-STATUS-BAR.md",
+          "implPath": null
+        },
+        {
+          "nodeId": "Cmp8e",
+          "name": "Cmp / Status Bar Drawer",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-STATUS-BAR.md",
+          "implPath": null
+        },
+        {
+          "nodeId": "mMlTX",
+          "name": "Cmp / Project Filter Bar",
+          "status": "wip",
+          "type": "component",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#22-sessions-tab--filter-bar",
+          "implPath": null
+        }
+      ]
+    },
+    "overlays": {
+      "frameId": "7fmkI",
+      "label": "04 — Overlays",
+      "items": [
+        {
+          "nodeId": "iwfSI",
+          "name": "Overlay / Search Modal",
+          "status": "wip",
+          "type": "overlay",
+          "brief": "02-DESIGN-BRIEF.md",
+          "implPath": null
+        },
+        {
+          "nodeId": "eVRx5",
+          "name": "Overlay / Preview Floater",
+          "status": "wip",
+          "type": "overlay",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#24-session-card",
+          "implPath": null
+        },
+        {
+          "nodeId": "kK9NY",
+          "name": "Overlay / Context Menu",
+          "status": "wip",
+          "type": "overlay",
+          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#24-session-card",
+          "implPath": null
+        }
+      ]
+    }
+  },
+
+  "sessionList": {
+    "rootId": "sNMfz",
+    "label": "PV/SessionList",
+    "groups": {
+      "4Y0jp": { "label": "grp-pinned", "badge": "6P3eM" },
+      "BU9zx": { "label": "grp-today", "badge": "nWc25" },
+      "oDHYV": { "label": "grp-yesterday", "badge": "J4Ymg" },
+      "McPTN": { "label": "grp-last7days", "badge": "5QZbT" },
+      "NCVoL": { "label": "grp-archived", "badge": "EF8tz" }
+    },
+    "sampleCards": {
+      "hTkxy": "card-running",
+      "NOzGD": "card-waiting",
+      "I2QY4": "card-idle",
+      "xDv5s": "card-frozen",
+      "kOMqm": "card-complete",
+      "CiU1l": "card-old-idle"
+    }
+  },
+
+  "pending": [
+    {
+      "name": "Page / Session View + Drawer Open",
+      "brief": "02-DESIGN-BRIEF-STATUS-BAR.md",
+      "note": "5th page showing drawer in context, optional"
+    }
+  ],
+
+  "gapAnalysis": {
+    "open": [
+      {
+        "id": 1,
+        "area": "Session View",
+        "description": "Brief §3.1 specifies [←] back button; canvas has project breadcrumb but no back arrow icon",
+        "severity": "low",
+        "note": "Visual detail; functionally equivalent"
+      },
+      {
+        "id": 2,
+        "area": "Session View",
+        "description": "Brief §3.3 specifies Chat|Shell|Files|Git|Tasks tab bar; canvas uses PillStrip",
+        "severity": "by-design",
+        "note": "PillStrip is the wireframe interpretation of the tab concept"
+      },
+      {
+        "id": 4,
+        "area": "Project View",
+        "description": "Brief §6 specifies composite icon (Provider logo + status dot overlay); canvas has separate icon, no overlay dot",
+        "severity": "medium",
+        "note": "Canvas shows concept; composite overlay is an impl detail"
+      },
+      {
+        "id": 5,
+        "area": "Project View",
+        "description": "Brief §2.2 filter bar specifies tabbed filters; canvas has dropdowns",
+        "severity": "by-design",
+        "note": "Brief v1 had tabs; wireframe evolved to dropdown pattern"
+      },
+      {
+        "id": 6,
+        "area": "Status Bar",
+        "description": "Brief specifies State A expanded tray in PV context; canvas only shows collapsed pill strip on session view",
+        "severity": "low",
+        "note": "Status bar expanded tray visible in Cmp / Status Bar"
+      }
+    ],
+    "resolved": [
+      {
+        "id": 1,
+        "description": "Pages flat — no grouping",
+        "resolution": "Reorganized into 3 row groups: Global / Project View / Session View"
+      },
+      {
+        "id": 2,
+        "description": "Missing App — Loading page",
+        "resolution": "Created tGAyK / OFOdW"
+      },
+      {
+        "id": 3,
+        "description": "Missing App — Connection Error page",
+        "resolution": "Created ocedw / VDOQQ"
+      },
+      {
+        "id": 4,
+        "description": "Missing PV empty state page",
+        "resolution": "Created CaGMV / xtDTP"
+      },
+      {
+        "id": 5,
+        "description": "Missing PV loading skeleton page",
+        "resolution": "Created pg3Rz / zadyX"
+      },
+      { "id": 6, "description": "Missing PV error page", "resolution": "Created 6REQx / cJEIL" },
+      {
+        "id": 7,
+        "description": "Missing PV all-archived page",
+        "resolution": "Created 6zQQX / p0vjF"
+      },
+      {
+        "id": 8,
+        "description": "Missing PV search no results page",
+        "resolution": "Created iiVvH / 8VN4G"
+      },
+      {
+        "id": 9,
+        "description": "Missing PV filtered no results page",
+        "resolution": "Created HzF6J / Wuw5j"
+      },
+      {
+        "id": 10,
+        "description": "PV empty state missing Git/Tasks tabs",
+        "resolution": "Added tabs to xtDTP"
+      },
+      {
+        "id": 11,
+        "description": "Session cards: wrong cornerRadius/shadow",
+        "resolution": "Updated all cards per DESIGN.md"
+      },
+      {
+        "id": 12,
+        "description": "Session cards: provider icons all same",
+        "resolution": "Differentiated: Claude=bot, Cursor=mouse-pointer-2, etc."
+      },
+      {
+        "id": 13,
+        "description": "Session Card: 4 states with colored backgrounds (v1)",
+        "resolution": "Rebuilt ja1S0 as v2 — 8 states + Hover + ContextMenu (10 variants); accent bar replaces tinted bg"
+      },
+      {
+        "id": 14,
+        "description": "SessionList missing LAST 7 DAYS group",
+        "resolution": "Added McPTN grp-last7days with badge 5QZbT and sample card CiU1l"
+      },
+      {
+        "id": 15,
+        "description": "SessionList group headers missing count badges",
+        "resolution": "All 5 headers now have count badges: 6P3eM / nWc25 / J4Ymg / 5QZbT / EF8tz"
+      }
+    ]
+  }
+}

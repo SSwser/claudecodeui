@@ -206,6 +206,20 @@ When adding or changing a design token:
 3. If new token, add Tailwind mapping in `tailwind.config.js`
 4. Run `npm run tokens:build` to regenerate `TOKENS.md`
 
+### Canvas Node Index
+
+- **Single source of truth**: `design/main.pen.index` — all Pencil node IDs, frame statuses, component variant IDs, and brief cross-references
+- **Reference view**: `design/CANVAS-MAP.md` — auto-generated from `main.pen.index`; run `npm run canvas:build` to regenerate; never edit manually
+- **AI tools** query `main.pen.index` directly for node IDs; do not rely on phase planning docs for node ID lookups
+
+When adding or renaming a top-level Pencil frame or component:
+
+1. Update `design/main.pen.index` — add/edit the relevant entry, bump `$version`, set `$updated`
+2. Run `npm run canvas:build` to regenerate `CANVAS-MAP.md`
+3. Commit both files: `style(design): update canvas index vX.Y`
+
+Internal nodes (children of a frame, e.g. sub-components, group headers) are documented in the brief's Node Reference table only — not in `main.pen.index`.
+
 ### Pencil ↔ Code Consistency
 
 - **Pencil wireframes** are the visual source of truth for layout, spacing, and appearance
