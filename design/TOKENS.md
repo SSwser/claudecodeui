@@ -1,7 +1,7 @@
 # Design Tokens Reference
 
 > **Auto-generated** from `design/tokens.json`. Do not edit manually.
-> Run `npm run tokens:build` to regenerate.
+> Run `npm run build:tokens` to regenerate.
 
 ### Core Colors
 
@@ -30,7 +30,7 @@
 | ---------- | -------------------------- | ----------------------------- | -------------------------- |
 | #5fc992    | `--success`                | `text-success`                | Success state              |
 | —          | `--success-foreground`     | `text-success-foreground`     | Text on success            |
-| #fbbf24    | `--warning`                | `text-warning / bg-warning`   | Running / Warning / Accent |
+| #e5a700    | `--warning`                | `text-warning / bg-warning`   | Running / Warning / Accent |
 | —          | `--warning-foreground`     | `text-warning-foreground`     | Text on warning            |
 | #FF6363    | `--destructive`            | `bg-destructive`              | Destructive action         |
 | #ffffff    | `--destructive-foreground` | `text-destructive-foreground` | Text on destructive        |
@@ -66,7 +66,7 @@
 | Pencil Hex | CSS Token            | Tailwind                | Description                                           |
 | ---------- | -------------------- | ----------------------- | ----------------------------------------------------- |
 | #FF6363    | `--brand`            | `text-brand`            | Waiting (needs user) dot                              |
-| #fbbf24    | `--warning`          | `text-warning`          | Running (autonomous) dot                              |
+| #e5a700    | `--warning`          | `text-warning`          | Running (autonomous) dot                              |
 | #6a6b6c    | `--muted-foreground` | `text-muted-foreground` | Idle / Fresh dot                                      |
 | #4a6fa5    | —                    | —                       | Frozen dot ⚠️ No CSS token yet — needs --frozen token |
 

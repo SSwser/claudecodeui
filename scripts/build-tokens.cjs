@@ -80,7 +80,7 @@ function build() {
       '# Design Tokens Reference',
       '',
       '> **Auto-generated** from `design/tokens.json`. Do not edit manually.',
-      '> Run `npm run tokens:build` to regenerate.',
+      '> Run `npm run build:tokens` to regenerate.',
       '',
     ].join('\n')
   );
@@ -148,6 +148,9 @@ function build() {
   const output = sections.join('\n');
   fs.writeFileSync(OUTPUT_PATH, output, 'utf-8');
   console.log(`✓ Generated ${OUTPUT_PATH}`);
+  console.log('');
+  console.log('⚡ design/tokens.json updated — remember to sync Pencil variables:');
+  console.log('   In your AI agent, run the pencil-mcp skill to push cc-- tokens to main.pen');
 }
 
 build();

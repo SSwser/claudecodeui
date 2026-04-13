@@ -63,7 +63,7 @@
     --brand-foreground: 0 0% 100%;
     --success: 151 59% 59%;
     --success-foreground: 155 47% 14%;
-    --warning: 43 100% 60%;
+    --warning: 44 100% 45%;
     --warning-foreground: 33 88% 17%;
 
     --radius: 0.75rem;
@@ -192,7 +192,7 @@
     --brand-foreground: 0 0% 100%;
     --success: 151 59% 59%;
     --success-foreground: 155 47% 14%;
-    --warning: 43 100% 60%;
+    --warning: 44 100% 45%;
     --warning-foreground: 33 88% 17%;
 
     --shadow-subtle: 0 1.189px 2.377px rgba(0, 0, 0, 0.28);
