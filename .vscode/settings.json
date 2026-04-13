@@ -28,5 +28,7 @@
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"]
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  // Scan deeper so VS Code finds worktrees under .worktrees/ (1 level deep)
+  "git.repositoryScanMaxDepth": 2
 }
