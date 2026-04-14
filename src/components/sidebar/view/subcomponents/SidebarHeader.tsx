@@ -23,7 +23,6 @@ export default function SidebarHeader({
 }: SidebarHeaderProps) {
   return (
     <div className="flex-shrink-0">
-<<<<<<< HEAD
       {/* Brand header — 52px, strictly aligned with MainContent's line */}
       <div className="flex h-[52px] items-center justify-between border-b border-surface-3 px-[14px]">
         <div className="flex items-center gap-2">
@@ -34,14 +33,6 @@ export default function SidebarHeader({
           />
           <span className="text-[12px] font-semibold tracking-[0.2px] text-foreground">Chorus</span>
         </div>
-=======
-      {/* Brand header — 56px, bg #101111, subtle bottom shadow */}
-      <div
-        className="flex h-14 items-center justify-between bg-[#101111] px-[14px]"
-        style={{ boxShadow: '0 1px 0 #ffffff08' }}
-      >
-        <span className="text-[12px] font-semibold tracking-[0.2px] text-[#f9f9f9]">Chorus</span>
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
         <button
           onClick={onCollapseSidebar}
           className="flex items-center justify-center text-label-dim transition-colors hover:text-foreground"

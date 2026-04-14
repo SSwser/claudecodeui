@@ -130,9 +130,7 @@ export default function SessionCard({
       >
         {/* Accent bar — only for active (running/waiting) sessions */}
         {statusMeta.accentBarClass ? (
-          <div
-            className={cn('w-[3px] flex-shrink-0', statusMeta.accentBarClass)}
-          />
+          <div className={cn('w-[3px] flex-shrink-0', statusMeta.accentBarClass)} />
         ) : null}
 
         {/* Card content */}
@@ -168,9 +166,7 @@ export default function SessionCard({
             </span>
 
             {/* Time */}
-            <span
-              className={cn('flex-shrink-0 text-[11px]', statusMeta.timeClass)}
-            >
+            <span className={cn('flex-shrink-0 text-[11px]', statusMeta.timeClass)}>
               {formatTimeAgo(session.lastActivity, now, t)}
             </span>
 
