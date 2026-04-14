@@ -1,4 +1,4 @@
-# ClaudeCodeUI — Product Design
+# Chorus — Product Design
 
 **Role**: Canonical source for product-wide design decisions. Applies to all phases and all contributors.  
 **Maintained in**: `design/PRODUCT.md` (repo root)  

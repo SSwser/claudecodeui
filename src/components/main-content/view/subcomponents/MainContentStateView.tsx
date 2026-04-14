@@ -57,11 +57,11 @@ export default function MainContentStateView({
             {/* App icon — matches Pencil "App — Empty Launch" hero */}
             <div
               className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-[#6366f1]"
-              style={{ boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)' }}
+              style={{ boxShadow: '0 4px 20px rgba(255, 99, 99, 0.2)' }}
             />
 
             <div className="flex flex-col items-center gap-2">
-              <h1 className="text-[28px] font-bold text-foreground">ClaudeCodeUI</h1>
+              <h1 className="text-[28px] font-bold text-foreground">Chorus</h1>
               <p className="text-[15px] text-muted-foreground">
                 {t('emptyLaunch.subtitle', 'All your AI agents. One command surface.')}
               </p>

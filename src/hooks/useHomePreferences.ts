@@ -14,8 +14,8 @@ import type {
   StartupBehavior,
 } from '../types/home';
 
-export const HOME_PREFERENCES_STORAGE_KEY = 'cloudcli:home-preferences';
-export const HOME_PREFERENCES_SYNC_EVENT = 'cloudcli:home-preferences-sync';
+export const HOME_PREFERENCES_STORAGE_KEY = 'chorus:home-preferences';
+export const HOME_PREFERENCES_SYNC_EVENT = 'chorus:home-preferences-sync';
 
 const MAX_WORKSPACE_FAVORITES = 20;
 const MAX_SESSION_FAVORITES = 20;

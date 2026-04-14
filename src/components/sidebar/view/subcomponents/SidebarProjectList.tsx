@@ -1,6 +1,11 @@
 import { useEffect } from 'react';
 import type { TFunction } from 'i18next';
-import type { LoadingProgress, Project, ProjectSession, SessionProvider } from '../../../../types/app';
+import type {
+  LoadingProgress,
+  Project,
+  ProjectSession,
+  SessionProvider,
+} from '../../../../types/app';
 import type {
   LoadingSessionsByProject,
   MCPServerStatus,
@@ -42,14 +47,19 @@ export type SidebarProjectListProps = {
     projectName: string,
     sessionId: string,
     sessionTitle: string,
-    provider: SessionProvider,
+    provider: SessionProvider
   ) => void;
   onLoadMoreSessions: (project: Project) => void;
   onNewSession: (project: Project) => void;
   onEditingSessionNameChange: (value: string) => void;
   onStartEditingSession: (sessionId: string, initialName: string) => void;
   onCancelEditingSession: () => void;
-  onSaveEditingSession: (projectName: string, sessionId: string, summary: string, provider: SessionProvider) => void;
+  onSaveEditingSession: (
+    projectName: string,
+    sessionId: string,
+    summary: string,
+    provider: SessionProvider
+  ) => void;
   t: TFunction;
 };
 
@@ -102,7 +112,7 @@ export default function SidebarProjectList({
   );
 
   useEffect(() => {
-    let baseTitle = 'CloudCLI UI';
+    let baseTitle = 'Chorus';
     const displayName = selectedProject?.displayName?.trim();
     if (displayName) {
       baseTitle = `${displayName} - ${baseTitle}`;

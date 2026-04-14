@@ -259,4 +259,59 @@ This skill covers generic Pencil MCP API rules. Project-specific conventions liv
 | ------- | ------------------------------------------ |
 | Chorus  | [`PROJECT-CHORUS.md`](./PROJECT-CHORUS.md) |
 
+<<<<<<< HEAD
 The adaptation file contains: token variable table, design file map, design ↔ code authority, canvas node index, and project-specific workflows.
+=======
+| Project | Adaptation File                                        |
+| ------- | ------------------------------------------------------ |
+| Chorus  | [`PROJECT-CLAUDECODEUI.md`](./PROJECT-CLAUDECODEUI.md) |
+
+The adaptation file contains:
+
+- Token variable table (`$cc--xxx` names + dark hex values)
+- Design ↔ code authority table (which file wins on conflict)
+- Token sync pipeline (when to re-run `set_variables`)
+- Phase screen design workflow
+- Aesthetic rules (surface hierarchy, shadows, typography)
+
+---
+
+## Canvas Node Index (SSOT)
+
+All Pencil node IDs, frame statuses, component variants, and brief cross-references for Chorus live in:
+
+```
+design/main.pen.index       ← WRITE source (machine-readable SSOT)
+design/CANVAS-MAP.md        ← READ-ONLY view (auto-generated, human-readable)
+```
+
+**Do not use phase planning docs** (`.planning/phases/*/02-CANVAS-MAP.md`) as the node ID source — that file is deprecated in favour of `design/main.pen.index`. The planning-dir copy is kept only as a change log / phase artifact.
+
+### Before each Pencil session
+
+Load `design/main.pen.index` to get current node IDs and statuses. Example query pattern:
+
+```jsonc
+// Find the node ID for "Session Card States" component
+// → components.session.items → nodeId: "ja1S0", variantGroups: { active: { variants: { J7orz: "Running", ... } }, ... }
+```
+
+### After each Pencil session
+
+If you created, renamed, or deleted a **top-level frame** (any direct child of `5NJPi`, `Z3eP8`, `nlmcQ`, or `7fmkI`), or changed a component's variant set:
+
+1. Edit `design/main.pen.index` — update the relevant entry, bump `$version` (patch for rename/status, minor for new frame), set `$updated`
+2. Run `npm run canvas:build` to regenerate `design/CANVAS-MAP.md`
+3. Commit both files together: `style(design): update canvas index vX.Y`
+
+**Internal nodes** (children of a Cmp / or Page / frame, e.g. session list group headers, card sub-nodes) are NOT added to `main.pen.index`. Document them in the brief's Node Reference table instead.
+
+### Status lifecycle
+
+```
+pending → wip → locked
+```
+
+- `wip` → `locked`: design is finalized; set in `main.pen.index` before code handoff begins
+- Never revert a `locked` entry to `wip` without a version bump and PR comment
+>>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
