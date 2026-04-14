@@ -89,6 +89,19 @@
     --surface-2: 0 0% 100%;
     --surface-3: 220 18% 95%;
     --surface-elevated: 0 0% 100%;
+    --surface-inset: 240 6% 95%;
+    --surface-container: 240 5% 97%;
+    --surface-popup: 0 0% 100%;
+    --overlay-bg: 0 0% 100%;
+
+    /* Status / label tokens */
+    --label-dim: 220 5% 40%;
+    --status-frozen: 212 38% 47%;
+    --user-msg-border: 206 65% 90%;
+    --frozen-notice-border: 213 35% 88%;
+    --status-running-bg: 120 60% 97%;
+    --status-error-bg: 0 100% 97%;
+    --status-frozen-bg: 220 85% 97%;
 
     /* Sidebar / shell tokens */
     --sidebar-bg: 220 23% 97%;
@@ -206,6 +219,19 @@
     --surface-2: 180 3% 6%;
     --surface-3: 220 5% 11%;
     --surface-elevated: 220 5% 11%;
+    --surface-inset: 228 13% 6%;
+    --surface-container: 240 8% 7%;
+    --surface-popup: 220 10% 12%;
+    --overlay-bg: 234 22% 7%;
+
+    /* Status / label tokens */
+    --label-dim: 240 1% 27%;
+    --status-frozen: 212 38% 47%;
+    --user-msg-border: 210 47% 21%;
+    --frozen-notice-border: 224 31% 24%;
+    --status-running-bg: 120 28% 14%;
+    --status-error-bg: 0 28% 14%;
+    --status-frozen-bg: 231 24% 13%;
 
     /* Sidebar / shell tokens */
     --sidebar-bg: 216 18% 3%;

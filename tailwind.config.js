@@ -34,7 +34,22 @@ export default {
           2: 'hsl(var(--surface-2))',
           3: 'hsl(var(--surface-3))',
           elevated: 'hsl(var(--surface-elevated))',
+          inset: 'hsl(var(--surface-inset))',
+          container: 'hsl(var(--surface-container))',
+          popup: 'hsl(var(--surface-popup))',
+          overlay: 'hsl(var(--overlay-bg))',
         },
+        label: {
+          dim: 'hsl(var(--label-dim))',
+        },
+        status: {
+          frozen: 'hsl(var(--status-frozen))',
+          'running-bg': 'hsl(var(--status-running-bg))',
+          'error-bg': 'hsl(var(--status-error-bg))',
+          'frozen-bg': 'hsl(var(--status-frozen-bg))',
+        },
+        'user-msg-border': 'hsl(var(--user-msg-border))',
+        'frozen-notice-border': 'hsl(var(--frozen-notice-border))',
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-bg))',
           foreground: 'hsl(var(--sidebar-fg))',
