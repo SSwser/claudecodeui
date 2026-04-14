@@ -19,6 +19,21 @@
 
 ---
 
+## Why the Name Chorus?
+
+As the product evolves from CloudCLI to Chorus, the new name reflects the core metaphor more precisely.
+
+**Chorus** comes from the English word "chorus" and is pronounced **KOR-uhs** (`/ˈkɔːrəs/`).
+
+- **Human** = the conductor
+- **AI Agents** = the performers
+- **Code** = the score
+- **Chorus** = the moment many voices come together in harmony under direction
+
+In popular music, the chorus is also the most memorable and forceful part of a song. That meaning fits the product vision as well: the most powerful moment is when multiple agents respond in sync.
+
+For Chinese-speaking users, we recommend saying the English name directly, close to **"口勒斯"** in quick speech, and keeping the brand as an English wordmark rather than introducing a Chinese translation.
+
 ## Screenshots
 
 <div align="center">
@@ -48,22 +63,19 @@
 </tr>
 </table>
 
-
-
 </div>
 
 ## Features
 
-- **Responsive Design** - Works seamlessly across desktop, tablet, and mobile so you can also use Agents from mobile 
+- **Responsive Design** - Works seamlessly across desktop, tablet, and mobile so you can also use Agents from mobile
 - **Interactive Chat Interface** - Built-in chat interface for seamless communication with the Agents
 - **Integrated Shell Terminal** - Direct access to the Agents CLI through built-in shell functionality
 - **File Explorer** - Interactive file tree with syntax highlighting and live editing
-- **Git Explorer** - View, stage and commit your changes. You can also switch branches 
+- **Git Explorer** - View, stage and commit your changes. You can also switch branches
 - **Session Management** - Resume conversations, manage multiple sessions, and track history
 - **Plugin System** - Extend CloudCLI with custom plugins — add new tabs, backend services, and integrations. [Build your own →](https://github.com/cloudcli-ai/cloudcli-plugin-starter)
-- **TaskMaster AI Integration** *(Optional)* - Advanced project management with AI-powered task planning, PRD parsing, and workflow automation
+- **TaskMaster AI Integration** _(Optional)_ - Advanced project management with AI-powered task planning, PRD parsing, and workflow automation
 - **Model Compatibility** - Works with Claude, GPT, and Gemini model families (see [`shared/modelConstants.js`](shared/modelConstants.js) for the full list of supported models)
-
 
 ## Quick Start
 
@@ -72,7 +84,6 @@
 The fastest way to get started — no local setup required. Get a fully managed, containerized development environment accessible from the web, mobile app, API, or your favorite IDE.
 
 **[Get started with CloudCLI Cloud](https://cloudcli.ai)**
-
 
 ### Self-Hosted (Open source)
 
@@ -93,29 +104,28 @@ Open `http://localhost:3001` — all your existing sessions are discovered autom
 
 Visit the **[documentation →](https://cloudcli.ai/docs)** for more full configuration options, PM2, remote server setup and more
 
-
 ---
 
 ## Which option is right for you?
 
 CloudCLI UI is the open source UI layer that powers CloudCLI Cloud. You can self-host it on your own machine, or use CloudCLI Cloud which builds on top of it with a full managed cloud environment, team features, and deeper integrations.
 
-| | CloudCLI UI (Self-hosted) | CloudCLI Cloud |
-|---|---|---|
-| **Best for** | Developers who want a full UI for local agent sessions on their own machine | Teams and developers who want agents running in the cloud, accessible from anywhere |
-| **How you access it** | Browser via `[yourip]:port` | Browser, any IDE, REST API, n8n |
-| **Setup** | `npx @cloudcli-ai/cloudcli` | No setup required |
-| **Machine needs to stay on** | Yes | No |
-| **Mobile access** | Any browser on your network | Any device, native app coming |
-| **Sessions available** | All sessions auto-discovered from `~/.claude` | All sessions within your cloud environment |
-| **Agents supported** | Claude Code, Cursor CLI, Codex, Gemini CLI | Claude Code, Cursor CLI, Codex, Gemini CLI |
-| **File explorer and Git** | Yes, built into the UI | Yes, built into the UI |
-| **MCP configuration** | Managed via UI, synced with your local `~/.claude` config | Managed via UI |
-| **IDE access** | Your local IDE | Any IDE connected to your cloud environment |
-| **REST API** | Yes | Yes |
-| **n8n node** | No | Yes |
-| **Team sharing** | No | Yes |
-| **Platform cost** | Free, open source | Starts at $7/month |
+|                              | CloudCLI UI (Self-hosted)                                                   | CloudCLI Cloud                                                                      |
+| ---------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Best for**                 | Developers who want a full UI for local agent sessions on their own machine | Teams and developers who want agents running in the cloud, accessible from anywhere |
+| **How you access it**        | Browser via `[yourip]:port`                                                 | Browser, any IDE, REST API, n8n                                                     |
+| **Setup**                    | `npx @cloudcli-ai/cloudcli`                                                 | No setup required                                                                   |
+| **Machine needs to stay on** | Yes                                                                         | No                                                                                  |
+| **Mobile access**            | Any browser on your network                                                 | Any device, native app coming                                                       |
+| **Sessions available**       | All sessions auto-discovered from `~/.claude`                               | All sessions within your cloud environment                                          |
+| **Agents supported**         | Claude Code, Cursor CLI, Codex, Gemini CLI                                  | Claude Code, Cursor CLI, Codex, Gemini CLI                                          |
+| **File explorer and Git**    | Yes, built into the UI                                                      | Yes, built into the UI                                                              |
+| **MCP configuration**        | Managed via UI, synced with your local `~/.claude` config                   | Managed via UI                                                                      |
+| **IDE access**               | Your local IDE                                                              | Any IDE connected to your cloud environment                                         |
+| **REST API**                 | Yes                                                                         | Yes                                                                                 |
+| **n8n node**                 | No                                                                          | Yes                                                                                 |
+| **Team sharing**             | No                                                                          | Yes                                                                                 |
+| **Platform cost**            | Free, open source                                                           | Starts at $7/month                                                                  |
 
 > Both options use your own AI subscriptions (Claude, Cursor, etc.) — CloudCLI provides the environment, not the AI.
 
@@ -136,7 +146,7 @@ To use Claude Code's full functionality, you'll need to manually enable tools:
 <div align="center">
 
 ![Tools Settings Modal](public/screenshots/tools-modal.png)
-*Tools Settings interface - enable only what you need*
+_Tools Settings interface - enable only what you need_
 
 </div>
 
@@ -150,10 +160,10 @@ CloudCLI has a plugin system that lets you add custom tabs with their own fronte
 
 ### Available Plugins
 
-| Plugin | Description |
-|---|---|
+| Plugin                                                                      | Description                                                                                                                |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **[Project Stats](https://github.com/cloudcli-ai/cloudcli-plugin-starter)** | Shows file counts, lines of code, file-type breakdown, largest files, and recently modified files for your current project |
-| **[Web Terminal](https://github.com/cloudcli-ai/cloudcli-plugin-terminal)** | Full xterm.js terminal with multi-tab support|
+| **[Web Terminal](https://github.com/cloudcli-ai/cloudcli-plugin-terminal)** | Full xterm.js terminal with multi-tab support                                                                              |
 
 ### Build Your Own
 
@@ -162,6 +172,7 @@ CloudCLI has a plugin system that lets you add custom tabs with their own fronte
 **[Plugin Documentation →](https://cloudcli.ai/docs/plugin-overview)** — full guide to the plugin API, manifest format, security model, and more.
 
 ---
+
 ## FAQ
 
 <details>
@@ -217,11 +228,12 @@ GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later) — see [LIC
 
 This project is open source and free to use, modify, and distribute under the AGPL-3.0-or-later license. If you modify this software and run it as a network service, you must make your modified source code available to users of that service.
 
-CloudCLI UI  - (https://cloudcli.ai).
+CloudCLI UI - (https://cloudcli.ai).
 
 ## Acknowledgments
 
 ### Built With
+
 - **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - Anthropic's official CLI
 - **[Cursor CLI](https://docs.cursor.com/en/cli/overview)** - Cursor's official CLI
 - **[Codex](https://developers.openai.com/codex)** - OpenAI Codex
@@ -230,11 +242,12 @@ CloudCLI UI  - (https://cloudcli.ai).
 - **[Vite](https://vitejs.dev/)** - Fast build tool and dev server
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[CodeMirror](https://codemirror.net/)** - Advanced code editor
-- **[TaskMaster AI](https://github.com/eyaltoledano/claude-task-master)** *(Optional)* - AI-powered project management and task planning
-
+- **[TaskMaster AI](https://github.com/eyaltoledano/claude-task-master)** _(Optional)_ - AI-powered project management and task planning
 
 ### Sponsors
+
 - [Siteboon - AI powered website builder](https://siteboon.ai)
+
 ---
 
 <div align="center">

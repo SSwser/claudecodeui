@@ -19,6 +19,21 @@
 
 ---
 
+## 为什么叫 Chorus？
+
+随着产品从 CloudCLI 升级为 Chorus，这个新名字更准确地表达了产品的核心隐喻。
+
+**Chorus** 来自英语单词 "chorus"，读音为 **KOR-əs**，音标是 `/ˈkɔːrəs/`。
+
+- **人** = 指挥家（conductor）
+- **AI Agents** = 演奏者（performers）
+- **代码** = 乐谱（score）
+- **Chorus** = 多个声音在指挥下汇聚成和声的那个时刻
+
+另外，"chorus" 在流行音乐里也表示“副歌”: 一首歌里最有力、最令人记忆深刻的部分，所有声部会在这里同时响起。这和产品想表达的状态很契合：**最有力的时刻，就是多个 Agent 协同响应的那一刻**。
+
+在中文语境里，建议直接说英文 **Chorus**，快读接近 **“口勒斯”**。不建议读成“可乐斯”，品牌展示时也建议保持全英文 wordmark，不再额外引入中文译名。
+
 ## 截图
 
 <div align="center">
@@ -59,7 +74,7 @@
 - **Git 浏览器** - 查看、暂存并提交更改，还可切换分支
 - **会话管理** - 恢复对话、管理多个会话并跟踪历史记录
 - **插件系统** - 通过自定义选项卡、后端服务与集成扩展 CloudCLI。 [开始构建 →](https://github.com/cloudcli-ai/cloudcli-plugin-starter)
-- **TaskMaster AI 集成** *(可选)* - 结合 AI 任务规划、PRD 分析与工作流自动化，实现高级项目管理
+- **TaskMaster AI 集成** _(可选)_ - 结合 AI 任务规划、PRD 分析与工作流自动化，实现高级项目管理
 - **模型兼容性** - 支持 Claude、GPT、Gemini 模型家族（完整支持列表见 [`shared/modelConstants.js`](shared/modelConstants.js)）
 
 ## 快速开始
@@ -95,22 +110,22 @@ cloudcli
 
 CloudCLI UI 是 CloudCLI Cloud 的开源 UI 层。你可以在本地机器上自托管它，也可以使用提供团队功能与深入集成的 CloudCLI Cloud。
 
-| | CloudCLI UI（自托管） | CloudCLI Cloud |
-|---|---|---|
-| **适合对象** | 需要为本地代理会话提供完整 UI 的开发者 | 需要部署在云端，随时从任何地方访问代理的团队与开发者 |
-| **访问方式** | 通过 `[yourip]:port` 在浏览器中访问 | 浏览器、任意 IDE、REST API、n8n |
-| **设置** | `npx @cloudcli-ai/cloudcli` | 无需设置 |
-| **机器需保持开机吗** | 是 | 否 |
-| **移动端访问** | 网络内任意浏览器 | 任意设备（原生应用即将推出） |
-| **可用会话** | 自动发现 `~/.claude` 中的所有会话 | 云端环境内的会话 |
-| **支持的 Agents** | Claude Code、Cursor CLI、Codex、Gemini CLI | Claude Code、Cursor CLI、Codex、Gemini CLI |
-| **文件浏览与 Git** | 内置于 UI | 内置于 UI |
-| **MCP 配置** | UI 管理，与本地 `~/.claude` 配置同步 | UI 管理 |
-| **IDE 访问** | 本地 IDE | 任何连接到云环境的 IDE |
-| **REST API** | 是 | 是 |
-| **n8n 节点** | 否 | 是 |
-| **团队共享** | 否 | 是 |
-| **平台费用** | 免费开源 | 起价 $7/月 |
+|                      | CloudCLI UI（自托管）                      | CloudCLI Cloud                                       |
+| -------------------- | ------------------------------------------ | ---------------------------------------------------- |
+| **适合对象**         | 需要为本地代理会话提供完整 UI 的开发者     | 需要部署在云端，随时从任何地方访问代理的团队与开发者 |
+| **访问方式**         | 通过 `[yourip]:port` 在浏览器中访问        | 浏览器、任意 IDE、REST API、n8n                      |
+| **设置**             | `npx @cloudcli-ai/cloudcli`                | 无需设置                                             |
+| **机器需保持开机吗** | 是                                         | 否                                                   |
+| **移动端访问**       | 网络内任意浏览器                           | 任意设备（原生应用即将推出）                         |
+| **可用会话**         | 自动发现 `~/.claude` 中的所有会话          | 云端环境内的会话                                     |
+| **支持的 Agents**    | Claude Code、Cursor CLI、Codex、Gemini CLI | Claude Code、Cursor CLI、Codex、Gemini CLI           |
+| **文件浏览与 Git**   | 内置于 UI                                  | 内置于 UI                                            |
+| **MCP 配置**         | UI 管理，与本地 `~/.claude` 配置同步       | UI 管理                                              |
+| **IDE 访问**         | 本地 IDE                                   | 任何连接到云环境的 IDE                               |
+| **REST API**         | 是                                         | 是                                                   |
+| **n8n 节点**         | 否                                         | 是                                                   |
+| **团队共享**         | 否                                         | 是                                                   |
+| **平台费用**         | 免费开源                                   | 起价 $7/月                                           |
 
 > 两种方式都使用你自己的 AI 订阅（Claude、Cursor 等）— CloudCLI 提供环境，而非 AI。
 
@@ -129,7 +144,7 @@ CloudCLI UI 是 CloudCLI Cloud 的开源 UI 层。你可以在本地机器上自
 <div align="center">
 
 ![工具设置弹窗](public/screenshots/tools-modal.png)
-*工具设置界面 - 只启用你需要的内容*
+_工具设置界面 - 只启用你需要的内容_
 
 </div>
 
@@ -143,8 +158,8 @@ CloudCLI 配备插件系统，允许你添加带自定义前端 UI 和可选 Nod
 
 ### 可用插件
 
-| 插件 | 描述 |
-|---|---|
+| 插件                                                                        | 描述                                                                     |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | **[Project Stats](https://github.com/cloudcli-ai/cloudcli-plugin-starter)** | 展示当前项目的文件数、代码行数、文件类型分布、最大文件以及最近修改的文件 |
 
 ### 自行构建
@@ -211,6 +226,7 @@ GNU 通用公共许可证 v3.0 - 详见 [LICENSE](LICENSE) 文件。
 ## 致谢
 
 ### 使用技术
+
 - **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - Anthropic 官方 CLI
 - **[Cursor CLI](https://docs.cursor.com/en/cli/overview)** - Cursor 官方 CLI
 - **[Codex](https://developers.openai.com/codex)** - OpenAI Codex
@@ -219,10 +235,12 @@ GNU 通用公共许可证 v3.0 - 详见 [LICENSE](LICENSE) 文件。
 - **[Vite](https://vitejs.dev/)** - 快速构建工具与开发服务器
 - **[Tailwind CSS](https://tailwindcss.com/)** - 实用先行 CSS 框架
 - **[CodeMirror](https://codemirror.net/)** - 高级代码编辑器
-- **[TaskMaster AI](https://github.com/eyaltoledano/claude-task-master)** *(可选)* - AI 驱动的项目管理与任务规划
+- **[TaskMaster AI](https://github.com/eyaltoledano/claude-task-master)** _(可选)_ - AI 驱动的项目管理与任务规划
 
 ### 赞助商
+
 - [Siteboon - AI powered website builder](https://siteboon.ai)
+
 ---
 
 <div align="center">
