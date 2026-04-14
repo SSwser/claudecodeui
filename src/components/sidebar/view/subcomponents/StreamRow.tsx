@@ -66,7 +66,7 @@ export default function StreamRow({
       className={cn(
         'group relative flex w-full items-start gap-[6px] text-left transition-colors',
         hasSubtitle ? 'px-[14px] py-[6px] pl-3' : 'h-10 px-[14px] pl-3',
-        isSelected ? 'bg-[#101111]' : 'hover:bg-[#0d0e10]'
+        isSelected ? 'bg-surface-2' : 'hover:bg-muted/30'
       )}
     >
       {/* Status dot — 6×6px, cornerRadius 3 */}

@@ -7,43 +7,43 @@ import { useTranslation } from 'react-i18next';
 import type { SessionCardProps } from '../types/types';
 import { useSessionLifecycle } from '../../../hooks/useSessionLifecycle';
 
-/** Design: accent-bar color + status dot + sub-row text color per lifecycle state */
+/** Design: accent-bar class + status dot class + text classes per lifecycle state */
 const STATUS_META = {
   active: {
     label: 'Active',
-    accentColor: '#e5a700',
-    dotColor: '#e5a700',
-    subTextColor: '#6a6b6c',
+    accentBarClass: 'bg-warning',
+    dotClass: 'bg-warning',
+    subTextClass: 'text-muted-foreground',
     subLabel: 'Running',
-    titleColor: '#e8e9ea',
-    timeColor: '#454649',
+    titleClass: 'text-foreground',
+    timeClass: 'text-label-dim',
   },
   frozen: {
     label: 'Frozen',
-    accentColor: null,
-    dotColor: '#4a6fa5',
-    subTextColor: '#4a6fa5',
+    accentBarClass: null,
+    dotClass: 'bg-frozen',
+    subTextClass: 'text-frozen',
     subLabel: 'Frozen',
-    titleColor: '#9a9b9c',
-    timeColor: '#3a3b3d',
+    titleClass: 'text-muted-foreground',
+    timeClass: 'text-label-dim',
   },
   archived: {
     label: 'Archived',
-    accentColor: null,
-    dotColor: '#454649',
-    subTextColor: '#6a6b6c',
+    accentBarClass: null,
+    dotClass: 'bg-label-dim',
+    subTextClass: 'text-muted-foreground',
     subLabel: 'Archived',
-    titleColor: '#9a9b9c',
-    timeColor: '#3a3b3d',
+    titleClass: 'text-muted-foreground',
+    timeClass: 'text-label-dim',
   },
   deleted: {
     label: 'Deleted',
-    accentColor: null,
-    dotColor: '#454649',
-    subTextColor: '#6a6b6c',
+    accentBarClass: null,
+    dotClass: 'bg-label-dim',
+    subTextClass: 'text-muted-foreground',
     subLabel: 'Deleted',
-    titleColor: '#9a9b9c',
-    timeColor: '#3a3b3d',
+    titleClass: 'text-muted-foreground',
+    timeClass: 'text-label-dim',
   },
 } as const;
 
@@ -84,11 +84,12 @@ export default function SessionCard({
         tabIndex={0}
         className={cn(
           'group relative flex overflow-hidden rounded-[8px] text-left transition-colors',
-          /* Card fill + multi-shadow from design */
-          'bg-[#131415] shadow-[0_0_0_1px_#1b1c1e,0_0_0_1px_#07080a,0_1px_0_0_rgba(255,255,255,0.05)]',
+          /* Card fill. Shadow/ring arbitrary values intentionally preserved —
+             elevation semantic tokens are planned for Phase 999.2. */
+          'bg-surface-2 shadow-[0_0_0_1px_#1b1c1e,0_0_0_1px_#07080a,0_1px_0_0_rgba(255,255,255,0.05)]',
           /* Inside stroke */
           'ring-1 ring-inset ring-[#ffffff0d]',
-          'hover:bg-[#161718] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
+          'hover:bg-surface-2/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
         )}
         onClick={() => {
           if (longPressTriggeredRef.current) {
@@ -128,10 +129,9 @@ export default function SessionCard({
         }}
       >
         {/* Accent bar — only for active (running/waiting) sessions */}
-        {statusMeta.accentColor ? (
+        {statusMeta.accentBarClass ? (
           <div
-            className="w-[3px] flex-shrink-0"
-            style={{ backgroundColor: statusMeta.accentColor }}
+            className={cn('w-[3px] flex-shrink-0', statusMeta.accentBarClass)}
           />
         ) : null}
 
@@ -139,7 +139,7 @@ export default function SessionCard({
         <div
           className={cn(
             'flex min-w-0 flex-1 flex-col gap-1',
-            statusMeta.accentColor
+            statusMeta.accentBarClass
               ? 'py-[10px] pl-[11px] pr-[14px]' /* Running/Waiting: offset for accent bar */
               : 'px-[14px] py-[10px]'
           )}
@@ -150,21 +150,27 @@ export default function SessionCard({
             <div className="relative h-5 w-5 flex-shrink-0">
               <SessionProviderLogo provider={session.provider} className="h-4 w-4" />
               <div
-                className="absolute -bottom-[1px] -right-[1px] h-[7px] w-[7px] rounded-[4px]"
-                style={{ backgroundColor: statusMeta.dotColor }}
+                className={cn(
+                  'absolute -bottom-[1px] -right-[1px] h-[7px] w-[7px] rounded-[4px]',
+                  statusMeta.dotClass
+                )}
               />
             </div>
 
             {/* Title */}
             <span
-              className="min-w-0 flex-1 truncate text-[13px] font-medium"
-              style={{ color: statusMeta.titleColor }}
+              className={cn(
+                'min-w-0 flex-1 truncate text-[13px] font-medium',
+                statusMeta.titleClass
+              )}
             >
               {session.title || session.summary || t('mainContent.untitledSession')}
             </span>
 
             {/* Time */}
-            <span className="flex-shrink-0 text-[11px]" style={{ color: statusMeta.timeColor }}>
+            <span
+              className={cn('flex-shrink-0 text-[11px]', statusMeta.timeClass)}
+            >
               {formatTimeAgo(session.lastActivity, now, t)}
             </span>
 
@@ -183,7 +189,7 @@ export default function SessionCard({
 
           {/* Sub row — status text */}
           <div className="pl-[28px]">
-            <span className="text-[11px]" style={{ color: statusMeta.subTextColor }}>
+            <span className={cn('text-[11px]', statusMeta.subTextClass)}>
               {effectiveStatus === 'active'
                 ? session.summary || 'Running...'
                 : effectiveStatus === 'frozen'

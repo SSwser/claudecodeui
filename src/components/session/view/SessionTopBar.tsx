@@ -22,12 +22,13 @@ const STATUS_BADGE_CONFIG: Record<
 > = {
   active: {
     label: 'Active',
-    className: 'text-emerald-600 dark:text-emerald-400',
-    dotClass: 'bg-emerald-500',
+    className: 'text-success',
+    dotClass: 'bg-success',
   },
   frozen: {
     label: 'Frozen',
-    className: 'text-sky-600 dark:text-sky-400',
+    className: 'text-frozen',
+    // frozen has no dot in original design — dotClass intentionally absent
   },
   archived: {
     label: 'Archived',
