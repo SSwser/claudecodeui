@@ -81,10 +81,6 @@
     --border-subtle: 220 10% 90%;
     --user-msg-border: 210 40% 82%;
     --frozen-notice-border: 220 30% 83%;
-    --canvas: 220 23% 97%;
-    --border-subtle: 220 10% 90%;
-    --dim-foreground: 220 2% 52%;
-    --workspace-accent: 239 84% 60%;
 
     --radius: 0.75rem;
     --radius-micro: 3px;
@@ -224,10 +220,6 @@
     --border-subtle: 210 4% 9%;
     --user-msg-border: 210 50% 21%;
     --frozen-notice-border: 220 33% 24%;
-    --canvas: 225 13% 6%;
-    --border-subtle: 210 4% 9%;
-    --dim-foreground: 210 1% 42%;
-    --workspace-accent: 239 84% 67%;
 
     --shadow-subtle: 0 1.189px 2.377px rgba(0, 0, 0, 0.28);
     --shadow-ring: 0 0 0 1px rgb(27, 28, 30), inset 0 0 0 1px rgb(7, 8, 10);
