@@ -22,7 +22,7 @@ Authoritative token source: **`design/tokens.json`** — Pencil hex ↔ CSS toke
 
 Derived artifacts (do not edit manually):
 
-- `design/TOKENS.md` — human-readable reference table; regenerate with `npm run tokens:build`
+- `design/TOKENS.md` — human-readable reference table; regenerate with `npm run build:tokens`
 
 Runtime sources (generated from `tokens.json`):
 

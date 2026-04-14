@@ -5,7 +5,7 @@
 ### Token 管线
 
 ```
-design/tokens.json  ─── npm run tokens:build ───▶  design/TOKENS.md（自动生成参考表）
+design/tokens.json  ─── npm run build:tokens ───▶  design/TOKENS.md（自动生成参考表）
       │ (SSOT)
       ▼ (手动同步)
 src/index.css          HSL CSS 变量，:root 明 + .dark 暗双主题
@@ -14,7 +14,7 @@ src/index.css          HSL CSS 变量，:root 明 + .dark 暗双主题
 tailwind.config.js     hsl(var(--xxx)) → Tailwind 工具类
 ```
 
-**改 token 的流程**：改 `tokens.json` → 改 `index.css` → 如有新 token 改 `tailwind.config.js` → 跑 `npm run tokens:build`
+**改 token 的流程**：改 `tokens.json` → 改 `index.css` → 如有新 token 改 `tailwind.config.js` → 跑 `npm run build:tokens`
 
 ### 设计 ↔ 代码分工
 

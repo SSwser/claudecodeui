@@ -73,7 +73,7 @@ Reference them in `batch_design` using the `$` sigil.
 ### Token update pipeline
 
 ```
-tokens.json → npm run tokens:build → TOKENS.md (auto)
+tokens.json → npm run build:tokens → TOKENS.md (auto)
     ↓ (manual)
 src/index.css    (CSS vars: :root light + .dark dark)
     ↓ (bridge)
@@ -82,7 +82,7 @@ tailwind.config.js   (hsl(var(--xxx)) → Tailwind utilities)
 set_variables in main.pen  (cc-- variables must be re-synced)
 ```
 
-After any `tokens.json` change: run `npm run tokens:build` — the script will remind you to sync Pencil variables.
+After any `tokens.json` change: run `npm run build:tokens` — the script will remind you to sync Pencil variables.
 
 ---
 
@@ -132,7 +132,7 @@ When a GSD phase requires UI design work in Pencil:
 1. Edit design/tokens.json
 2. Edit src/index.css (CSS vars)
 3. If new token: edit tailwind.config.js
-4. npm run tokens:build  → regenerates TOKENS.md + prints reminder
+4. npm run build:tokens  → regenerates TOKENS.md + prints reminder
 5. Open main.pen, call set_variables() with updated cc-- values
    - Variable names: dashes only, no colons
    - Theme key: { "Mode": "Dark" }, not { "9:Mode": "Dark" }

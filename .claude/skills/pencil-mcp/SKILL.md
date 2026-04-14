@@ -394,7 +394,7 @@ Load `design/main.pen.index` to get current node IDs and statuses. Example query
 If you created, renamed, or deleted a **top-level frame** (any direct child of `5NJPi`, `Z3eP8`, `nlmcQ`, or `7fmkI`), or changed a component's variant set:
 
 1. Edit `design/main.pen.index` — update the relevant entry, bump `$version` (patch for rename/status, minor for new frame), set `$updated`
-2. Run `npm run canvas:build` to regenerate `design/CANVAS-MAP.md`
+2. Run `npm run build:canvas` to regenerate `design/CANVAS-MAP.md`
 3. Commit both files together: `style(design): update canvas index vX.Y`
 
 **Internal nodes** (children of a Cmp / or Page / frame, e.g. session list group headers, card sub-nodes) are NOT added to `main.pen.index`. Document them in the brief's Node Reference table instead.
