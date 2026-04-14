@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Concept E: Baton Stroke (指挥一挥)
+       A single flowing calligraphic gesture — like a conductor's baton trace in the air.
+       One decisive, elegant curve with varying stroke width. Red dot at the apex = the decisive moment.
+       Cross-discipline: Calligraphy × Conducting -->
+  <rect width="32" height="32" rx="8" fill="#07080a"/>
+  <path d="M6 24 C8 22, 10 10, 16 8 C22 6, 24 14, 26 12" stroke="#f9f9f9" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <path d="M6 24 C8 22, 10 10, 16 8" stroke="#f9f9f9" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <circle cx="16" cy="8" r="2.2" fill="#FF6363"/>
+</svg>

@@ -5,13 +5,28 @@
   viewBox="0 0 32 32"
   fill="none"
 >
-  <rect width="32" height="32" rx="8" fill="hsl(221.2 83.2% 53.3%)"/>
+  <!-- Chorus Logo — Baton Stroke
+       A conductor's baton trace: one fluid calligraphic gesture
+       with a red accent at the decisive apex. -->
+  <rect width="32" height="32" rx="8" fill="#07080a"/>
+  <!-- Main stroke: flowing S-curve from bottom-left to upper-right -->
   <path
-    d="M8 9C8 8.44772 8.44772 8 9 8H23C23.5523 8 24 8.44772 24 9V18C24 18.5523 23.5523 19 23 19H12L8 23V9Z"
-    stroke="white"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    d="M7 25 C9 21, 11 12, 16 8.5 C21 5, 24 11, 26 10"
+    stroke="#f9f9f9"
+    stroke-width="2"
+    stroke-linecap="round"
     fill="none"
+    opacity="0.85"
   />
+  <!-- Echo stroke: a lighter trace following the first half, adding depth -->
+  <path
+    d="M7 25 C9 21, 11 12, 16 8.5"
+    stroke="#f9f9f9"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    fill="none"
+    opacity="0.4"
+  />
+  <!-- Apex point: the decisive moment -->
+  <circle cx="16" cy="8.5" r="2.2" fill="#FF6363"/>
 </svg>

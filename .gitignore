@@ -74,6 +74,7 @@ pids
 coverage/
 *.lcov
 .nyc_output
+.playwright-mcp
 /playwright-report/
 /test-results/
 /tests/visual/__snapshots__/

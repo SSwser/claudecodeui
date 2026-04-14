@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chorus Logo Concepts</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #07080a;
+      color: #f9f9f9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 48px 32px;
+      letter-spacing: 0.2px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .subtitle {
+      color: #6a6b6c;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .round-switcher {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .round-switcher label {
+      font-size: 13px;
+      color: #6a6b6c;
+    }
+    .round-switcher select {
+      background: #101111;
+      color: #f9f9f9;
+      border: 1px solid #252627;
+      border-radius: 8px;
+      padding: 8px 32px 8px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236a6b6c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      letter-spacing: 0.2px;
+    }
+    .round-switcher select:focus {
+      outline: none;
+      border-color: #FF6363;
+    }
+    .round { display: none; }
+    .round.active { display: block; }
+    .concepts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      max-width: 1200px;
+    }
+    .concept {
+      background: #101111;
+      border: 1px solid #161718;
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .concept-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .concept-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #FF6363;
+    }
+    .concept-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .concept-desc {
+      color: #6a6b6c;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .sizes {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+    }
+    .size-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .size-label {
+      font-size: 11px;
+      color: #434345;
+      font-family: 'GeistMono', 'SF Mono', monospace;
+    }
+    .size-group img {
+      display: block;
+    }
+    .wordmark-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #161718;
+    }
+    .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .wordmark-text {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+    }
+    .divider {
+      height: 1px;
+      background: #161718;
+      margin: 48px 0;
+      max-width: 1200px;
+    }
+    .comparison {
+      max-width: 1200px;
+    }
+    .comparison h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .comparison-row {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .comparison-row img {
+      display: block;
+    }
+    .comparison-bg-light {
+      background: #f0f0f0;
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chorus — Logo Concepts</h1>
+  <p class="subtitle">32×32 SVG 图标方案 · 选择一个方向作为最终 Logo</p>
+
+  <div class="round-switcher">
+    <label for="round-select">查看版本：</label>
+    <select id="round-select" onchange="switchRound(this.value)">
+      <option value="r2">Round 2 · E–J（流畅跨界方向）</option>
+      <option value="r1">Round 1 · A–D（初版方案）</option>
+    </select>
+  </div>
+
+  <!-- ===== ROUND 2 ===== -->
+  <div class="round active" id="round-r2">
+    <div class="concepts">
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept E</span>
+          <span class="concept-name">指挥一挥 · Baton Stroke</span>
+        </div>
+        <p class="concept-desc">
+          一笔流畅的书法式手势——捕捉指挥家挥棒瞬间的弧线轨迹。红色圆点在顶点，是"决定性时刻"。<br>
+          <strong>跨界：</strong>书法 × 指挥&emsp;<strong>感觉：</strong>果断、优雅、一笔成型
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-e.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-e.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-e.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-e.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept F</span>
+          <span class="concept-name">和声波 · Harmonic Waves</span>
+        </div>
+        <p class="concept-desc">
+          3 条不同频率的正弦波横向流过图标。中间是品牌红，上下两条透明白，形成"和声"层次。<br>
+          <strong>跨界：</strong>物理波干涉 × 和声学&emsp;<strong>感觉：</strong>科学美感、层次流动
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-f.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-f.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-f.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-f.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept G</span>
+          <span class="concept-name">飘带 · Ribbon Flow</span>
+        </div>
+        <p class="concept-desc">
+          一条连续飘带在空中盘旋自我交织，路径交叉点红色点亮——多流交汇的瞬间。<br>
+          <strong>跨界：</strong>艺术体操 × 流体动力学&emsp;<strong>感觉：</strong>连续、优雅、永不中断
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-g.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-g.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-g.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-g.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept H</span>
+          <span class="concept-name">共振涟漪 · Resonance Ripple</span>
+        </div>
+        <p class="concept-desc">
+          从左侧红色源点向右发出 3 个逐渐扩大的弧形涟漪——影响力从核心向外扩散。<br>
+          <strong>跨界：</strong>水波物理 × 声波传播&emsp;<strong>感觉：</strong>影响力、扩散、源起
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-h.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-h.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-h.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-h.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept I</span>
+          <span class="concept-name">流谱 · Flowing Stave</span>
+        </div>
+        <p class="concept-desc">
+          4 条微弯的水平线——像五线谱被风吹弯活了过来。红色圆点是一个音符落在正确的位置。<br>
+          <strong>跨界：</strong>乐谱 × 书法&emsp;<strong>感觉：</strong>结构中的流动、精确的自由
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-i.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-i.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-i.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-i.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept J</span>
+          <span class="concept-name">双螺旋 · Double Helix</span>
+        </div>
+        <p class="concept-desc">
+          两条曲线相互缠绕——像 DNA 双螺旋，或双人舞轨迹。交叉点红色：人机意图与执行在此融合。<br>
+          <strong>跨界：</strong>DNA × 双人舞&emsp;<strong>感觉：</strong>不可分割、动态平衡、共舞
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-j.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-j.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-j.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-j.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="divider"></div>
+    <div class="comparison">
+      <h2>并排对比 · 48px</h2>
+      <div class="comparison-row">
+        <img src="icons/logo-concept-e.svg" width="48" height="48" title="E: 指挥一挥">
+        <img src="icons/logo-concept-f.svg" width="48" height="48" title="F: 和声波">
+        <img src="icons/logo-concept-g.svg" width="48" height="48" title="G: 飘带">
+        <img src="icons/logo-concept-h.svg" width="48" height="48" title="H: 共振涟漪">
+        <img src="icons/logo-concept-i.svg" width="48" height="48" title="I: 流谱">
+        <img src="icons/logo-concept-j.svg" width="48" height="48" title="J: 双螺旋">
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROUND 1 ===== -->
+  <div class="round" id="round-r1">
+    <div class="concepts">
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept A</span>
+          <span class="concept-name">汇流 · Flowing Convergence</span>
+        </div>
+        <p class="concept-desc">
+          4 条有机曲线从左侧不同高度散开，汇聚到右侧一个红色焦点。<br>
+          <strong>感觉：</strong>有机、流畅、音乐性
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-a.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-a.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-a.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-a.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept B</span>
+          <span class="concept-name">渐强 · Crescendo</span>
+        </div>
+        <p class="concept-desc">
+          5 根递增高度的竖条，基线微升，最高的一根是品牌红。<br>
+          <strong>感觉：</strong>节奏、力量、进行感
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-b.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-b.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-b.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-b.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept C</span>
+          <span class="concept-name">指挥网络 · Network Hub</span>
+        </div>
+        <p class="concept-desc">
+          中心红色节点连接 5 个卫星节点，非对称布局。<br>
+          <strong>感觉：</strong>连接、编排、中心辐射
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-c.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-c.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-c.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-c.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+      <div class="concept">
+        <div class="concept-header">
+          <span class="concept-label">Concept D</span>
+          <span class="concept-name">合流 · Stream Merge</span>
+        </div>
+        <p class="concept-desc">
+          3 条输入线汇入中央红色合流点，然后单线向右延伸。<br>
+          <strong>感觉：</strong>清晰、功能性、直接隐喻
+        </p>
+        <div class="sizes">
+          <div class="size-group"><img src="icons/logo-concept-d.svg" width="32" height="32"><span class="size-label">32px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-d.svg" width="64" height="64"><span class="size-label">64px</span></div>
+          <div class="size-group"><img src="icons/logo-concept-d.svg" width="128" height="128"><span class="size-label">128px</span></div>
+        </div>
+        <div class="wordmark-section">
+          <div class="wordmark"><img src="icons/logo-concept-d.svg" width="28" height="28"><span class="wordmark-text">Chorus</span></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="divider"></div>
+    <div class="comparison">
+      <h2>并排对比 · 48px</h2>
+      <div class="comparison-row">
+        <img src="icons/logo-concept-a.svg" width="48" height="48" title="A: 汇流">
+        <img src="icons/logo-concept-b.svg" width="48" height="48" title="B: 渐强">
+        <img src="icons/logo-concept-c.svg" width="48" height="48" title="C: 指挥网络">
+        <img src="icons/logo-concept-d.svg" width="48" height="48" title="D: 合流">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchRound(val) {
+      document.querySelectorAll('.round').forEach(el => el.classList.remove('active'));
+      document.getElementById('round-' + val).classList.add('active');
+    }
+  </script>
+</body>
+</html>

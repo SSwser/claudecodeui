@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Concept C: Network Hub (指挥网络)
+       Central red conductor node with 5 satellite agent nodes connected by thin lines.
+       Asymmetric layout for organic feel. Connected, orchestrated. -->
+  <rect width="32" height="32" rx="8" fill="#07080a"/>
+  <!-- Connection lines -->
+  <line x1="16" y1="15" x2="7" y2="7" stroke="#f9f9f9" stroke-width="1" stroke-linecap="round" opacity="0.35"/>
+  <line x1="16" y1="15" x2="26" y2="7" stroke="#f9f9f9" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+  <line x1="16" y1="15" x2="27" y2="17" stroke="#f9f9f9" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+  <line x1="16" y1="15" x2="22" y2="26" stroke="#f9f9f9" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+  <line x1="16" y1="15" x2="6" y2="23" stroke="#f9f9f9" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+  <!-- Satellite nodes (agents) -->
+  <circle cx="7" cy="7" r="1.5" fill="#f9f9f9" opacity="0.45"/>
+  <circle cx="26" cy="7" r="1.5" fill="#f9f9f9" opacity="0.6"/>
+  <circle cx="27" cy="17" r="1.5" fill="#f9f9f9" opacity="0.7"/>
+  <circle cx="22" cy="26" r="1.5" fill="#f9f9f9" opacity="0.5"/>
+  <circle cx="6" cy="23" r="1.5" fill="#f9f9f9" opacity="0.35"/>
+  <!-- Central conductor node -->
+  <circle cx="16" cy="15" r="3" fill="#FF6363"/>
+</svg>

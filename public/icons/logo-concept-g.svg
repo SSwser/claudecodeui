@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Concept G: Ribbon Flow (飘带)
+       A continuous ribbon that loops and flows — like silk in motion.
+       One fluid, unbroken path that crosses itself. The crossing point glows red.
+       Cross-discipline: Dance (ribbon gymnastics) × Fluid dynamics -->
+  <rect width="32" height="32" rx="8" fill="#07080a"/>
+  <path d="M6 20 C6 12, 12 6, 18 10 C24 14, 26 22, 20 24 C14 26, 10 20, 16 16 C22 12, 28 16, 26 22" stroke="#f9f9f9" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.75"/>
+  <circle cx="16" cy="16" r="2" fill="#FF6363"/>
+</svg>

@@ -1372,36 +1372,6 @@
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "XXa8u",
-                                  "name": "badge",
-                                  "gap": 4,
-                                  "padding": [
-                                    3,
-                                    8
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "frame",
-                                      "id": "XkdZg",
-                                      "width": 6,
-                                      "height": 6,
-                                      "fill": "#e5a700ff",
-                                      "cornerRadius": 3
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "D5pQD",
-                                      "fill": "#fbbf24",
-                                      "content": "3 active",
-                                      "fontFamily": "Inter",
-                                      "fontSize": 11,
-                                      "fontWeight": "500"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
                                   "id": "X4HBF",
                                   "name": "statusDrop",
                                   "height": 28,
@@ -1465,6 +1435,36 @@
                                       "iconFontName": "chevron-down",
                                       "iconFontFamily": "lucide",
                                       "fill": "#454649"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "XXa8u",
+                                  "name": "badge",
+                                  "gap": 4,
+                                  "padding": [
+                                    3,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "XkdZg",
+                                      "width": 6,
+                                      "height": 6,
+                                      "fill": "#e5a700ff",
+                                      "cornerRadius": 3
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "D5pQD",
+                                      "fill": "#fbbf24",
+                                      "content": "3 active",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 11,
+                                      "fontWeight": "500"
                                     }
                                   ]
                                 }

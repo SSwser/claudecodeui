@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Concept B: Crescendo (渐强)
+       5 ascending vertical strokes of increasing height with rising baseline.
+       The tallest stroke in brand red. Rhythmic, progressive, building momentum. -->
+  <rect width="32" height="32" rx="8" fill="#07080a"/>
+  <line x1="7" y1="25" x2="7" y2="20" stroke="#f9f9f9" stroke-width="2.2" stroke-linecap="round" opacity="0.3"/>
+  <line x1="12" y1="24" x2="12" y2="17" stroke="#f9f9f9" stroke-width="2.2" stroke-linecap="round" opacity="0.45"/>
+  <line x1="17" y1="23" x2="17" y2="13" stroke="#f9f9f9" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="22" y1="22" x2="22" y2="9" stroke="#f9f9f9" stroke-width="2.2" stroke-linecap="round" opacity="0.8"/>
+  <line x1="26" y1="21" x2="26" y2="5" stroke="#FF6363" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
