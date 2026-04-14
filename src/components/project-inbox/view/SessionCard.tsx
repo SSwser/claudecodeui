@@ -86,9 +86,9 @@ export default function SessionCard({
           'group relative flex overflow-hidden rounded-[8px] text-left transition-colors',
           /* Card fill. Shadow/ring arbitrary values intentionally preserved —
              elevation semantic tokens are planned for Phase 999.2. */
-          'bg-surface-2 shadow-[0_0_0_1px_#1b1c1e,0_0_0_1px_#07080a,0_1px_0_0_rgba(255,255,255,0.05)]',
+          'bg-surface-2 shadow-ring',
           /* Inside stroke */
-          'ring-1 ring-inset ring-[#ffffff0d]',
+          'ring-1 ring-inset ring-white/5',
           'hover:bg-surface-2/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
         )}
         onClick={() => {
@@ -179,7 +179,7 @@ export default function SessionCard({
                 setMenuOpen((value) => !value);
               }}
             >
-              <MoreHorizontal className="h-[14px] w-[14px] text-[#3a3b3d]" />
+              <MoreHorizontal className="h-[14px] w-[14px] text-label-dim" />
             </button>
           </div>
 
@@ -197,7 +197,7 @@ export default function SessionCard({
       </div>
 
       {menuOpen ? (
-        <div className="absolute right-3 top-10 z-30 w-48 rounded-[8px] border border-[#1b1c1e] bg-[#131415] p-1 shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+        <div className="absolute right-3 top-10 z-30 w-48 rounded-[8px] border border-surface-3 bg-card p-1 shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
           {/* Resume — shown for frozen or archived sessions */}
           {(effectiveStatus === 'frozen' || effectiveStatus === 'archived') && (
             <button
@@ -208,9 +208,9 @@ export default function SessionCard({
                 const success = await lifecycle.resumeSession(session.sessionId);
                 if (success) onResume?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-foreground transition hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Play className="h-3.5 w-3.5 text-[#6a6b6c]" />
+              <Play className="h-3.5 w-3.5 text-dim-foreground" />
               Resume
             </button>
           )}
@@ -225,9 +225,9 @@ export default function SessionCard({
                 const success = await lifecycle.freezeSession(session.sessionId);
                 if (success) onFreeze?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-foreground transition hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Pause className="h-3.5 w-3.5 text-[#6a6b6c]" />
+              <Pause className="h-3.5 w-3.5 text-dim-foreground" />
               Freeze
             </button>
           )}
@@ -242,9 +242,9 @@ export default function SessionCard({
                 const success = await lifecycle.archiveSession(session.sessionId);
                 if (success) onArchive?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-foreground transition hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Archive className="h-3.5 w-3.5 text-[#6a6b6c]" />
+              <Archive className="h-3.5 w-3.5 text-dim-foreground" />
               Archive
             </button>
           )}
@@ -258,9 +258,9 @@ export default function SessionCard({
                 setMenuOpen(false);
                 onRename?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-foreground transition hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <MoreHorizontal className="h-3.5 w-3.5 text-[#6a6b6c]" />
+              <MoreHorizontal className="h-3.5 w-3.5 text-dim-foreground" />
               Rename
             </button>
           )}
@@ -274,7 +274,7 @@ export default function SessionCard({
               const success = await lifecycle.deleteSession(session.sessionId);
               if (success) onDelete?.(session);
             }}
-            className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#FF6363] transition hover:bg-[#2e1a1a] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-brand transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
             Delete

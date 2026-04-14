@@ -82,10 +82,10 @@ export default function StreamRow({
             className={cn(
               'flex-1 truncate text-[12px] tracking-[0.2px]',
               isSelected
-                ? 'font-medium text-[#cecece]'
+                ? 'font-medium text-foreground'
                 : isFresh
-                  ? 'text-[#6a6b6c]'
-                  : 'font-medium text-[#cecece]'
+                  ? 'text-dim-foreground'
+                  : 'font-medium text-foreground'
             )}
           >
             {name}
@@ -107,7 +107,7 @@ export default function StreamRow({
             )}
 
             {!isFresh && status === 'idle' && timestamp && (
-              <span className="text-[11px] text-[#6a6b6c]">{timestamp}</span>
+              <span className="text-[11px] text-dim-foreground">{timestamp}</span>
             )}
           </div>
         </div>
@@ -119,10 +119,10 @@ export default function StreamRow({
               {/* Branch tag — filled chip, no border */}
               {branch && (
                 <span
-                  className="inline-flex max-w-[120px] items-center gap-[2px] truncate rounded bg-[#1b1c1e] px-[6px] py-[2px] text-[11px] text-[#9a9b9c]"
+                  className="inline-flex max-w-[120px] items-center gap-[2px] truncate rounded bg-surface-3 px-[6px] py-[2px] text-[11px] text-muted-foreground"
                   title={branch}
                 >
-                  <GitBranch className="h-[10px] w-[10px] flex-shrink-0 text-[#434345]" />
+                  <GitBranch className="h-[10px] w-[10px] flex-shrink-0 text-label-dim" />
                   <span className="truncate">{branch}</span>
                 </span>
               )}
@@ -130,7 +130,7 @@ export default function StreamRow({
               {/* +N badge — Geist Mono, filled chip */}
               {extraStreamCount != null && extraStreamCount > 0 && (
                 <span
-                  className="inline-flex cursor-pointer items-center rounded bg-[#1c1d20] px-[6px] py-[2px] font-mono text-[11px] font-medium text-[#9a9b9c]"
+                  className="inline-flex cursor-pointer items-center rounded bg-surface-3 px-[6px] py-[2px] font-mono text-[11px] font-medium text-muted-foreground"
                   onClick={(e) => {
                     e.stopPropagation();
                     onBadgeClick?.(e);
@@ -144,8 +144,8 @@ export default function StreamRow({
             {/* Running indicator — activity icon + count */}
             {runningCount > 0 && (
               <span className="flex items-center gap-[2px] text-[10px]">
-                <Activity className="h-[10px] w-[10px] text-[#e5a700]" />
-                <span className="text-[#fbbf24]">{runningCount} running</span>
+                <Activity className="h-[10px] w-[10px] text-warning" />
+                <span className="text-warning">{runningCount} running</span>
               </span>
             )}
           </div>

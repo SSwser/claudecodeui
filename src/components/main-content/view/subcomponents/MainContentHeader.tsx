@@ -35,19 +35,18 @@ export default function MainContentHeader({
   }, [updateScrollState]);
 
   return (
-    <div className="flex-shrink-0 bg-[#0d0e11]">
+    <div className="flex-shrink-0 bg-canvas">
       {/* PV/Header — 52px */}
       <div
-        className="flex h-[52px] items-center gap-3 px-5"
-        style={{ borderBottom: '1px solid #1b1c1e' }}
+        className="flex h-[52px] items-center gap-3 border-b border-surface-3 px-5"
       >
         {isMobile && <MobileMenuButton onMenuClick={onMenuClick} />}
 
         {/* Project icon */}
-        <div className="h-5 w-5 flex-shrink-0 rounded-[4px] bg-[#6366f1]" />
+        <div className="h-5 w-5 flex-shrink-0 rounded-[4px] bg-workspace-accent" />
 
         {/* Project / session name */}
-        <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-[#e8e9ea]">
+        <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-foreground">
           {selectedSession
             ? (selectedSession.summary as string) || 'New Session'
             : selectedProject.displayName}
@@ -58,7 +57,7 @@ export default function MainContentHeader({
           <button
             type="button"
             onClick={onCreateSession}
-            className="flex flex-shrink-0 items-center gap-1.5 rounded-[6px] bg-[#1e2024] px-[14px] py-[6px] text-[12px] font-medium text-[#c0c0c0] transition-colors hover:bg-[#252628]"
+            className="flex flex-shrink-0 items-center gap-1.5 rounded-[6px] bg-secondary px-[14px] py-[6px] text-[12px] font-medium text-muted-foreground transition-colors hover:bg-border"
           >
             <Plus className="h-3 w-3" />
             New Session
@@ -68,12 +67,11 @@ export default function MainContentHeader({
 
       {/* PV/Tabs — 44px */}
       <div
-        className="flex h-[44px] items-center px-5"
-        style={{ borderBottom: '1px solid #1b1c1e' }}
+        className="flex h-[44px] items-center border-b border-surface-3 px-5"
       >
         <div className="relative min-w-0 flex-1 overflow-hidden">
           {canScrollLeft && (
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-[#0d0e11] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-canvas to-transparent" />
           )}
           <div
             ref={scrollRef}
@@ -88,7 +86,7 @@ export default function MainContentHeader({
             />
           </div>
           {canScrollRight && (
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-[#0d0e11] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-canvas to-transparent" />
           )}
         </div>
       </div>

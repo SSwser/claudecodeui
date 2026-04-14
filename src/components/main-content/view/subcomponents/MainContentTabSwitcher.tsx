@@ -103,7 +103,7 @@ export default function MainContentTabSwitcher({
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               'rounded-[6px] px-[14px] py-[6px] text-[12px] font-medium transition-colors',
-              isActive ? 'bg-[#1a1b1e] text-[#e8e9ea]' : 'text-[#6a6b6c] hover:text-[#9a9b9c]'
+              isActive ? 'bg-surface-3 text-foreground' : 'text-dim-foreground hover:text-muted-foreground'
             )}
           >
             {displayLabel}

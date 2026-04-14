@@ -27,7 +27,7 @@ export default function SidebarFooter({
       {/* Update chip — conditional, h=30px, bg #0a1209 */}
       {updateAvailable && (
         <button
-          className="flex h-[30px] w-full items-center justify-between bg-[#0a1209] px-[14px] text-left text-[11px] text-[#5fc992] transition-colors hover:brightness-110"
+          className="flex h-[30px] w-full items-center justify-between bg-success/10 px-[14px] text-left text-[11px] text-success transition-colors hover:brightness-110"
           onClick={onShowVersionModal}
         >
           <span>↑ Update available {latestVersion ? `v${latestVersion}` : ''}</span>
@@ -36,14 +36,14 @@ export default function SidebarFooter({
       )}
 
       {/* Plugins row — 36px, gap 5px */}
-      <button className="flex h-9 w-full items-center gap-[5px] px-[14px] text-[#6a6b6c] transition-colors hover:bg-[#0d0e10]">
+      <button className="flex h-9 w-full items-center gap-[5px] px-[14px] text-dim-foreground transition-colors hover:bg-canvas">
         <Plug className="h-3.5 w-3.5" />
         <span className="text-[12px]">Plugins</span>
       </button>
 
       {/* Settings row — 36px, gap 5px */}
       <button
-        className="flex h-9 w-full items-center gap-[5px] px-[14px] text-[#6a6b6c] transition-colors hover:bg-[#0d0e10]"
+        className="flex h-9 w-full items-center gap-[5px] px-[14px] text-dim-foreground transition-colors hover:bg-canvas"
         onClick={onShowSettings}
       >
         <Settings className="h-3.5 w-3.5" />

@@ -56,7 +56,7 @@ export default function MainContentStateView({
           <div className="flex flex-col items-center gap-7">
             {/* App icon — matches Pencil "App — Empty Launch" hero */}
             <div
-              className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-[#6366f1]"
+              className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-workspace-accent"
               style={{ boxShadow: '0 4px 20px rgba(255, 99, 99, 0.2)' }}
             />
 
@@ -71,47 +71,47 @@ export default function MainContentStateView({
             <div className="flex gap-4">
               <button
                 onClick={onCreateProject}
-                className="flex w-60 flex-col gap-2.5 rounded-[10px] border border-white/[0.06] bg-[#141618] p-5 text-left transition-colors hover:border-white/10 hover:bg-[#1a1c1e]"
+                className="flex w-60 flex-col gap-2.5 rounded-[10px] border border-white/[0.06] bg-card p-5 text-left transition-colors hover:border-white/10 hover:bg-surface-3"
                 style={{
-                  boxShadow: '0 0 0 1px #1b1c1e, 0 1px 0 0 rgba(255, 255, 255, 0.05)',
+                  boxShadow: '0 0 0 1px hsl(var(--surface-3)), 0 1px 0 0 rgba(255, 255, 255, 0.05)',
                 }}
               >
-                <FolderPlus className="h-6 w-6 text-[#6366f1]" />
+                <FolderPlus className="h-6 w-6 text-workspace-accent" />
                 <span className="text-[15px] font-semibold text-foreground">
                   {t('emptyLaunch.newProject', 'New Project')}
                 </span>
                 <span className="text-xs leading-relaxed text-muted-foreground">
                   {t('emptyLaunch.newProjectDesc', 'Create a new project from a local folder')}
                 </span>
-                <span className="text-xs text-[#8b8c8e]">
+                <span className="text-xs text-muted-foreground">
                   {t('emptyLaunch.browse', 'Browse →')}
                 </span>
               </button>
 
               <button
                 disabled
-                className="flex w-60 cursor-not-allowed flex-col gap-2.5 rounded-[10px] border border-white/[0.06] bg-[#141618] p-5 text-left opacity-50"
+                className="flex w-60 cursor-not-allowed flex-col gap-2.5 rounded-[10px] border border-white/[0.06] bg-card p-5 text-left opacity-50"
                 style={{
-                  boxShadow: '0 0 0 1px #1b1c1e, 0 1px 0 0 rgba(255, 255, 255, 0.05)',
+                  boxShadow: '0 0 0 1px hsl(var(--surface-3)), 0 1px 0 0 rgba(255, 255, 255, 0.05)',
                 }}
               >
-                <GitFork className="h-6 w-6 text-[#6366f1]" />
+                <GitFork className="h-6 w-6 text-workspace-accent" />
                 <span className="text-[15px] font-semibold text-foreground">
                   {t('emptyLaunch.cloneRepo', 'Clone Repository')}
                 </span>
                 <span className="text-xs leading-relaxed text-muted-foreground">
                   {t('emptyLaunch.cloneRepoDesc', 'Clone a git repo and open it as a new project')}
                 </span>
-                <span className="text-xs text-[#8b8c8e]">{t('emptyLaunch.start', 'Start →')}</span>
+                <span className="text-xs text-muted-foreground">{t('emptyLaunch.start', 'Start →')}</span>
               </button>
             </div>
 
             {/* Keyboard shortcut tips */}
-            <div className="flex items-center gap-3 text-xs text-[#3a3b3d]">
+            <div className="flex items-center gap-3 text-xs text-label-dim">
               <span>⌘K {t('emptyLaunch.tipQuickOpen', 'Quick open')}</span>
-              <div className="h-3.5 w-px bg-[#2a2b2d]" />
+              <div className="h-3.5 w-px bg-label-dim" />
               <span>⌘N {t('emptyLaunch.tipNewSession', 'New session')}</span>
-              <div className="h-3.5 w-px bg-[#2a2b2d]" />
+              <div className="h-3.5 w-px bg-label-dim" />
               <span>⌘P {t('emptyLaunch.tipSwitchProject', 'Switch project')}</span>
             </div>
           </div>
