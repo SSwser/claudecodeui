@@ -1,8 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FolderSearch, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
+import { useProjectInbox } from '../hooks/useProjectInbox';
+import type { ProjectInboxProps } from '../types/types';
+import ProjectInboxHeader from './ProjectInboxHeader';
+import SearchBar from './SearchBar';
+import SessionCard from './SessionCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -10,15 +15,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../ui/dialog';
-import { ScrollArea } from '../../../shared/view/ui';
-import { api } from '../../../utils/api';
-import type { ProjectSession } from '../../../types/app';
-import type { SessionState } from '../../../types/session';
-import { useProjectInbox } from '../hooks/useProjectInbox';
-import type { ProjectInboxProps } from '../types/types';
-import ProjectInboxHeader from './ProjectInboxHeader';
-import SessionCard from './SessionCard';
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/shared/view/ui';
+import { api } from '@/utils/api';
+import type { ProjectSession } from '@/types/app';
+import type { SessionState } from '@/types/session';
 
 function toProjectSession(
   session: SessionState & { workspaceName?: string | null },
@@ -83,7 +84,10 @@ async function deleteInboxSession(projectName: string | undefined, session: Sess
 export default function ProjectInbox({
   projectId,
   projectName,
-  projectDisplayName,
+  projectDisplayName: _projectDisplayName,
+  initialWorkspaceId,
+  searchQuery: controlledSearchQuery,
+  onSearchQueryChange: _onControlledSearchQueryChange,
   onOpenSession,
   onCreateSession,
 }: ProjectInboxProps) {
@@ -92,6 +96,7 @@ export default function ProjectInbox({
     project,
     workspaces,
     sessions,
+    rawSessions,
     isLoading,
     error,
     refresh,
@@ -103,7 +108,16 @@ export default function ProjectInbox({
     setSortOrder,
     selectedWorkspaceId,
     setSelectedWorkspaceId,
-  } = useProjectInbox({ projectId });
+  } = useProjectInbox({ projectId, initialWorkspaceId });
+
+  // Sync controlled search prop (from the ghost search in the header tabs row)
+  // into the hook's internal state so both entry points stay consistent.
+  useEffect(() => {
+    if (controlledSearchQuery !== undefined) {
+      setSearchQuery(controlledSearchQuery);
+    }
+  }, [controlledSearchQuery, setSearchQuery]);
+
   const [actionError, setActionError] = useState<string | null>(null);
   const [renameTarget, setRenameTarget] = useState<
     (SessionState & { workspaceName?: string | null }) | null
@@ -160,11 +174,9 @@ export default function ProjectInbox({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background/70 px-4 py-4 sm:px-5 sm:py-5">
+    <div className="flex h-full min-h-0 flex-col bg-canvas">
       <ProjectInboxHeader
         project={project}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
         sortOrder={sortOrder}
@@ -175,43 +187,56 @@ export default function ProjectInbox({
         onCreateSession={onCreateSession}
       />
 
-      <div className="mt-4 min-h-0 flex-1 rounded-large border border-border/70 bg-card/80 shadow-ring">
+      <div className="min-h-0 flex-1">
         {actionError || error ? (
-          <div className="border-b border-border/70 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <div className="bg-destructive/5 px-5 py-3 text-[11px] text-destructive">
             {actionError || error}
           </div>
         ) : null}
 
+        <div className="border-b border-border-subtle px-5 py-3">
+          <SearchBar
+            projectId={projectId}
+            sessions={rawSessions}
+            onSelectSession={(sessionId, provider) => {
+              const matchedSession = rawSessions.find(
+                (session) => session.sessionId === sessionId && session.provider === provider
+              );
+
+              if (!matchedSession) {
+                return;
+              }
+
+              onOpenSession(toProjectSession(matchedSession, resolvedProjectName));
+            }}
+          />
+        </div>
+
         {isLoading ? (
-          <div className="flex h-full items-center justify-center px-6 py-16 text-sm text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-[13px] text-dim-foreground">
             Loading project inbox...
           </div>
         ) : sessions.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/70 bg-background/90">
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-surface-3 bg-card">
               {searchQuery ? (
-                <FolderSearch className="h-6 w-6 text-muted-foreground" />
+                <FolderSearch className="h-5 w-5 text-dim-foreground" />
               ) : (
-                <Sparkles className="h-6 w-6 text-primary" />
+                <Sparkles className="h-5 w-5 text-workspace-accent" />
               )}
             </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">
-                {searchQuery ? 'No matching sessions' : 'Create your first session'}
-              </h3>
-              <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                {searchQuery
-                  ? 'Try a different title or clear filters to see more project history.'
-                  : 'Your project inbox is empty. Start a fresh session and it will appear here for triage and reopening.'}
-              </p>
-            </div>
-            <Button type="button" onClick={onCreateSession}>
-              {searchQuery ? 'Start a new session instead' : 'Create your first session'}
-            </Button>
+            <h3 className="text-[14px] font-medium text-foreground">
+              {searchQuery ? 'No running sessions' : 'Create your first session'}
+            </h3>
+            <p className="max-w-sm text-[13px] text-dim-foreground">
+              {searchQuery
+                ? 'No sessions match the current filter.\nTry changing the status filter or clear it.'
+                : 'Your project inbox is empty. Start a fresh session and it will appear here for triage and reopening.'}
+            </p>
           </div>
         ) : (
-          <ScrollArea className="h-full px-4 py-4">
-            <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+          <ScrollArea className="h-full">
+            <div className="flex flex-col gap-2 px-5 py-2">
               {sessions.map((session) => (
                 <SessionCard
                   key={`${session.provider}:${session.sessionId}`}

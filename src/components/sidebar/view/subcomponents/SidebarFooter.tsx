@@ -1,4 +1,4 @@
-import { Settings, Plug, ArrowUp } from 'lucide-react';
+import { Settings, Plug } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import type { ReleaseInfo } from '../../../../types/sharedTypes';
 
@@ -24,32 +24,30 @@ export default function SidebarFooter({
 }: SidebarFooterProps) {
   return (
     <div className="flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
-      {/* Update chip — conditional, green (design brief §8) */}
+      {/* Update chip — conditional, h=30px, bg #0a1209 */}
       {updateAvailable && (
         <button
-          className="flex w-full items-center gap-2 bg-[#0a1209] px-4 py-2 text-left text-success transition-colors hover:brightness-110"
+          className="flex h-[30px] w-full items-center justify-between bg-[#0a1209] px-[14px] text-left text-[11px] text-[#5fc992] transition-colors hover:brightness-110"
           onClick={onShowVersionModal}
         >
-          <ArrowUp className="h-3.5 w-3.5" />
-          <span className="text-xs">
-            Update available {latestVersion ? `v${latestVersion}` : ''}
-          </span>
+          <span>↑ Update available {latestVersion ? `v${latestVersion}` : ''}</span>
+          <span>→</span>
         </button>
       )}
 
-      {/* Plugins row — 36px */}
-      <button className="flex h-9 w-full items-center gap-3 px-4 text-[#cecece] transition-colors hover:bg-muted">
+      {/* Plugins row — 36px, gap 5px */}
+      <button className="flex h-9 w-full items-center gap-[5px] px-[14px] text-[#6a6b6c] transition-colors hover:bg-[#0d0e10]">
         <Plug className="h-3.5 w-3.5" />
-        <span className="text-xs">Plugins</span>
+        <span className="text-[12px]">Plugins</span>
       </button>
 
-      {/* Settings row — 36px */}
+      {/* Settings row — 36px, gap 5px */}
       <button
-        className="flex h-9 w-full items-center gap-3 px-4 text-[#cecece] transition-colors hover:bg-muted"
+        className="flex h-9 w-full items-center gap-[5px] px-[14px] text-[#6a6b6c] transition-colors hover:bg-[#0d0e10]"
         onClick={onShowSettings}
       >
         <Settings className="h-3.5 w-3.5" />
-        <span className="text-xs">{t('actions.settings')}</span>
+        <span className="text-[12px]">{t('actions.settings')}</span>
       </button>
     </div>
   );

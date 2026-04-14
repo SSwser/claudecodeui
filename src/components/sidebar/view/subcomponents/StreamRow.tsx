@@ -1,4 +1,4 @@
-import { GitBranch } from 'lucide-react';
+import { Activity, GitBranch } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 
 /**
@@ -64,39 +64,34 @@ export default function StreamRow({
       type="button"
       onClick={onClick}
       className={cn(
-        'group relative flex w-full items-start gap-3 px-4 text-left transition-colors',
-        hasSubtitle ? 'py-2.5' : 'py-2',
-        isSelected ? 'bg-surface-2' : 'hover:bg-muted'
+        'group relative flex w-full items-start gap-[6px] text-left transition-colors',
+        hasSubtitle ? 'px-[14px] py-[6px] pl-3' : 'h-10 px-[14px] pl-3',
+        isSelected ? 'bg-[#101111]' : 'hover:bg-[#0d0e10]'
       )}
     >
-      {/* Selected indicator bar */}
-      {isSelected && (
-        <div className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-brand" />
-      )}
-
-      {/* Status dot — 6×6px */}
+      {/* Status dot — 6×6px, cornerRadius 3 */}
       <span
-        className={cn('mt-[7px] h-1.5 w-1.5 flex-shrink-0 rounded-full', getDotColor(status))}
+        className={cn('mt-[7px] h-1.5 w-1.5 flex-shrink-0 rounded-[3px]', getDotColor(status))}
       />
 
       {/* Content area */}
       <div className="min-w-0 flex-1">
         {/* Top row: name + timestamp/!N */}
         <div className="flex items-center justify-between gap-2">
-          {/* Name: flex-1 + min-w-0 + truncate handles overflow naturally without a pixel hard-stop */}
           <span
             className={cn(
-              'flex-1 truncate text-xs font-medium tracking-[0.2px]',
-              isSelected ? 'text-foreground' : isFresh ? 'text-muted-foreground' : 'text-[#cecece]'
+              'flex-1 truncate text-[12px] tracking-[0.2px]',
+              isSelected
+                ? 'font-medium text-[#cecece]'
+                : isFresh
+                  ? 'text-[#6a6b6c]'
+                  : 'font-medium text-[#cecece]'
             )}
           >
             {name}
           </span>
 
           <div className="flex flex-shrink-0 items-center gap-1.5">
-            {/* !N badge — sessions awaiting user reply.
-                Must be a button (not a span) for keyboard accessibility.
-                Rendered outside the row's main click target via pointer-events. */}
             {waitingCount > 0 && (
               <button
                 type="button"
@@ -111,32 +106,31 @@ export default function StreamRow({
               </button>
             )}
 
-            {/* Timestamp (idle only, top-right) */}
             {!isFresh && status === 'idle' && timestamp && (
-              <span className="text-[11px] text-muted-foreground">{timestamp}</span>
+              <span className="text-[11px] text-[#6a6b6c]">{timestamp}</span>
             )}
           </div>
         </div>
 
         {/* Subtitle row: branch chip + running indicator */}
         {hasSubtitle && (
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              {/* Branch tag — border-only chip */}
+          <div className="mt-1 flex items-center justify-between gap-[5px] pl-3">
+            <div className="flex items-center gap-1">
+              {/* Branch tag — filled chip, no border */}
               {branch && (
                 <span
-                  className="inline-flex max-w-[120px] items-center gap-1 truncate rounded border border-[#434345] bg-muted px-1.5 py-px font-mono text-[11px] text-muted-foreground"
+                  className="inline-flex max-w-[120px] items-center gap-[2px] truncate rounded bg-[#1b1c1e] px-[6px] py-[2px] text-[11px] text-[#9a9b9c]"
                   title={branch}
                 >
-                  <GitBranch className="h-2.5 w-2.5 flex-shrink-0 text-[#434345]" />
+                  <GitBranch className="h-[10px] w-[10px] flex-shrink-0 text-[#434345]" />
                   <span className="truncate">{branch}</span>
                 </span>
               )}
 
-              {/* +N badge for multi-stream collapsed — border matches branch chip for visual consistency */}
+              {/* +N badge — Geist Mono, filled chip */}
               {extraStreamCount != null && extraStreamCount > 0 && (
                 <span
-                  className="inline-flex cursor-pointer items-center rounded border border-[#434345] bg-muted px-1 py-px font-mono text-[11px] text-[#9c9c9d]"
+                  className="inline-flex cursor-pointer items-center rounded bg-[#1c1d20] px-[6px] py-[2px] font-mono text-[11px] font-medium text-[#9a9b9c]"
                   onClick={(e) => {
                     e.stopPropagation();
                     onBadgeClick?.(e);
@@ -147,11 +141,11 @@ export default function StreamRow({
               )}
             </div>
 
-            {/* Running indicator */}
+            {/* Running indicator — activity icon + count */}
             {runningCount > 0 && (
-              <span className="flex items-center gap-1 text-[11px] text-warning">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-warning" />
-                {runningCount} running
+              <span className="flex items-center gap-[2px] text-[10px]">
+                <Activity className="h-[10px] w-[10px] text-[#e5a700]" />
+                <span className="text-[#fbbf24]">{runningCount} running</span>
               </span>
             )}
           </div>

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Archive, Clock3, MoreHorizontal, Pause, Play, Snowflake, Trash2 } from 'lucide-react';
-import { Badge, Button, Tooltip } from '../../../shared/view/ui';
+import { Archive, MoreHorizontal, Pause, Play, Trash2 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import SessionProviderLogo from '../../llm-logo-provider/SessionProviderLogo';
 import { formatTimeAgo } from '../../../utils/dateUtils';
@@ -8,26 +7,43 @@ import { useTranslation } from 'react-i18next';
 import type { SessionCardProps } from '../types/types';
 import { useSessionLifecycle } from '../../../hooks/useSessionLifecycle';
 
+/** Design: accent-bar color + status dot + sub-row text color per lifecycle state */
 const STATUS_META = {
   active: {
     label: 'Active',
-    badgeClass:
-      'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300',
+    accentColor: '#e5a700',
+    dotColor: '#e5a700',
+    subTextColor: '#6a6b6c',
+    subLabel: 'Running',
+    titleColor: '#e8e9ea',
+    timeColor: '#454649',
   },
   frozen: {
     label: 'Frozen',
-    badgeClass:
-      'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300',
+    accentColor: null,
+    dotColor: '#4a6fa5',
+    subTextColor: '#4a6fa5',
+    subLabel: 'Frozen',
+    titleColor: '#9a9b9c',
+    timeColor: '#3a3b3d',
   },
   archived: {
     label: 'Archived',
-    badgeClass:
-      'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300',
+    accentColor: null,
+    dotColor: '#454649',
+    subTextColor: '#6a6b6c',
+    subLabel: 'Archived',
+    titleColor: '#9a9b9c',
+    timeColor: '#3a3b3d',
   },
   deleted: {
     label: 'Deleted',
-    badgeClass:
-      'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300',
+    accentColor: null,
+    dotColor: '#454649',
+    subTextColor: '#6a6b6c',
+    subLabel: 'Deleted',
+    titleColor: '#9a9b9c',
+    timeColor: '#3a3b3d',
   },
 } as const;
 
@@ -44,7 +60,6 @@ export default function SessionCard({
   const { t } = useTranslation('common');
   const now = useMemo(() => new Date(), []);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const longPressTriggeredRef = useRef(false);
   const longPressTimerRef = useRef<number | null>(null);
   const lifecycle = useSessionLifecycle();
@@ -57,125 +72,130 @@ export default function SessionCard({
     };
   }, []);
 
-  const previewText = session.summary || session.title || session.sessionId;
   // Effective status: prefer real-time WS override over prop-derived status
   const effectiveStatus = lifecycle.getStatus(session.sessionId, session.status);
   const statusMeta = STATUS_META[effectiveStatus] || STATUS_META.active;
   const isLoading = lifecycle.loadingIds.has(session.sessionId);
 
-  const openPreview = () => setPreviewOpen(true);
-  const closePreview = () => setPreviewOpen(false);
-
   return (
     <div className="relative">
-      <Tooltip content={previewText} position="top">
-        <div
-          role="button"
-          tabIndex={0}
-          className="group relative rounded-large border border-border/70 bg-card/90 p-4 text-left shadow-subtle transition hover:border-border hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-          onClick={() => {
-            if (longPressTriggeredRef.current) {
-              longPressTriggeredRef.current = false;
-              return;
-            }
-
-            onSelect(session);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              onSelect(session);
-            }
-          }}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            setMenuOpen(true);
-          }}
-          onMouseEnter={openPreview}
-          onMouseLeave={() => {
-            closePreview();
-            setMenuOpen(false);
-          }}
-          onTouchStart={() => {
+      <div
+        role="button"
+        tabIndex={0}
+        className={cn(
+          'group relative flex overflow-hidden rounded-[8px] text-left transition-colors',
+          /* Card fill + multi-shadow from design */
+          'bg-[#131415] shadow-[0_0_0_1px_#1b1c1e,0_0_0_1px_#07080a,0_1px_0_0_rgba(255,255,255,0.05)]',
+          /* Inside stroke */
+          'ring-1 ring-inset ring-[#ffffff0d]',
+          'hover:bg-[#161718] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
+        )}
+        onClick={() => {
+          if (longPressTriggeredRef.current) {
             longPressTriggeredRef.current = false;
-            longPressTimerRef.current = window.setTimeout(() => {
-              longPressTriggeredRef.current = true;
-              setPreviewOpen(true);
-            }, 450);
-          }}
-          onTouchEnd={() => {
-            if (longPressTimerRef.current) {
-              window.clearTimeout(longPressTimerRef.current);
-              longPressTimerRef.current = null;
-            }
-          }}
-          onTouchCancel={() => {
-            if (longPressTimerRef.current) {
-              window.clearTimeout(longPressTimerRef.current);
-              longPressTimerRef.current = null;
-            }
-            closePreview();
-          }}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-large border border-border/70 bg-background/80">
-                  <SessionProviderLogo provider={session.provider} className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-semibold text-foreground">
-                    {session.title || session.summary || t('mainContent.untitledSession')}
-                  </h3>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <Clock3 className="h-3 w-3" />
-                      {formatTimeAgo(session.lastActivity, now, t)}
-                    </span>
-                    {session.workspaceName ? (
-                      <span className="rounded-pill border border-border/70 bg-background/80 px-2 py-0.5 text-[11px] text-muted-foreground">
-                        {session.workspaceName}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
+            return;
+          }
+          onSelect(session);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onSelect(session);
+          }
+        }}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          setMenuOpen(true);
+        }}
+        onMouseLeave={() => setMenuOpen(false)}
+        onTouchStart={() => {
+          longPressTriggeredRef.current = false;
+          longPressTimerRef.current = window.setTimeout(() => {
+            longPressTriggeredRef.current = true;
+          }, 450);
+        }}
+        onTouchEnd={() => {
+          if (longPressTimerRef.current) {
+            window.clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          }
+        }}
+        onTouchCancel={() => {
+          if (longPressTimerRef.current) {
+            window.clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          }
+        }}
+      >
+        {/* Accent bar — only for active (running/waiting) sessions */}
+        {statusMeta.accentColor ? (
+          <div
+            className="w-[3px] flex-shrink-0"
+            style={{ backgroundColor: statusMeta.accentColor }}
+          />
+        ) : null}
 
-              <div className="flex items-center gap-2">
-                <Badge className={cn('px-2 py-0.5 text-[11px] font-medium', statusMeta.badgeClass)}>
-                  {effectiveStatus === 'frozen' ? <Snowflake className="mr-1 h-3 w-3" /> : null}
-                  {statusMeta.label}
-                </Badge>
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  {session.provider}
-                </span>
-              </div>
+        {/* Card content */}
+        <div
+          className={cn(
+            'flex min-w-0 flex-1 flex-col gap-1',
+            statusMeta.accentColor
+              ? 'py-[10px] pl-[11px] pr-[14px]' /* Running/Waiting: offset for accent bar */
+              : 'px-[14px] py-[10px]'
+          )}
+        >
+          {/* Title row */}
+          <div className="flex items-center gap-2">
+            {/* Provider icon + status dot */}
+            <div className="relative h-5 w-5 flex-shrink-0">
+              <SessionProviderLogo provider={session.provider} className="h-4 w-4" />
+              <div
+                className="absolute -bottom-[1px] -right-[1px] h-[7px] w-[7px] rounded-[4px]"
+                style={{ backgroundColor: statusMeta.dotColor }}
+              />
             </div>
 
-            <Button
+            {/* Title */}
+            <span
+              className="min-w-0 flex-1 truncate text-[13px] font-medium"
+              style={{ color: statusMeta.titleColor }}
+            >
+              {session.title || session.summary || t('mainContent.untitledSession')}
+            </span>
+
+            {/* Time */}
+            <span className="flex-shrink-0 text-[11px]" style={{ color: statusMeta.timeColor }}>
+              {formatTimeAgo(session.lastActivity, now, t)}
+            </span>
+
+            {/* Ellipsis menu trigger */}
+            <button
               type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-full"
+              className="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
               onClick={(event) => {
                 event.stopPropagation();
                 setMenuOpen((value) => !value);
               }}
             >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+              <MoreHorizontal className="h-[14px] w-[14px] text-[#3a3b3d]" />
+            </button>
           </div>
 
-          {previewOpen ? (
-            <div className="pointer-events-none absolute left-4 right-4 top-full z-20 mt-2 rounded-large border border-border/70 bg-card/95 p-3 text-sm leading-6 text-muted-foreground shadow-ring">
-              {previewText}
-            </div>
-          ) : null}
+          {/* Sub row — status text */}
+          <div className="pl-[28px]">
+            <span className="text-[11px]" style={{ color: statusMeta.subTextColor }}>
+              {effectiveStatus === 'active'
+                ? session.summary || 'Running...'
+                : effectiveStatus === 'frozen'
+                  ? `Frozen · ${formatTimeAgo(session.lastActivity, now, t)}`
+                  : `${statusMeta.subLabel} · ${formatTimeAgo(session.lastActivity, now, t)}`}
+            </span>
+          </div>
         </div>
-      </Tooltip>
+      </div>
 
       {menuOpen ? (
-        <div className="absolute right-3 top-14 z-30 w-52 rounded-large border border-border/70 bg-card p-1.5 shadow-ring">
+        <div className="absolute right-3 top-10 z-30 w-48 rounded-[8px] border border-[#1b1c1e] bg-[#131415] p-1 shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
           {/* Resume — shown for frozen or archived sessions */}
           {(effectiveStatus === 'frozen' || effectiveStatus === 'archived') && (
             <button
@@ -186,9 +206,9 @@ export default function SessionCard({
                 const success = await lifecycle.resumeSession(session.sessionId);
                 if (success) onResume?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Play className="h-4 w-4" />
+              <Play className="h-3.5 w-3.5 text-[#6a6b6c]" />
               Resume
             </button>
           )}
@@ -203,9 +223,9 @@ export default function SessionCard({
                 const success = await lifecycle.freezeSession(session.sessionId);
                 if (success) onFreeze?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Pause className="h-4 w-4" />
+              <Pause className="h-3.5 w-3.5 text-[#6a6b6c]" />
               Freeze
             </button>
           )}
@@ -220,9 +240,9 @@ export default function SessionCard({
                 const success = await lifecycle.archiveSession(session.sessionId);
                 if (success) onArchive?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Archive className="h-4 w-4" />
+              <Archive className="h-3.5 w-3.5 text-[#6a6b6c]" />
               Archive
             </button>
           )}
@@ -236,9 +256,9 @@ export default function SessionCard({
                 setMenuOpen(false);
                 onRename?.(session);
               }}
-              className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#e8e9ea] transition hover:bg-[#1a1b1e] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="h-3.5 w-3.5 text-[#6a6b6c]" />
               Rename
             </button>
           )}
@@ -252,9 +272,9 @@ export default function SessionCard({
               const success = await lifecycle.deleteSession(session.sessionId);
               if (success) onDelete?.(session);
             }}
-            className="flex w-full items-center gap-2 rounded-medium px-3 py-2 text-left text-sm text-destructive transition hover:bg-destructive/5 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[#FF6363] transition hover:bg-[#2e1a1a] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
             Delete
           </button>
         </div>

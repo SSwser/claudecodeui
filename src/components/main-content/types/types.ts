@@ -83,6 +83,7 @@ export type MainContentHeaderProps = {
   shouldShowTasksTab: boolean;
   isMobile: boolean;
   onMenuClick: () => void;
+  onCreateSession?: () => void;
 };
 
 export type MainContentStateViewProps = {
