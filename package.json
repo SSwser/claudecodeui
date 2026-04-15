@@ -23,19 +23,23 @@
     "url": "https://github.com/siteboon/claudecodeui/issues"
   },
   "scripts": {
-    "dev": "concurrently --kill-others \"npm run dev:server\" \"npm run dev:client\"",
+    "dev": "node scripts/dev.mjs",
     "dev:server": "npm run server",
     "dev:client": "vite --host 127.0.0.1 --port 4000 --strictPort",
     "server": "node server/index.js",
     "client": "vite",
     "build": "vite build",
     "build:tokens": "node .claude/skills/chorus-design/scripts/build-tokens.cjs",
+    "imports:alias": "node scripts/rewrite-import-aliases.cjs",
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
+    "lint:fix:imports": "node scripts/rewrite-import-aliases.cjs --dir src",
+    "lint:fix:imports:staged": "node scripts/rewrite-import-aliases.cjs --staged --restage",
+    "lint:imports": "node scripts/rewrite-import-aliases.cjs --dir src --check",
     "lint:i18n": "node scripts/check-hardcoded-strings.cjs",
     "lint:design-md": "node scripts/check-visual-hardcoded-colors.cjs",
     "test:visual": "playwright test tests/visual/",
@@ -167,6 +171,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs,json,md,css,yml,yaml}": "prettier --write",
     "src/**/*.{ts,tsx,js,jsx}": [
+      "npm run lint:fix:imports:staged --",
       "prettier --write",
       "eslint --fix"
     ]
