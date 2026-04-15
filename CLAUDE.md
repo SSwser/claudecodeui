@@ -1,4 +1,4 @@
-# Chorus — Claude Agent Guide
+# CloudCLI UI — Claude Agent Guide
 
 > See [AGENTS.md](./AGENTS.md) for the full project guide (applies to all AI tools).
 > This file adds Claude Code CLI-specific context only.

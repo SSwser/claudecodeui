@@ -81,7 +81,7 @@ describe('useAppTabs', () => {
     expect(snapshot.activeShellTabId).toBe('');
   });
 
-  it('returns to the home root shell and clears shell state when the last tab closes', async () => {
+  it('returns to landing and clears shell state when the last tab closes', async () => {
     const navigate = vi.fn();
     const onRequestClearSession = vi.fn();
 
@@ -110,7 +110,7 @@ describe('useAppTabs', () => {
       expect(result.current.shellTabs).toHaveLength(0);
     });
 
-    expect(result.current.rootViewMode).toBe('home');
+    expect(result.current.rootViewMode).toBe('landing');
     expect(onRequestClearSession).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenCalledWith('/');
   });

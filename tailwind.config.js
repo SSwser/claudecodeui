@@ -29,22 +29,6 @@ export default {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
-        frozen: {
-          DEFAULT: 'hsl(var(--frozen))',
-        },
-        'label-dim': {
-          DEFAULT: 'hsl(var(--label-dim))',
-        },
-        'user-msg-border': {
-          DEFAULT: 'hsl(var(--user-msg-border))',
-        },
-        'frozen-notice-border': {
-          DEFAULT: 'hsl(var(--frozen-notice-border))',
-        },
-        canvas: 'hsl(var(--canvas))',
-        'border-subtle': 'hsl(var(--border-subtle))',
-        'dim-foreground': 'hsl(var(--dim-foreground))',
-        'workspace-accent': 'hsl(var(--workspace-accent))',
         surface: {
           1: 'hsl(var(--surface-1))',
           2: 'hsl(var(--surface-2))',
@@ -140,7 +124,20 @@ export default {
         code: 'var(--tracking-code)',
       },
       spacing: {
-        // Custom entries only — Tailwind native rem scale covers all standard values.
+        1: 'var(--spacing-1)',
+        2: 'var(--spacing-2)',
+        3: 'var(--spacing-3)',
+        4: 'var(--spacing-4)',
+        5: 'var(--spacing-5)',
+        6: 'var(--spacing-6)',
+        8: 'var(--spacing-8)',
+        10: 'var(--spacing-10)',
+        12: 'var(--spacing-12)',
+        16: 'var(--spacing-16)',
+        20: 'var(--spacing-20)',
+        24: 'var(--spacing-24)',
+        32: 'var(--spacing-32)',
+        40: 'var(--spacing-40)',
         'safe-area-inset-bottom': 'env(safe-area-inset-bottom)',
         'mobile-nav': 'var(--mobile-nav-total)',
       },

@@ -19,11 +19,6 @@
     "tryDifferentSearch": "検索語を変えてお試しください",
     "runClaudeCli": "プロジェクトディレクトリでClaude CLIを実行して始めましょう"
   },
-  "recents": "最近のセッション",
-  "recentsEmpty": "最近のセッションはまだありません",
-  "workspaceIndicator": {
-    "currentWorkspace": "ワークスペース"
-  },
   "app": {
     "title": "Claude Code UI",
     "subtitle": "AIコーディングアシスタント"

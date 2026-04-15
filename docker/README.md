@@ -1,4 +1,4 @@
-# Chorus — Docker Sandbox Templates
+# Claude Code UI — Docker Sandbox Templates
 
 Run AI coding agents with a full web IDE inside [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/).
 
@@ -6,18 +6,18 @@ Instead of a terminal-only experience, get a browser-based interface with chat, 
 
 ## Available Templates
 
-| Template                        | Base Image                             | Agent        |
-| ------------------------------- | -------------------------------------- | ------------ |
-| `chorus-ai/sandbox:claude-code` | `docker/sandbox-templates:claude-code` | Claude Code  |
-| `chorus-ai/sandbox:codex`       | `docker/sandbox-templates:codex`       | OpenAI Codex |
-| `chorus-ai/sandbox:gemini`      | `docker/sandbox-templates:gemini`      | Gemini CLI   |
+| Template | Base Image | Agent |
+|----------|-----------|-------|
+| `cloudcli-ai/sandbox:claude-code` | `docker/sandbox-templates:claude-code` | Claude Code |
+| `cloudcli-ai/sandbox:codex` | `docker/sandbox-templates:codex` | OpenAI Codex |
+| `cloudcli-ai/sandbox:gemini` | `docker/sandbox-templates:gemini` | Gemini CLI |
 
 ## Quick Start
 
 ### 1. Start a sandbox with the template
 
 ```bash
-sbx run --template docker.io/chorus-ai/sandbox:claude-code claude ~/my-project
+sbx run --template docker.io/cloudcli-ai/sandbox:claude-code claude ~/my-project
 ```
 
 ### 2. Forward the UI port
@@ -49,13 +49,13 @@ All Dockerfiles share scripts from `shared/`. Build with the `docker/` directory
 
 ```bash
 # Claude Code variant
-docker build -f docker/claude-code/Dockerfile -t chorus-sandbox:claude-code docker/
+docker build -f docker/claude-code/Dockerfile -t cloudcli-sandbox:claude-code docker/
 
 # Codex variant
-docker build -f docker/codex/Dockerfile -t chorus-sandbox:codex docker/
+docker build -f docker/codex/Dockerfile -t cloudcli-sandbox:codex docker/
 
 # Gemini variant
-docker build -f docker/gemini/Dockerfile -t chorus-sandbox:gemini docker/
+docker build -f docker/gemini/Dockerfile -t cloudcli-sandbox:gemini docker/
 ```
 
 ## How It Works
@@ -63,18 +63,18 @@ docker build -f docker/gemini/Dockerfile -t chorus-sandbox:gemini docker/
 Each template extends Docker's official sandbox base image and adds:
 
 1. **Node.js 22** — Runtime for Claude Code UI
-2. **Chorus** — Installed globally via `npm install -g @anthropic-ai/chorus`
+2. **Claude Code UI** — Installed globally via `npm install -g @cloudcli-ai/cloudcli`
 3. **Auto-start** — The UI server starts in the background when the sandbox shell opens (port 3001)
 
 The agent (Claude Code, Codex, or Gemini) comes from the base image. Claude Code UI connects to it and provides the web interface on top.
 
 ## Configuration
 
-| Environment Variable | Default             | Description              |
-| -------------------- | ------------------- | ------------------------ |
-| `SERVER_PORT`        | `3001`              | Port for the web UI      |
-| `HOST`               | `0.0.0.0`           | Bind address             |
-| `DATABASE_PATH`      | `~/.chorus/auth.db` | SQLite database location |
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `SERVER_PORT` | `3001` | Port for the web UI |
+| `HOST` | `0.0.0.0` | Bind address |
+| `DATABASE_PATH` | `~/.cloudcli/auth.db` | SQLite database location |
 
 ## Network Policies
 

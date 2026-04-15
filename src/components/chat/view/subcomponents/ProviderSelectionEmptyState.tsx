@@ -1,16 +1,16 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import SessionProviderLogo from '@/components/llm-logo-provider/SessionProviderLogo';
-import { Select, type SelectOption } from '@/components/ui/select';
+import SessionProviderLogo from '../../../llm-logo-provider/SessionProviderLogo';
+import { Select, type SelectOption } from '../../../../components/ui/select';
 import {
   CLAUDE_MODELS,
   CURSOR_MODELS,
   CODEX_MODELS,
   GEMINI_MODELS,
-} from '@shared/modelConstants';
-import type { ProjectSession, SessionProvider } from '@/types/app';
-import { NextTaskBanner } from '@/components/task-master';
+} from '../../../../../shared/modelConstants';
+import type { ProjectSession, SessionProvider } from '../../../../types/app';
+import { NextTaskBanner } from '../../../task-master';
 
 type ProviderSelectionEmptyStateProps = {
   selectedSession: ProjectSession | null;

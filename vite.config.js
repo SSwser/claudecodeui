@@ -1,10 +1,6 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { getConnectableHost, normalizeLoopbackHost } from './shared/networkHosts.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
@@ -23,12 +19,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, './src'),
-        '@shared': path.resolve(__dirname, './shared'),
-      },
-    },
     server: {
       host,
       port: parseInt(env.VITE_PORT) || 4000,

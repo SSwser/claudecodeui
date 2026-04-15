@@ -14,8 +14,6 @@ import type { LandingPageData } from '../components/main-content/types/types';
 
 type UseProjectsStateArgs = {
   sessionId?: string;
-  projectId?: string;
-  streamName?: string;
   navigate: NavigateFunction;
   latestMessage: AppSocketMessage | null;
   isMobile: boolean;
@@ -26,51 +24,12 @@ type FetchProjectsOptions = {
   showLoadingState?: boolean;
 };
 
-const isDbBackedProject = (
-  project: Record<string, unknown>
-): project is Record<string, unknown> & { directoryPath: string } => {
-  return typeof project.directoryPath === 'string';
-};
-
-const normalizeProjectRecord = (project: Project): Project => {
-  if (!isDbBackedProject(project as Record<string, unknown>)) {
-    return {
-      ...project,
-      displayName: project.displayName || project.name,
-      fullPath: project.fullPath || project.path || '',
-      path: project.path || project.fullPath || '',
-      directoryPath: project.directoryPath || project.fullPath || project.path || '',
-    };
-  }
-
-  const directoryPath = project.directoryPath || project.fullPath || project.path || '';
-  const displayName =
-    typeof project.displayName === 'string' && project.displayName.trim()
-      ? project.displayName
-      : project.name;
-
-  return {
-    ...project,
-    displayName,
-    fullPath: project.fullPath || directoryPath,
-    path: project.path || directoryPath,
-    directoryPath,
-    gitCommonDir: project.gitCommonDir ?? null,
-    gitBranch: project.gitBranch ?? null,
-    multiWorkspaceEnabled: Boolean(project.multiWorkspaceEnabled),
-    sessions: project.sessions ?? [],
-    codexSessions: project.codexSessions ?? [],
-    cursorSessions: project.cursorSessions ?? [],
-    geminiSessions: project.geminiSessions ?? [],
-  };
-};
-
 const serialize = (value: unknown) => JSON.stringify(value ?? null);
 
 const projectsHaveChanges = (
   prevProjects: Project[],
   nextProjects: Project[],
-  includeExternalSessions: boolean
+  includeExternalSessions: boolean,
 ): boolean => {
   if (prevProjects.length !== nextProjects.length) {
     return true;
@@ -119,12 +78,7 @@ const getSessionDisplayName = (session: ProjectSession): string =>
   String(session.summary || session.name || session.title || 'Untitled Session');
 
 const getSessionActivityDate = (session: ProjectSession): Date => {
-  const candidates = [
-    session.lastActivity,
-    session.updated_at,
-    session.createdAt,
-    session.created_at,
-  ];
+  const candidates = [session.lastActivity, session.updated_at, session.createdAt, session.created_at];
   const first = candidates.find((value) => typeof value === 'string' && value.length > 0);
   const parsed = first ? new Date(first) : new Date(0);
   return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
@@ -135,7 +89,10 @@ const splitPathSegments = (pathValue?: string): string[] => {
     return [];
   }
 
-  return pathValue.replace(/\\/g, '/').split('/').filter(Boolean);
+  return pathValue
+    .replace(/\\/g, '/')
+    .split('/')
+    .filter(Boolean);
 };
 
 const getWorkspaceLabel = (project: Project): string => {
@@ -169,28 +126,24 @@ const isUpdateAdditive = (
   currentProjects: Project[],
   updatedProjects: Project[],
   selectedProject: Project | null,
-  selectedSession: ProjectSession | null
+  selectedSession: ProjectSession | null,
 ): boolean => {
   if (!selectedProject || !selectedSession) {
     return true;
   }
 
-  const currentSelectedProject = currentProjects.find(
-    (project) => project.name === selectedProject.name
-  );
-  const updatedSelectedProject = updatedProjects.find(
-    (project) => project.name === selectedProject.name
-  );
+  const currentSelectedProject = currentProjects.find((project) => project.name === selectedProject.name);
+  const updatedSelectedProject = updatedProjects.find((project) => project.name === selectedProject.name);
 
   if (!currentSelectedProject || !updatedSelectedProject) {
     return false;
   }
 
   const currentSelectedSession = getProjectSessions(currentSelectedProject).find(
-    (session) => session.id === selectedSession.id
+    (session) => session.id === selectedSession.id,
   );
   const updatedSelectedSession = getProjectSessions(updatedSelectedProject).find(
-    (session) => session.id === selectedSession.id
+    (session) => session.id === selectedSession.id,
   );
 
   if (!currentSelectedSession || !updatedSelectedSession) {
@@ -225,8 +178,6 @@ const readPersistedTab = (): AppTab => {
 
 export function useProjectsState({
   sessionId,
-  projectId,
-  streamName,
   navigate,
   latestMessage,
   isMobile,
@@ -244,19 +195,6 @@ export function useProjectsState({
   const [selectedSession, setSelectedSession] = useState<ProjectSession | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>(readPersistedTab);
 
-  // Guard: only run the startup redirect once so subsequent navigations aren't cleared.
-  const startupRedirectDoneRef = useRef(false);
-
-  // When 'landing' startup behavior is active, redirect away from any persisted project/session
-  // URL so the user always opens to the empty landing state rather than the last viewed project.
-  useEffect(() => {
-    if (startupRedirectDoneRef.current) return;
-    startupRedirectDoneRef.current = true;
-    if (homePreferences.startupBehavior === 'landing' && (projectId || sessionId)) {
-      navigate('/');
-    }
-  }, [homePreferences.startupBehavior, navigate, projectId, sessionId]);
-
   useEffect(() => {
     try {
       localStorage.setItem('activeTab', activeTab);
@@ -269,56 +207,6 @@ export function useProjectsState({
     recordOpenContext(selectedProject?.name || null, selectedSession?.id || null);
   }, [recordOpenContext, selectedProject?.name, selectedSession?.id]);
 
-  const getProjectRoute = useCallback((project: Project | null) => {
-    if (!project?.id) {
-      return '/';
-    }
-
-    if (project.name) {
-      return `/project/${project.id}/${encodeURIComponent(project.name)}`;
-    }
-
-    return `/project/${project.id}`;
-  }, []);
-
-  useEffect(() => {
-    if (sessionId) {
-      return;
-    }
-
-    if (!projectId) {
-      if (selectedSession) {
-        setSelectedSession(null);
-      }
-      return;
-    }
-
-    const normalizedProjectId = Number(projectId);
-    if (!Number.isInteger(normalizedProjectId)) {
-      return;
-    }
-
-    const matchedProject =
-      (streamName
-        ? projects.find(
-            (project) => project.id === normalizedProjectId && project.name === streamName
-          )
-        : null) ||
-      projects.find((project) => project.id === normalizedProjectId) ||
-      null;
-    if (!matchedProject) {
-      return;
-    }
-
-    if (selectedProject !== matchedProject) {
-      setSelectedProject(matchedProject);
-    }
-
-    if (selectedSession) {
-      setSelectedSession(null);
-    }
-  }, [projectId, projects, selectedProject, selectedSession, sessionId, streamName]);
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState<LoadingProgress | null>(null);
@@ -329,32 +217,31 @@ export function useProjectsState({
 
   const loadingProgressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchProjects = useCallback(
-    async ({ showLoadingState = true }: FetchProjectsOptions = {}) => {
-      try {
-        if (showLoadingState) {
-          setIsLoadingProjects(true);
-        }
-        const response = await api.projects();
-        const projectData = ((await response.json()) as Project[]).map(normalizeProjectRecord);
-
-        setProjects((prevProjects) => {
-          if (prevProjects.length === 0) {
-            return projectData;
-          }
-
-          return projectsHaveChanges(prevProjects, projectData, true) ? projectData : prevProjects;
-        });
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      } finally {
-        if (showLoadingState) {
-          setIsLoadingProjects(false);
-        }
+  const fetchProjects = useCallback(async ({ showLoadingState = true }: FetchProjectsOptions = {}) => {
+    try {
+      if (showLoadingState) {
+        setIsLoadingProjects(true);
       }
-    },
-    []
-  );
+      const response = await api.projects();
+      const projectData = (await response.json()) as Project[];
+
+      setProjects((prevProjects) => {
+        if (prevProjects.length === 0) {
+          return projectData;
+        }
+
+        return projectsHaveChanges(prevProjects, projectData, true)
+          ? projectData
+          : prevProjects;
+      });
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    } finally {
+      if (showLoadingState) {
+        setIsLoadingProjects(false);
+      }
+    }
+  }, []);
 
   const refreshProjectsSilently = useCallback(async () => {
     // Keep chat view stable while still syncing sidebar/session metadata in background.
@@ -370,19 +257,12 @@ export function useProjectsState({
     void fetchProjects();
   }, [fetchProjects]);
 
-  // Auto-select the project when there is only one, so the user lands on the new session page.
-  // Skipped when 'landing' startup behavior is active — the user should start at empty state.
+  // Auto-select the project when there is only one, so the user lands on the new session page
   useEffect(() => {
-    if (
-      !isLoadingProjects &&
-      projects.length === 1 &&
-      !selectedProject &&
-      !sessionId &&
-      homePreferences.startupBehavior !== 'landing'
-    ) {
+    if (!isLoadingProjects && projects.length === 1 && !selectedProject && !sessionId) {
       setSelectedProject(projects[0]);
     }
-  }, [isLoadingProjects, projects, selectedProject, sessionId, homePreferences.startupBehavior]);
+  }, [isLoadingProjects, projects, selectedProject, sessionId]);
 
   useEffect(() => {
     if (!latestMessage) {
@@ -433,8 +313,7 @@ export function useProjectsState({
 
     const hasActiveSession =
       (selectedSession && activeSessions.has(selectedSession.id)) ||
-      (activeSessions.size > 0 &&
-        Array.from(activeSessions).some((id) => id.startsWith('new-session-')));
+      (activeSessions.size > 0 && Array.from(activeSessions).some((id) => id.startsWith('new-session-')));
 
     const updatedProjects = projectsMessage.projects;
 
@@ -452,7 +331,7 @@ export function useProjectsState({
     }
 
     const updatedSelectedProject = updatedProjects.find(
-      (project) => project.name === selectedProject.name
+      (project) => project.name === selectedProject.name,
     );
 
     if (!updatedSelectedProject) {
@@ -468,7 +347,7 @@ export function useProjectsState({
     }
 
     const updatedSelectedSession = getProjectSessions(updatedSelectedProject).find(
-      (session) => session.id === selectedSession.id
+      (session) => session.id === selectedSession.id,
     );
 
     if (!updatedSelectedSession) {
@@ -551,26 +430,19 @@ export function useProjectsState({
         return;
       }
     }
-  }, [
-    sessionId,
-    projects,
-    selectedProject?.name,
-    selectedSession?.id,
-    selectedSession?.__provider,
-  ]);
+  }, [sessionId, projects, selectedProject?.name, selectedSession?.id, selectedSession?.__provider]);
 
   const handleProjectSelect = useCallback(
     (project: Project) => {
       setSelectedProject(project);
       setSelectedSession(null);
-      setActiveTab('chat');
-      navigate(getProjectRoute(project));
+      navigate('/');
 
       if (isMobile) {
         setSidebarOpen(false);
       }
     },
-    [getProjectRoute, isMobile, navigate]
+    [isMobile, navigate],
   );
 
   const handleSessionSelect = useCallback(
@@ -597,7 +469,7 @@ export function useProjectsState({
 
       navigate(`/session/${session.id}`);
     },
-    [activeTab, isMobile, navigate, selectedProject?.name]
+    [activeTab, isMobile, navigate, selectedProject?.name],
   );
 
   const handleNewSession = useCallback(
@@ -605,20 +477,20 @@ export function useProjectsState({
       setSelectedProject(project);
       setSelectedSession(null);
       setActiveTab('chat');
-      navigate(getProjectRoute(project));
+      navigate('/');
 
       if (isMobile) {
         setSidebarOpen(false);
       }
     },
-    [getProjectRoute, isMobile, navigate]
+    [isMobile, navigate],
   );
 
   const handleSessionDelete = useCallback(
     (sessionIdToDelete: string) => {
       if (selectedSession?.id === sessionIdToDelete) {
         setSelectedSession(null);
-        navigate(getProjectRoute(selectedProject));
+        navigate('/');
       }
 
       setProjects((prevProjects) =>
@@ -627,12 +499,12 @@ export function useProjectsState({
           sessions: project.sessions?.filter((session) => session.id !== sessionIdToDelete) ?? [],
           sessionMeta: {
             ...project.sessionMeta,
-            total: Math.max(0, ((project.sessionMeta?.total as number | undefined) ?? 0) - 1),
+            total: Math.max(0, (project.sessionMeta?.total as number | undefined ?? 0) - 1),
           },
-        }))
+        })),
       );
     },
-    [getProjectRoute, navigate, selectedProject, selectedSession?.id]
+    [navigate, selectedSession?.id],
   );
 
   const handleSidebarRefresh = useCallback(async () => {
@@ -641,16 +513,14 @@ export function useProjectsState({
       const freshProjects = (await response.json()) as Project[];
 
       setProjects((prevProjects) =>
-        projectsHaveChanges(prevProjects, freshProjects, true) ? freshProjects : prevProjects
+        projectsHaveChanges(prevProjects, freshProjects, true) ? freshProjects : prevProjects,
       );
 
       if (!selectedProject) {
         return;
       }
 
-      const refreshedProject = freshProjects.find(
-        (project) => project.name === selectedProject.name
-      );
+      const refreshedProject = freshProjects.find((project) => project.name === selectedProject.name);
       if (!refreshedProject) {
         return;
       }
@@ -664,7 +534,7 @@ export function useProjectsState({
       }
 
       const refreshedSession = getProjectSessions(refreshedProject).find(
-        (session) => session.id === selectedSession.id
+        (session) => session.id === selectedSession.id,
       );
 
       if (refreshedSession) {
@@ -693,7 +563,7 @@ export function useProjectsState({
 
       setProjects((prevProjects) => prevProjects.filter((project) => project.name !== projectName));
     },
-    [navigate, selectedProject?.name]
+    [navigate, selectedProject?.name],
   );
 
   const clearSelectedSessionSelection = useCallback(() => {
@@ -704,8 +574,11 @@ export function useProjectsState({
     () => ({
       projects,
       selectedProject,
+      selectedSession,
       onProjectSelect: handleProjectSelect,
-      onOpenSession: handleSessionSelect,
+      onSessionSelect: handleSessionSelect,
+      onNewSession: handleNewSession,
+      onSessionDelete: handleSessionDelete,
       onProjectDelete: handleProjectDelete,
       isLoading: isLoadingProjects,
       loadingProgress,
@@ -717,8 +590,10 @@ export function useProjectsState({
       isMobile,
     }),
     [
+      handleNewSession,
       handleProjectDelete,
       handleProjectSelect,
+      handleSessionDelete,
       handleSessionSelect,
       handleSidebarRefresh,
       isLoadingProjects,
@@ -727,16 +602,16 @@ export function useProjectsState({
       projects,
       settingsInitialTab,
       selectedProject,
+      selectedSession,
       showSettings,
-    ]
+    ],
   );
 
   const allHomeSessions = useMemo(() => {
     return projects.flatMap((project) =>
       getProjectSessions(project).map((session) => {
         const activityDate = getSessionActivityDate(session);
-        const isActive =
-          activeSessions.has(session.id) || Date.now() - activityDate.getTime() < 10 * 60 * 1000;
+        const isActive = activeSessions.has(session.id) || Date.now() - activityDate.getTime() < 10 * 60 * 1000;
         const projectGroup = getProjectGroupLabel(project);
         const workspaceLabel = getWorkspaceLabel(project);
 
@@ -754,26 +629,24 @@ export function useProjectsState({
           lastActivityDate: activityDate,
           lastActivityLabel: formatRelativeActivity(activityDate),
         };
-      })
+      }),
     );
   }, [activeSessions, projects]);
 
-  const projectOptions = useMemo(() => {
-    const groups = Array.from(
-      new Set(projects.map((project) => getProjectGroupLabel(project)))
-    ).sort((left, right) => left.localeCompare(right));
+  const projectOptions = useMemo(
+    () => {
+      const groups = Array.from(new Set(projects.map((project) => getProjectGroupLabel(project)))).sort((left, right) =>
+        left.localeCompare(right),
+      );
 
-    return [
-      { value: 'all', label: 'All projects' },
-      ...groups.map((group) => ({ value: group, label: group })),
-    ];
-  }, [projects]);
+      return [{ value: 'all', label: 'All projects' }, ...groups.map((group) => ({ value: group, label: group }))];
+    },
+    [projects],
+  );
 
   const workspaceOptions = useMemo(() => {
     const matchingProjects = homePreferences.filters.project
-      ? projects.filter(
-          (project) => getProjectGroupLabel(project) === homePreferences.filters.project
-        )
+      ? projects.filter((project) => getProjectGroupLabel(project) === homePreferences.filters.project)
       : projects;
 
     return [
@@ -785,23 +658,13 @@ export function useProjectsState({
   }, [homePreferences.filters.project, projects]);
 
   const favoriteWorkspaceSet = useMemo(
-    () =>
-      new Set(
-        homePreferences.favorites
-          .filter((favorite) => favorite.kind === 'workspace')
-          .map((favorite) => favorite.projectName)
-      ),
-    [homePreferences.favorites]
+    () => new Set(homePreferences.favorites.filter((favorite) => favorite.kind === 'workspace').map((favorite) => favorite.projectName)),
+    [homePreferences.favorites],
   );
 
   const favoriteSessionSet = useMemo(
-    () =>
-      new Set(
-        homePreferences.favorites
-          .filter((favorite) => favorite.kind === 'session')
-          .map((favorite) => favorite.sessionId)
-      ),
-    [homePreferences.favorites]
+    () => new Set(homePreferences.favorites.filter((favorite) => favorite.kind === 'session').map((favorite) => favorite.sessionId)),
+    [homePreferences.favorites],
   );
 
   const favoriteWorkspaces = useMemo(() => {
@@ -842,26 +705,17 @@ export function useProjectsState({
 
     return allHomeSessions
       .filter((session) => {
-        if (
-          homePreferences.filters.project &&
-          session.projectName !== homePreferences.filters.project
-        ) {
+        if (homePreferences.filters.project && session.projectName !== homePreferences.filters.project) {
           if (session.projectGroup !== homePreferences.filters.project) {
             return false;
           }
         }
 
-        if (
-          homePreferences.filters.workspace &&
-          session.projectName !== homePreferences.filters.workspace
-        ) {
+        if (homePreferences.filters.workspace && session.projectName !== homePreferences.filters.workspace) {
           return false;
         }
 
-        if (
-          homePreferences.filters.sessionType !== 'all' &&
-          session.provider !== homePreferences.filters.sessionType
-        ) {
+        if (homePreferences.filters.sessionType !== 'all' && session.provider !== homePreferences.filters.sessionType) {
           return false;
         }
 
@@ -891,7 +745,6 @@ export function useProjectsState({
 
   const landingPageData = useMemo<LandingPageData>(
     () => ({
-      projectCount: projects.length,
       filters: {
         search: homePreferences.filters.search,
         project: homePreferences.filters.project,
@@ -904,15 +757,7 @@ export function useProjectsState({
       projectOptions,
       workspaceOptions,
     }),
-    [
-      favoriteSessions,
-      favoriteWorkspaces,
-      filteredRecentSessions,
-      homePreferences.filters,
-      projects.length,
-      projectOptions,
-      workspaceOptions,
-    ]
+    [favoriteSessions, favoriteWorkspaces, filteredRecentSessions, homePreferences.filters, projectOptions, workspaceOptions],
   );
 
   return {
@@ -938,16 +783,11 @@ export function useProjectsState({
     lastOpenedSessionId: homePreferences.lastOpenedSessionId,
     landingPageData,
     setLandingSearch: (value: string) => setHomeFilters({ search: value }),
-    setLandingProjectFilter: (value: string | null) =>
-      setHomeFilters({ project: value, workspace: null }),
+    setLandingProjectFilter: (value: string | null) => setHomeFilters({ project: value, workspace: null }),
     setLandingWorkspaceFilter: (value: string | null) => setHomeFilters({ workspace: value }),
-    setLandingSessionTypeFilter: (value: string) =>
-      setHomeFilters({ sessionType: value as typeof homePreferences.filters.sessionType }),
-    toggleWorkspaceFavoriteByProjectName: (
-      projectName: string,
-      displayName: string,
-      path?: string
-    ) => toggleWorkspaceFavorite({ projectName, displayName, path }),
+    setLandingSessionTypeFilter: (value: string) => setHomeFilters({ sessionType: value as typeof homePreferences.filters.sessionType }),
+    toggleWorkspaceFavoriteByProjectName: (projectName: string, displayName: string, path?: string) =>
+      toggleWorkspaceFavorite({ projectName, displayName, path }),
     toggleSessionFavoriteById: (sessionId: string) => {
       const session = allHomeSessions.find((entry) => entry.sessionId === sessionId);
       if (!session) {

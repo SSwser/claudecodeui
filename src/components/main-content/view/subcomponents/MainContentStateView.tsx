@@ -1,6 +1,6 @@
-import { FolderPlus, GitFork } from 'lucide-react';
+import { Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import GlobalRecentsSection from '../../../home/view/GlobalRecentsSection';
+import LandingPage from '../../../home/view/LandingPage';
 import AppLoadingScreen from '../../../../shared/view/ui/AppLoadingScreen';
 import type { MainContentStateViewProps } from '../../types/types';
 import MobileMenuButton from './MobileMenuButton';
@@ -9,7 +9,6 @@ export default function MainContentStateView({
   mode,
   isMobile,
   onMenuClick,
-  onCreateProject,
   landingPageData,
   onLandingFiltersChange,
   onLandingActions,
@@ -26,12 +25,19 @@ export default function MainContentStateView({
             <MobileMenuButton onMenuClick={onMenuClick} compact />
           </div>
         )}
-        <GlobalRecentsSection
-          data={landingPageData}
+
+        <LandingPage
+          viewModel={landingPageData}
+          onSearchChange={onLandingFiltersChange.onSearchChange}
+          onProjectChange={onLandingFiltersChange.onProjectChange}
+          onWorkspaceChange={onLandingFiltersChange.onWorkspaceChange}
+          onSessionTypeChange={onLandingFiltersChange.onSessionTypeChange}
+          onOpenWorkspace={onLandingActions.onOpenWorkspace}
           onOpenSession={onLandingActions.onOpenSession}
+          onToggleWorkspaceFavorite={onLandingActions.onToggleWorkspaceFavorite}
           onToggleSessionFavorite={onLandingActions.onToggleSessionFavorite}
-          onCreateProject={onLandingActions.onCreateWorkspace}
           onCreateSession={onLandingActions.onCreateSession}
+          onCreateWorkspace={onLandingActions.onCreateWorkspace}
         />
       </div>
     );
@@ -52,67 +58,24 @@ export default function MainContentStateView({
           fullScreen={false}
         />
       ) : (
-        <div className="flex flex-1 items-center justify-center bg-background">
-          <div className="flex flex-col items-center gap-7">
-            {/* App icon — matches Pencil "App — Empty Launch" hero */}
-            <div
-              className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-workspace-accent"
-              style={{ boxShadow: '0 4px 20px rgba(255, 99, 99, 0.2)' }}
-            />
-
-            <div className="flex flex-col items-center gap-2">
-              <h1 className="text-[28px] font-bold text-foreground">Chorus</h1>
-              <p className="text-[15px] text-muted-foreground">
-                {t('emptyLaunch.subtitle', 'All your AI agents. One command surface.')}
+        <div className="flex flex-1 items-center justify-center">
+          <div className="mx-auto max-w-md px-6 text-center">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50">
+              <Folder className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <h2 className="mb-2 text-xl font-semibold text-foreground">
+              {t('mainContent.chooseProject')}
+            </h2>
+            <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
+              {t('mainContent.selectProjectDescription')}
+            </p>
+            <div className="rounded-xl border border-primary/10 bg-primary/5 p-3.5">
+              <p className="text-sm text-primary">
+                <strong>{t('mainContent.tip')}:</strong>{' '}
+                {isMobile
+                  ? t('mainContent.createProjectMobile')
+                  : t('mainContent.createProjectDesktop')}
               </p>
-            </div>
-
-            {/* CTA cards */}
-            <div className="flex gap-4">
-              <button
-                onClick={onCreateProject}
-                className="flex w-60 flex-col gap-2.5 rounded-[10px] border border-white/[0.06] bg-card p-5 text-left transition-colors hover:border-white/10 hover:bg-surface-3"
-                style={{
-                  boxShadow: '0 0 0 1px hsl(var(--surface-3)), 0 1px 0 0 rgba(255, 255, 255, 0.05)',
-                }}
-              >
-                <FolderPlus className="h-6 w-6 text-workspace-accent" />
-                <span className="text-[15px] font-semibold text-foreground">
-                  {t('emptyLaunch.newProject', 'New Project')}
-                </span>
-                <span className="text-xs leading-relaxed text-muted-foreground">
-                  {t('emptyLaunch.newProjectDesc', 'Create a new project from a local folder')}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {t('emptyLaunch.browse', 'Browse →')}
-                </span>
-              </button>
-
-              <button
-                disabled
-                className="flex w-60 cursor-not-allowed flex-col gap-2.5 rounded-[10px] border border-white/[0.06] bg-card p-5 text-left opacity-50"
-                style={{
-                  boxShadow: '0 0 0 1px hsl(var(--surface-3)), 0 1px 0 0 rgba(255, 255, 255, 0.05)',
-                }}
-              >
-                <GitFork className="h-6 w-6 text-workspace-accent" />
-                <span className="text-[15px] font-semibold text-foreground">
-                  {t('emptyLaunch.cloneRepo', 'Clone Repository')}
-                </span>
-                <span className="text-xs leading-relaxed text-muted-foreground">
-                  {t('emptyLaunch.cloneRepoDesc', 'Clone a git repo and open it as a new project')}
-                </span>
-                <span className="text-xs text-muted-foreground">{t('emptyLaunch.start', 'Start →')}</span>
-              </button>
-            </div>
-
-            {/* Keyboard shortcut tips */}
-            <div className="flex items-center gap-3 text-xs text-label-dim">
-              <span>⌘K {t('emptyLaunch.tipQuickOpen', 'Quick open')}</span>
-              <div className="h-3.5 w-px bg-label-dim" />
-              <span>⌘N {t('emptyLaunch.tipNewSession', 'New session')}</span>
-              <div className="h-3.5 w-px bg-label-dim" />
-              <span>⌘P {t('emptyLaunch.tipSwitchProject', 'Switch project')}</span>
             </div>
           </div>
         </div>

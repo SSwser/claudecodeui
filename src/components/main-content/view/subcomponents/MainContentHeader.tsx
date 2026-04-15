@@ -1,9 +1,8 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { Plus, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { MainContentHeaderProps } from '@/components/main-content/types/types';
+import type { MainContentHeaderProps } from '../../types/types';
 import MobileMenuButton from './MobileMenuButton';
 import MainContentTabSwitcher from './MainContentTabSwitcher';
+import MainContentTitle from './MainContentTitle';
 
 export default function MainContentHeader({
   activeTab,
@@ -13,11 +12,6 @@ export default function MainContentHeader({
   shouldShowTasksTab,
   isMobile,
   onMenuClick,
-  onCreateSession,
-  runningCount = 0,
-  waitingCount = 0,
-  searchQuery = '',
-  onSearchQueryChange,
 }: MainContentHeaderProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -40,62 +34,21 @@ export default function MainContentHeader({
   }, [updateScrollState]);
 
   return (
-    <div className="flex-shrink-0 bg-card">
-      {/* PV/Header — 52px */}
-      <div className="flex h-[52px] items-center gap-3 border-b border-surface-3 px-5">
-        {isMobile && <MobileMenuButton onMenuClick={onMenuClick} />}
+    <div className="pwa-header-safe flex-shrink-0 border-b border-border/60 bg-background px-3 py-1.5 sm:px-4 sm:py-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {isMobile && <MobileMenuButton onMenuClick={onMenuClick} />}
+          <MainContentTitle
+            activeTab={activeTab}
+            selectedProject={selectedProject}
+            selectedSession={selectedSession}
+            shouldShowTasksTab={shouldShowTasksTab}
+          />
+        </div>
 
-        {/* Project icon */}
-        <div className="h-5 w-5 flex-shrink-0 rounded-[4px] bg-workspace-accent" />
-
-        {/* Project / session name */}
-        <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-foreground">
-          {selectedSession
-            ? (selectedSession.summary as string) || 'New Session'
-            : selectedProject.displayName}
-        </span>
-
-        {/* Change A: status pills — project view only, shown when there is activity */}
-        {!selectedSession && (runningCount > 0 || waitingCount > 0) && (
-          <div className="flex flex-shrink-0 items-center gap-[6px] rounded-[5px] bg-surface-elevated px-[10px] py-[3px]">
-            {runningCount > 0 && (
-              <>
-                <span className="h-[6px] w-[6px] rounded-full bg-warning" />
-                <span className="text-[11px] font-medium leading-none text-warning">
-                  {runningCount}
-                </span>
-              </>
-            )}
-            {runningCount > 0 && waitingCount > 0 && <div className="h-[10px] w-px bg-surface-3" />}
-            {waitingCount > 0 && (
-              <>
-                <span className="h-[6px] w-[6px] rounded-full bg-brand" />
-                <span className="text-[11px] font-medium leading-none text-brand">
-                  {waitingCount}
-                </span>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* + New Session button — project view only */}
-        {!selectedSession && onCreateSession && (
-          <button
-            type="button"
-            onClick={onCreateSession}
-            className="flex flex-shrink-0 items-center gap-1.5 rounded-[6px] bg-secondary px-[14px] py-[6px] text-[12px] font-medium text-muted-foreground transition-colors hover:bg-border"
-          >
-            <Plus className="h-3 w-3" />
-            New Session
-          </button>
-        )}
-      </div>
-
-      {/* PV/Tabs — 44px */}
-      <div className="flex h-[44px] items-center border-b border-surface-3 px-5">
-        <div className="relative min-w-0 flex-1 overflow-hidden">
+        <div className="relative min-w-0 flex-shrink overflow-hidden sm:flex-shrink-0">
           {canScrollLeft && (
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-canvas to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-background to-transparent" />
           )}
           <div
             ref={scrollRef}
@@ -106,41 +59,12 @@ export default function MainContentHeader({
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               shouldShowTasksTab={shouldShowTasksTab}
-              isProjectView={!selectedSession}
             />
           </div>
           {canScrollRight && (
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-canvas to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-background to-transparent" />
           )}
         </div>
-
-        {/* Change B: ghost search — project view, Sessions tab only */}
-        {!selectedSession && activeTab === 'chat' && (
-          <label
-            className={cn(
-              'ml-2 flex flex-shrink-0 cursor-text items-center gap-1.5 rounded-[6px] px-[10px] py-[6px] transition-all',
-              searchQuery ? 'bg-surface-elevated ring-1 ring-border' : 'hover:bg-surface-3/50'
-            )}
-          >
-            <Search
-              className={cn(
-                'h-[13px] w-[13px] flex-shrink-0 transition-colors',
-                searchQuery ? 'text-foreground' : 'text-label-dim'
-              )}
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchQueryChange?.(e.target.value)}
-              placeholder="Search sessions…"
-              className={cn(
-                'border-none bg-transparent text-[12px] text-foreground outline-none transition-[width] duration-200 ease-out',
-                'placeholder:text-label-dim',
-                searchQuery ? 'w-[200px]' : 'w-[140px] focus:w-[200px]'
-              )}
-            />
-          </label>
-        )}
       </div>
     </div>
   );

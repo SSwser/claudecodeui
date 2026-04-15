@@ -1,4 +1,4 @@
-# Chorus — Agent Instructions
+# ClaudecodeUI — Agent Instructions
 
 > Universal agent instruction file. Applies to all AI coding tools:
 > Claude Code, GitHub Copilot, Cursor, Gemini CLI, and others.
@@ -10,7 +10,7 @@
 
 ## Project Overview
 
-Chorus is a cloud-native AI work orchestration platform. It provides project management, file editing, git integration, and real-time terminal output — all running as a local Express + React app.
+ClaudecodeUI is a browser-based UI for managing Claude Code sessions. It provides project management, file editing, git integration, and real-time terminal output — all running as a local Express + React app.
 
 ## Tech Stack
 
@@ -195,7 +195,7 @@ Always use the current working directory (the worktree) for all file reads and e
 ### Token System
 
 - **Single source of truth**: `design/tokens.json` — all Pencil hex ↔ CSS token ↔ Tailwind class mappings
-- **Reference table**: `design/TOKENS.md` — auto-generated from `tokens.json`; run `npm run build:tokens` to regenerate; never edit manually
+- **Reference table**: `design/TOKENS.md` — auto-generated session context artifact; run `npm run build:tokens` to regenerate; never edit manually
 - **CSS variables**: `src/index.css` — HSL-based, dual theme (`:root` light + `.dark`)
 - **Tailwind bridge**: `tailwind.config.js` — maps CSS vars to utilities via `hsl(var(--xxx))`
 
@@ -206,61 +206,17 @@ When adding or changing a design token:
 3. If new token, add Tailwind mapping in `tailwind.config.js`
 4. Run `npm run build:tokens` to regenerate `TOKENS.md`
 
-### Token Layer Architecture
-
-This project uses **two parallel token layers** that serve different consumers. Writing business component code requires knowing which layer to use.
-
-#### Layer Definitions
-
-| Layer                  | CSS Variables                                                                                           | Tailwind Classes                                                              | Use In                                                                    |
-| ---------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| **shadcn Alias Layer** | `--card`, `--popover`, `--secondary`, `--accent`                                                        | `bg-card`, `bg-popover`, `bg-secondary`, `bg-accent`                          | shadcn built-in components only (Dialog, Popover, DropdownMenu, Tooltip…) |
-| **App Semantic Layer** | `--surface-1/2/3`, `--surface-elevated`, `--brand`, `--warning`, `--frozen`, `--success`, `--label-dim` | `bg-surface-2`, `text-brand`, `bg-warning`, `bg-frozen`, `text-label-dim`…    | **Business components** — use these                                       |
-| **Core Layer**         | `--background`, `--foreground`, `--border`, `--muted`, `--muted-foreground`, `--ring`, `--input`        | `bg-background`, `text-foreground`, `border-border`, `text-muted-foreground`… | Both layers                                                               |
-
-#### Rule for Business Components
-
-> **Business component code MUST only use App Semantic Layer + Core Layer.**
-> Do NOT write `bg-card`, `bg-secondary`, `bg-accent`, or `bg-popover` in business component files.
-
-**Correct:**
-
-```tsx
-<div className="bg-surface-2 text-foreground border-border">  // ✅ App Semantic + Core
-<span className="text-muted-foreground">...</span>            // ✅ Core
-<div className={cn('bg-warning', isActive && 'text-foreground')}>  // ✅
-```
-
-**Incorrect:**
-
-```tsx
-<div className="bg-card text-foreground">   // ❌ shadcn alias in business code
-<div className="bg-secondary">              // ❌
-<div style={{ backgroundColor: '#e5a700' }}>  // ❌ hardcoded hex
-```
-
-#### Why Two Layers Coexist
-
-In dark mode, `--card` and `--surface-2` currently map to the same HSL value — but they serve different semantic purposes. Removing `--card` would break shadcn's Dialog and Popover internal styles. Do NOT delete the shadcn alias layer.
-
-#### Adding New Tokens
-
-Follow the three-file pipeline: `design/tokens.json` → `src/index.css` → `tailwind.config.js`, then `npm run tokens:build`.
-See the "Token System" section above for the step-by-step procedure.
-
 ### Canvas Node Index
 
-- **Single source of truth**: `design/main.pen.index` — all Pencil node IDs, frame statuses, component variant IDs, and brief cross-references
-- **Reference view**: `design/CANVAS-MAP.md` — auto-generated from `main.pen.index`; run `npm run build:canvas` to regenerate; never edit manually
-- **AI tools** query `main.pen.index` directly for node IDs; do not rely on phase planning docs for node ID lookups
+- **Single source of truth**: `design/canvas.json` — all Pencil node IDs, frame statuses, component variant IDs, and brief cross-references
+- **AI tools** query `canvas.json` directly for node IDs; do not rely on phase planning docs for node ID lookups
 
 When adding or renaming a top-level Pencil frame or component:
 
-1. Update `design/main.pen.index` — add/edit the relevant entry, bump `$version`, set `$updated`
-2. Run `npm run build:canvas` to regenerate `CANVAS-MAP.md`
-3. Commit both files: `style(design): update canvas index vX.Y`
+1. Update `design/canvas.json` — add/edit the relevant entry, bump `$version`, set `$updated`
+2. Commit: `style(design): update canvas index vX.Y`
 
-Internal nodes (children of a frame, e.g. sub-components, group headers) are documented in the brief's Node Reference table only — not in `main.pen.index`.
+Internal nodes (children of a frame, e.g. sub-components, group headers) are documented in the brief's Node Reference table only — not in `canvas.json`.
 
 ### Pencil ↔ Code Consistency
 

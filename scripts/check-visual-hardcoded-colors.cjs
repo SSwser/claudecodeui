@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 
 const TARGET_DIRECTORIES = [
-  // Original 7 directories
   'src/components/home/view',
   'src/components/app/view',
   'src/components/auth/view',
@@ -10,11 +9,6 @@ const TARGET_DIRECTORIES = [
   'src/components/chat/constants',
   'src/components/settings/view',
   'src/components/version-upgrade/view',
-  // Extended by Phase 999.3 — cover phase-02 new component directories
-  'src/components/file-tree',
-  'src/components/project-inbox',
-  'src/components/session',
-  'src/shared/view/ui',
 ];
 
 const INCLUDED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx']);

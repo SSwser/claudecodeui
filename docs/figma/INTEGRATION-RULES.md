@@ -1,4 +1,4 @@
-# Figma Integration Rules (Chorus)
+# Figma Integration Rules (CloudCLI UI)
 
 This is the canonical Figma integration guide for this repository.
 

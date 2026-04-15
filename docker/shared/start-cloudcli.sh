@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Auto-start Chorus server in background if not already running.
+# Auto-start Claude Code UI server in background if not already running.
 # This script is sourced from ~/.bashrc on sandbox shell open.
 
 if ! pgrep -f "server/index.js" > /dev/null 2>&1; then
   # Start the pre-installed version immediately
-  nohup chorus start --port 3001 > /tmp/chorus.log 2>&1 &
+  nohup cloudcli start --port 3001 > /tmp/cloudcli-ui.log 2>&1 &
   disown
 
   # Check for updates in the background (non-blocking)
-  nohup npm update -g @anthropic-ai/chorus > /tmp/chorus-update.log 2>&1 &
+  nohup npm update -g @cloudcli-ai/cloudcli > /tmp/cloudcli-update.log 2>&1 &
   disown
 
   echo ""

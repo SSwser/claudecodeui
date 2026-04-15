@@ -1,4 +1,4 @@
-# Chorus — Product Design
+# ClaudeCodeUI — Product Design
 
 **Role**: Canonical source for product-wide design decisions. Applies to all phases and all contributors.  
 **Maintained in**: `design/PRODUCT.md` (repo root)  
@@ -11,12 +11,12 @@
 
 ## Document Map
 
-| File                              | Scope                                                                                            |
-| --------------------------------- | ------------------------------------------------------------------------------------------------ |
-| **This file**                     | Product-wide mental model, architecture, status model, UX+visual principles                      |
-| [`design/TOKENS.md`](./TOKENS.md) | Design token table — hex ↔ CSS token ↔ Tailwind class (single source of truth for color in code) |
-| [`design/main.pen`](./main.pen)   | Canonical wireframe — visual composition, spacing, component layout                              |
-| [`DESIGN.md`](../DESIGN.md)       | Raycast design system reference — visual inspiration, shadow recipes, typography specimens       |
+| File                              | Scope                                                                                      |
+| --------------------------------- | ------------------------------------------------------------------------------------------ |
+| **This file**                     | Product-wide mental model, architecture, status model, UX+visual principles                |
+| [`design/TOKENS.md`](./TOKENS.md) | Auto-generated agent context artifact — token registry rendered from `tokens.json`         |
+| [`design/main.pen`](./main.pen)   | Canonical wireframe — visual composition, spacing, component layout                        |
+| [`DESIGN.md`](../DESIGN.md)       | Raycast design system reference — visual inspiration, shadow recipes, typography specimens |
 
 ---
 
@@ -56,7 +56,7 @@ These two artefacts serve different purposes and intentionally diverge:
 
 ### 3.1 Three-Zone Shell
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │ [B] Sidebar (collapsible)  │  [C] Main Canvas (flex-1)          │
 │  ├ Stream List (scrollable)│   ├ State: Project View            │
@@ -100,7 +100,7 @@ Three mutually exclusive states:
 
 ### 3.5 Zone [D] — Mobile Bottom Navigation (≤768px)
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  🏠 Home    📋 Inbox    ⚡ Active    ≡ Menu │
 └─────────────────────────────────────────┘
@@ -135,7 +135,7 @@ These rules apply everywhere session status is expressed (sidebar dots, status b
 | `Waiting` (needs user input) | `#FF6363` / `--brand`            | **Brand red = needs you.** Solid dot, pulse glow on animated surfaces. Highest visual priority. |
 | `Running` (autonomous)       | `#fbbf24` / `--warning`          | Yellow dot = working without you. Slow breath animation on animated surfaces.                   |
 | `Idle` / `Fresh`             | `#6a6b6c` / `--muted-foreground` | Grey = at rest. Static, no animation.                                                           |
-| `Frozen`                     | Dim blue (`#4a6fa5` approx)      | Static, no pulse. Shown at tray bottom if recently frozen.                                      |
+| `Frozen`                     | `$cc--status-frozen` (dim blue)  | Static, no pulse. Shown at tray bottom if recently frozen.                                      |
 | `Error`                      | `#FF6363` / `--brand`            | Same as Waiting visually — red means attention needed. Context disambiguates.                   |
 
 > **`#FF6363` exclusivity rule**: Brand red is used **only** for Waiting and Error states. Never use it for decoration, hover, or non-attention-demanding contexts. This makes it unmissable — when the user sees red, they know something needs them.
@@ -156,9 +156,13 @@ These rules apply everywhere session status is expressed (sidebar dots, status b
 
 ## 6. Visual Design Language
 
+This section captures product-level visual intent only. Raw implementation details such as exact color tables,
+shadow recipes, and typography specimens live in [`DESIGN.md`](../DESIGN.md) and the generated
+[`TOKENS.md`](./TOKENS.md).
+
 ### 6.1 Brand Personality
 
-**Mastery · Intuitive · Fluid**
+#### Mastery · Intuitive · Fluid
 
 | Dimension     | Expression                                                                                                    |
 | ------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -170,28 +174,17 @@ These rules apply everywhere session status is expressed (sidebar dots, status b
 
 ### 6.2 Aesthetic Direction
 
-- **Dark-first**: `#07080a` near-black base (not pure black — the blue-cold undertone is essential). Dark mode is primary; light mode is optional.
-- **Raycast-inspired precision**: macOS-native multi-layer shadows, high-contrast surface separation, micro-detail at every elevation. See [`DESIGN.md`](../DESIGN.md) for the full Raycast reference.
-- **Brand accent**: Raycast Red (`#FF6363`) — used as punctuation, not wallpaper. Reserved for Waiting state, primary CTAs, and destructive actions. Never use as fill on large surfaces.
-- **Typography**: Inter for UI copy (positive letter-spacing `+0.2px` for airiness on dark surfaces); GeistMono for code, paths, branch names, and identifiers. No mixing of other typefaces.
+- **Dark-first**: preserve the near-black, blue-cold base. Dark mode is primary; light mode is optional.
+- **Raycast-inspired precision**: preserve crisp macOS-like elevation, restrained contrast, and tight micro-detail. See [`DESIGN.md`](../DESIGN.md) for the exact visual reference.
+- **Brand accent**: use brand red as punctuation, not wallpaper. Reserve it for Waiting state, primary CTAs, and destructive actions.
+- **Typography**: Inter for UI copy and GeistMono for code-like content. Exact specimens and sizing references live in [`DESIGN.md`](../DESIGN.md).
 
 ### 6.3 Surface Elevation System
 
 Elevation is expressed through **stroke + shadow** combos, **not** background lightness — raising background color is not an elevation tool.
 
-> See [`TOKENS.md`](./TOKENS.md) for the CSS token values to use in code.
+> Full surface-level table, shadow recipes, and semantic tinting rules live in
+> [`.claude/skills/chorus-design/references/elevation.md`](../.claude/skills/chorus-design/references/elevation.md).
+> Token values used in implementation: see [`TOKENS.md`](./TOKENS.md).
 
-| Level | Surface type                                                               | Stroke treatment                                                           | Shadow treatment                                                                |
-| ----- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| **0** | Base canvas / app background                                               | None                                                                       | None                                                                            |
-| **1** | Layout dividers (sidebar right edge, header bottom, tab bottom, input top) | Directional 1px `border-divider` on the separating edge only               | None                                                                            |
-| **2** | Cards, AI message bubbles, component containers                            | 1px inside stroke `border-subtle`                                          | Outer ring `ring-outer` 0px 0px 0px 1px + inner highlight 0px 1px 0px 0px inset |
-| **3** | Interactive surfaces (user message bubbles, input boxes, CTA cards)        | 1px inside stroke; tinted where semantic (blue for user, white for inputs) | Drop shadow `shadow-sm` + inner highlight                                       |
-| **4** | Elevated floaters (preview panels, context menus)                          | 1px inside stroke `border-overlay`                                         | Outer ring + ambient drop shadow `shadow-md`                                    |
-| **5** | Modal / dialog overlays                                                    | 1px inside stroke `border-overlay`                                         | Outer ring + heavy drop shadow `shadow-xl` (0px 16px 48px) + inner highlight    |
-
-**Key rules:**
-
-- Never raise `background-color` to signal elevation — use ring + shadow only (the dark void must stay dark)
-- Semantic tinting at Level 3: user message bubbles → blue-tinted border; frozen notices → blue-tinted inner shadow
-- Status-semantic tinting on Level 2 cards: running sessions → green-tinted ring; waiting/errored → red-tinted ring
+**Core constraint**: Never raise `background-color` to signal elevation — use ring + shadow only. The dark void must stay dark.

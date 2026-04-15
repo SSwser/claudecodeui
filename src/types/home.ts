@@ -2,7 +2,7 @@ import type { AppTab, SessionProvider } from './app';
 
 export type StartupBehavior = 'restore-all' | 'restore-last' | 'landing';
 
-export type RootViewMode = 'home' | 'empty';
+export type RootViewMode = 'landing' | 'empty';
 
 export type HomeLayoutMode = 'single' | 'dual';
 
@@ -77,7 +77,7 @@ export type LayoutPreferences = {
 };
 
 export type HomePreferences = {
-  version: number;
+  version: 1;
   startupBehavior: StartupBehavior;
   favorites: HomeFavoriteEntry[];
   filters: HomeFilters;

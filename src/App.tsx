@@ -40,14 +40,6 @@ export default function App() {
                             </ProtectedRoute>
                           }
                         />
-                        <Route
-                          path="/project/:projectId/:streamName"
-                          element={
-                            <ProtectedRoute>
-                              <AppContent />
-                            </ProtectedRoute>
-                          }
-                        />
                       </Routes>
                     </Router>
                   </TaskMasterProvider>

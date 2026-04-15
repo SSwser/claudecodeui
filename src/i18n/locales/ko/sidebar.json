@@ -19,11 +19,6 @@
     "tryDifferentSearch": "검색어를 변경해보세요",
     "runClaudeCli": "프로젝트 디렉토리에서 Claude CLI를 실행하여 시작하세요"
   },
-  "recents": "최근 세션",
-  "recentsEmpty": "최근 세션이 없습니다",
-  "workspaceIndicator": {
-    "currentWorkspace": "워크스페이스"
-  },
   "app": {
     "title": "Claude Code UI",
     "subtitle": "AI 코딩 어시스턴트 UI"

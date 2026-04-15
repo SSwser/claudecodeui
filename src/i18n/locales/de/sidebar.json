@@ -19,11 +19,6 @@
     "tryDifferentSearch": "Versuch, den Suchbegriff anzupassen",
     "runClaudeCli": "Führ Claude CLI in einem Projektverzeichnis aus, um zu beginnen"
   },
-  "recents": "Zuletzt verwendet",
-  "recentsEmpty": "Noch keine kürzlichen Sitzungen",
-  "workspaceIndicator": {
-    "currentWorkspace": "Workspace"
-  },
   "app": {
     "title": "Claude Code UI",
     "subtitle": "KI-Programmierassistent-Oberfläche"

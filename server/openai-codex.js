@@ -15,11 +15,6 @@
 
 import { Codex } from '@openai/codex-sdk';
 import { notifyRunFailed, notifyRunStopped } from './services/notification-orchestrator.js';
-import {
-  clearProcessRegistration,
-  markProcessRuntimeFailure,
-  registerProcess,
-} from './services/sessionLifecycleService.js';
 import { codexAdapter } from './providers/codex/adapter.js';
 import { createNormalizedMessage } from './providers/types.js';
 
@@ -50,8 +45,8 @@ function transformCodexEvent(event) {
             itemType: 'agent_message',
             message: {
               role: 'assistant',
-              content: item.text,
-            },
+              content: item.text
+            }
           };
 
         case 'reasoning':
@@ -61,8 +56,8 @@ function transformCodexEvent(event) {
             message: {
               role: 'assistant',
               content: item.text,
-              isReasoning: true,
-            },
+              isReasoning: true
+            }
           };
 
         case 'command_execution':
@@ -72,7 +67,7 @@ function transformCodexEvent(event) {
             command: item.command,
             output: item.aggregated_output,
             exitCode: item.exit_code,
-            status: item.status,
+            status: item.status
           };
 
         case 'file_change':
@@ -80,7 +75,7 @@ function transformCodexEvent(event) {
             type: 'item',
             itemType: 'file_change',
             changes: item.changes,
-            status: item.status,
+            status: item.status
           };
 
         case 'mcp_tool_call':
@@ -92,21 +87,21 @@ function transformCodexEvent(event) {
             arguments: item.arguments,
             result: item.result,
             error: item.error,
-            status: item.status,
+            status: item.status
           };
 
         case 'web_search':
           return {
             type: 'item',
             itemType: 'web_search',
-            query: item.query,
+            query: item.query
           };
 
         case 'todo_list':
           return {
             type: 'item',
             itemType: 'todo_list',
-            items: item.items,
+            items: item.items
           };
 
         case 'error':
@@ -115,51 +110,51 @@ function transformCodexEvent(event) {
             itemType: 'error',
             message: {
               role: 'error',
-              content: item.message,
-            },
+              content: item.message
+            }
           };
 
         default:
           return {
             type: 'item',
             itemType: item.type,
-            item: item,
+            item: item
           };
       }
 
     case 'turn.started':
       return {
-        type: 'turn_started',
+        type: 'turn_started'
       };
 
     case 'turn.completed':
       return {
         type: 'turn_complete',
-        usage: event.usage,
+        usage: event.usage
       };
 
     case 'turn.failed':
       return {
         type: 'turn_failed',
-        error: event.error,
+        error: event.error
       };
 
     case 'thread.started':
       return {
         type: 'thread_started',
-        threadId: event.id,
+        threadId: event.id
       };
 
     case 'error':
       return {
         type: 'error',
-        message: event.message,
+        message: event.message
       };
 
     default:
       return {
         type: event.type,
-        data: event,
+        data: event
       };
   }
 }
@@ -174,18 +169,18 @@ function mapPermissionModeToCodexOptions(permissionMode) {
     case 'acceptEdits':
       return {
         sandboxMode: 'workspace-write',
-        approvalPolicy: 'never',
+        approvalPolicy: 'never'
       };
     case 'bypassPermissions':
       return {
         sandboxMode: 'danger-full-access',
-        approvalPolicy: 'never',
+        approvalPolicy: 'never'
       };
     case 'default':
     default:
       return {
         sandboxMode: 'workspace-write',
-        approvalPolicy: 'untrusted',
+        approvalPolicy: 'untrusted'
       };
   }
 }
@@ -203,7 +198,7 @@ export async function queryCodex(command, options = {}, ws) {
     cwd,
     projectPath,
     model,
-    permissionMode = 'default',
+    permissionMode = 'default'
   } = options;
 
   const workingDirectory = cwd || projectPath || process.cwd();
@@ -214,7 +209,6 @@ export async function queryCodex(command, options = {}, ws) {
   let currentSessionId = sessionId;
   let terminalFailure = null;
   const abortController = new AbortController();
-  let registeredLifecycleSessionId = null;
 
   try {
     // Initialize Codex SDK
@@ -226,7 +220,7 @@ export async function queryCodex(command, options = {}, ws) {
       skipGitRepoCheck: true,
       sandboxMode,
       approvalPolicy,
-      model,
+      model
     };
 
     // Start or resume thread
@@ -239,56 +233,21 @@ export async function queryCodex(command, options = {}, ws) {
     // Get the thread ID
     currentSessionId = thread.id || sessionId || `codex-${Date.now()}`;
 
-    const registerLifecycleRuntime = (runtimeSessionId) => {
-      if (!runtimeSessionId || registeredLifecycleSessionId === runtimeSessionId) {
-        return;
-      }
-
-      registeredLifecycleSessionId = runtimeSessionId;
-
-      try {
-        registerProcess({
-          sessionId: runtimeSessionId,
-          provider: 'codex',
-          runtimeType: 'virtual',
-          projectPath: workingDirectory,
-          title: sessionSummary || null,
-          summary: sessionSummary || null,
-          stop: () => abortCodexSession(runtimeSessionId),
-        });
-      } catch (error) {
-        console.warn(
-          `[codex] Failed to register lifecycle state for ${runtimeSessionId}:`,
-          error.message
-        );
-      }
-    };
-
-    registerLifecycleRuntime(currentSessionId);
-
     // Track the session
     activeCodexSessions.set(currentSessionId, {
       thread,
       codex,
       status: 'running',
       abortController,
-      startedAt: new Date().toISOString(),
+      startedAt: new Date().toISOString()
     });
 
     // Send session created event
-    sendMessage(
-      ws,
-      createNormalizedMessage({
-        kind: 'session_created',
-        newSessionId: currentSessionId,
-        sessionId: currentSessionId,
-        provider: 'codex',
-      })
-    );
+    sendMessage(ws, createNormalizedMessage({ kind: 'session_created', newSessionId: currentSessionId, sessionId: currentSessionId, provider: 'codex' }));
 
     // Execute with streaming
     const streamedTurn = await thread.runStreamed(command, {
-      signal: abortController.signal,
+      signal: abortController.signal
     });
 
     for await (const event of streamedTurn.events) {
@@ -301,8 +260,6 @@ export async function queryCodex(command, options = {}, ws) {
       if (event.type === 'item.started' || event.type === 'item.updated') {
         continue;
       }
-
-      registerLifecycleRuntime(currentSessionId);
 
       const transformed = transformCodexEvent(event);
 
@@ -319,86 +276,51 @@ export async function queryCodex(command, options = {}, ws) {
           provider: 'codex',
           sessionId: currentSessionId,
           sessionName: sessionSummary,
-          error: terminalFailure,
+          error: terminalFailure
         });
       }
 
       // Extract and send token usage if available (normalized to match Claude format)
       if (event.type === 'turn.completed' && event.usage) {
         const totalTokens = (event.usage.input_tokens || 0) + (event.usage.output_tokens || 0);
-        sendMessage(
-          ws,
-          createNormalizedMessage({
-            kind: 'status',
-            text: 'token_budget',
-            tokenBudget: { used: totalTokens, total: 200000 },
-            sessionId: currentSessionId,
-            provider: 'codex',
-          })
-        );
+        sendMessage(ws, createNormalizedMessage({ kind: 'status', text: 'token_budget', tokenBudget: { used: totalTokens, total: 200000 }, sessionId: currentSessionId, provider: 'codex' }));
       }
     }
 
     // Send completion event
     if (!terminalFailure) {
-      sendMessage(
-        ws,
-        createNormalizedMessage({
-          kind: 'complete',
-          actualSessionId: thread.id,
-          sessionId: currentSessionId,
-          provider: 'codex',
-        })
-      );
-      clearProcessRegistration(currentSessionId, 'codex');
+      sendMessage(ws, createNormalizedMessage({ kind: 'complete', actualSessionId: thread.id, sessionId: currentSessionId, provider: 'codex' }));
       notifyRunStopped({
         userId: ws?.userId || null,
         provider: 'codex',
         sessionId: currentSessionId,
         sessionName: sessionSummary,
-        stopReason: 'completed',
+        stopReason: 'completed'
       });
-    } else if (currentSessionId) {
-      await markProcessRuntimeFailure(currentSessionId, 'codex', terminalFailure);
     }
+
   } catch (error) {
     const session = currentSessionId ? activeCodexSessions.get(currentSessionId) : null;
     const wasAborted =
       session?.status === 'aborted' ||
       error?.name === 'AbortError' ||
-      String(error?.message || '')
-        .toLowerCase()
-        .includes('aborted');
+      String(error?.message || '').toLowerCase().includes('aborted');
 
     if (!wasAborted) {
       console.error('[Codex] Error:', error);
-      sendMessage(
-        ws,
-        createNormalizedMessage({
-          kind: 'error',
-          content: error.message,
-          sessionId: currentSessionId,
-          provider: 'codex',
-        })
-      );
-      if (currentSessionId) {
-        await markProcessRuntimeFailure(currentSessionId, 'codex', error);
-      }
+      sendMessage(ws, createNormalizedMessage({ kind: 'error', content: error.message, sessionId: currentSessionId, provider: 'codex' }));
       if (!terminalFailure) {
         notifyRunFailed({
           userId: ws?.userId || null,
           provider: 'codex',
           sessionId: currentSessionId,
           sessionName: sessionSummary,
-          error,
+          error
         });
       }
     }
-  } finally {
-    if (currentSessionId && activeCodexSessions.get(currentSessionId)?.status === 'aborted') {
-      clearProcessRegistration(currentSessionId, 'codex');
-    }
 
+  } finally {
     // Update session status
     if (currentSessionId) {
       const session = activeCodexSessions.get(currentSessionId);
@@ -453,7 +375,7 @@ export function getActiveCodexSessions() {
       sessions.push({
         id,
         status: session.status,
-        startedAt: session.startedAt,
+        startedAt: session.startedAt
       });
     }
   }
@@ -481,19 +403,16 @@ function sendMessage(ws, data) {
 }
 
 // Clean up old completed sessions periodically
-setInterval(
-  () => {
-    const now = Date.now();
-    const maxAge = 30 * 60 * 1000; // 30 minutes
+setInterval(() => {
+  const now = Date.now();
+  const maxAge = 30 * 60 * 1000; // 30 minutes
 
-    for (const [id, session] of activeCodexSessions.entries()) {
-      if (session.status !== 'running') {
-        const startedAt = new Date(session.startedAt).getTime();
-        if (now - startedAt > maxAge) {
-          activeCodexSessions.delete(id);
-        }
+  for (const [id, session] of activeCodexSessions.entries()) {
+    if (session.status !== 'running') {
+      const startedAt = new Date(session.startedAt).getTime();
+      if (now - startedAt > maxAge) {
+        activeCodexSessions.delete(id);
       }
     }
-  },
-  5 * 60 * 1000
-); // Every 5 minutes
+  }
+}, 5 * 60 * 1000); // Every 5 minutes

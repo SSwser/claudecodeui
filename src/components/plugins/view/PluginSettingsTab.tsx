@@ -1,34 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Trash2,
-  RefreshCw,
-  GitBranch,
-  Loader2,
-  ServerCrash,
-  ShieldAlert,
-  ExternalLink,
-  BookOpen,
-  Download,
-  BarChart3,
-} from 'lucide-react';
+import { Trash2, RefreshCw, GitBranch, Loader2, ServerCrash, ShieldAlert, ExternalLink, BookOpen, Download, BarChart3 } from 'lucide-react';
 import { usePlugins } from '../../../contexts/PluginsContext';
 import type { Plugin } from '../../../contexts/PluginsContext';
 import PluginIcon from './PluginIcon';
 
-const STARTER_PLUGIN_URL = 'https://github.com/chorus-dev/chorus-plugin-starter';
-const TERMINAL_PLUGIN_URL = 'https://github.com/chorus-dev/chorus-plugin-terminal';
+const STARTER_PLUGIN_URL = 'https://github.com/cloudcli-ai/cloudcli-plugin-starter';
+const TERMINAL_PLUGIN_URL = 'https://github.com/cloudcli-ai/cloudcli-plugin-terminal';
 
 /* ─── Toggle Switch ─────────────────────────────────────────────────────── */
-function ToggleSwitch({
-  checked,
-  onChange,
-  ariaLabel,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  ariaLabel: string;
-}) {
+function ToggleSwitch({ checked, onChange, ariaLabel }: { checked: boolean; onChange: (v: boolean) => void; ariaLabel: string }) {
   return (
     <label className="relative inline-flex cursor-pointer select-none items-center">
       <input
@@ -93,7 +74,9 @@ function PluginCard({
   updateError,
 }: PluginCardProps) {
   const { t } = useTranslation('settings');
-  const accentColor = plugin.enabled ? 'bg-emerald-500' : 'bg-muted-foreground/20';
+  const accentColor = plugin.enabled
+    ? 'bg-emerald-500'
+    : 'bg-muted-foreground/20';
 
   return (
     <div
@@ -137,7 +120,9 @@ function PluginCard({
               )}
               <div className="mt-1 flex items-center gap-3">
                 {plugin.author && (
-                  <span className="text-xs text-muted-foreground/60">{plugin.author}</span>
+                  <span className="text-xs text-muted-foreground/60">
+                    {plugin.author}
+                  </span>
                 )}
                 {plugin.repoUrl && (
                   <a
@@ -161,9 +146,7 @@ function PluginCard({
             <button
               onClick={onUpdate}
               disabled={updating || !plugin.repoUrl}
-              title={
-                plugin.repoUrl ? t('pluginSettings.pullLatest') : t('pluginSettings.noGitRemote')
-              }
+              title={plugin.repoUrl ? t('pluginSettings.pullLatest') : t('pluginSettings.noGitRemote')}
               aria-label={t('pluginSettings.pullLatest')}
               className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
             >
@@ -176,26 +159,17 @@ function PluginCard({
 
             <button
               onClick={onUninstall}
-              title={
-                confirmingUninstall
-                  ? t('pluginSettings.confirmUninstall')
-                  : t('pluginSettings.uninstallPlugin')
-              }
+              title={confirmingUninstall ? t('pluginSettings.confirmUninstall') : t('pluginSettings.uninstallPlugin')}
               aria-label={t('pluginSettings.uninstallPlugin')}
-              className={`rounded p-1.5 transition-colors ${
-                confirmingUninstall
-                  ? 'bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30'
-                  : 'text-muted-foreground hover:bg-muted hover:text-red-500'
-              }`}
+              className={`rounded p-1.5 transition-colors ${confirmingUninstall
+                ? 'bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30'
+                : 'text-muted-foreground hover:bg-muted hover:text-red-500'
+                }`}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
 
-            <ToggleSwitch
-              checked={plugin.enabled}
-              onChange={onToggle}
-              ariaLabel={`${plugin.enabled ? t('pluginSettings.disable') : t('pluginSettings.enable')} ${plugin.displayName}`}
-            />
+            <ToggleSwitch checked={plugin.enabled} onChange={onToggle} ariaLabel={`${plugin.enabled ? t('pluginSettings.disable') : t('pluginSettings.enable')} ${plugin.displayName}`} />
           </div>
         </div>
 
@@ -235,13 +209,7 @@ function PluginCard({
 }
 
 /* ─── Starter Plugin Card ───────────────────────────────────────────────── */
-function StarterPluginCard({
-  onInstall,
-  installing,
-}: {
-  onInstall: () => void;
-  installing: boolean;
-}) {
+function StarterPluginCard({ onInstall, installing }: { onInstall: () => void; installing: boolean }) {
   const { t } = useTranslation('settings');
 
   return (
@@ -275,7 +243,7 @@ function StarterPluginCard({
                 className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground/60 transition-colors hover:text-foreground"
               >
                 <GitBranch className="h-3 w-3" />
-                chorus-dev/chorus-plugin-starter
+                cloudcli-ai/cloudcli-plugin-starter
               </a>
             </div>
           </div>
@@ -289,9 +257,7 @@ function StarterPluginCard({
             ) : (
               <Download className="h-3.5 w-3.5" />
             )}
-            {installing
-              ? t('pluginSettings.installing')
-              : t('pluginSettings.starterPlugin.install')}
+            {installing ? t('pluginSettings.installing') : t('pluginSettings.starterPlugin.install')}
           </button>
         </div>
       </div>
@@ -300,13 +266,7 @@ function StarterPluginCard({
 }
 
 /* ─── Terminal Plugin Card ──────────────────────────────────────────────── */
-function TerminalPluginCard({
-  onInstall,
-  installing,
-}: {
-  onInstall: () => void;
-  installing: boolean;
-}) {
+function TerminalPluginCard({ onInstall, installing }: { onInstall: () => void; installing: boolean }) {
   const { t } = useTranslation('settings');
 
   return (
@@ -316,21 +276,10 @@ function TerminalPluginCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="h-5 w-5 flex-shrink-0 text-blue-500">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M7 8l4 4-4 4" />
-                <line x1="13" y1="16" x2="17" y2="16" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M7 8l4 4-4 4"/>
+                <line x1="13" y1="16" x2="17" y2="16"/>
               </svg>
             </div>
             <div className="min-w-0">
@@ -355,7 +304,7 @@ function TerminalPluginCard({
                 className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground/60 transition-colors hover:text-foreground"
               >
                 <GitBranch className="h-3 w-3" />
-                chorus-dev/chorus-plugin-terminal
+                cloudcli-ai/cloudcli-plugin-terminal
               </a>
             </div>
           </div>
@@ -369,9 +318,7 @@ function TerminalPluginCard({
             ) : (
               <Download className="h-3.5 w-3.5" />
             )}
-            {installing
-              ? t('pluginSettings.installing')
-              : t('pluginSettings.terminalPlugin.install')}
+            {installing ? t('pluginSettings.installing') : t('pluginSettings.terminalPlugin.install')}
           </button>
         </div>
       </div>
@@ -396,23 +343,12 @@ export default function PluginSettingsTab() {
 
   const handleUpdate = async (name: string) => {
     setUpdatingPlugins((prev) => new Set(prev).add(name));
-    setUpdateErrors((prev) => {
-      const next = { ...prev };
-      delete next[name];
-      return next;
-    });
+    setUpdateErrors((prev) => { const next = { ...prev }; delete next[name]; return next; });
     const result = await updatePlugin(name);
     if (!result.success) {
-      setUpdateErrors((prev) => ({
-        ...prev,
-        [name]: result.error || t('pluginSettings.updateFailed'),
-      }));
+      setUpdateErrors((prev) => ({ ...prev, [name]: result.error || t('pluginSettings.updateFailed') }));
     }
-    setUpdatingPlugins((prev) => {
-      const next = new Set(prev);
-      next.delete(name);
-      return next;
-    });
+    setUpdatingPlugins((prev) => { const next = new Set(prev); next.delete(name); return next; });
   };
 
   const handleInstall = async () => {
@@ -472,7 +408,9 @@ export default function PluginSettingsTab() {
         <h3 className="mb-1 text-base font-semibold text-foreground">
           {t('pluginSettings.title')}
         </h3>
-        <p className="text-sm text-muted-foreground">{t('pluginSettings.description')}</p>
+        <p className="text-sm text-muted-foreground">
+          {t('pluginSettings.description')}
+        </p>
       </div>
 
       {/* Install from Git — compact */}
@@ -507,11 +445,15 @@ export default function PluginSettingsTab() {
         </button>
       </div>
 
-      {installError && <p className="-mt-4 text-sm text-red-500">{installError}</p>}
+      {installError && (
+        <p className="-mt-4 text-sm text-red-500">{installError}</p>
+      )}
 
       <p className="-mt-4 flex items-start gap-1.5 text-xs leading-snug text-muted-foreground/50">
         <ShieldAlert className="mt-px h-3 w-3 flex-shrink-0" />
-        <span>{t('pluginSettings.securityWarning')}</span>
+        <span>
+          {t('pluginSettings.securityWarning')}
+        </span>
       </p>
 
       {/* Official plugin suggestions — above the list */}
@@ -533,9 +475,7 @@ export default function PluginSettingsTab() {
           {t('pluginSettings.scanningPlugins')}
         </div>
       ) : plugins.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          {t('pluginSettings.noPluginsInstalled')}
-        </p>
+        <p className="py-8 text-center text-sm text-muted-foreground">{t('pluginSettings.noPluginsInstalled')}</p>
       ) : (
         <div className="space-y-2">
           {plugins.map((plugin, index) => {
@@ -581,7 +521,7 @@ export default function PluginSettingsTab() {
         </a>
         <span className="text-muted-foreground/20">·</span>
         <a
-          href="https://chorus.dev/docs/plugin-overview"
+          href="https://cloudcli.ai/docs/plugin-overview"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 transition-colors hover:text-foreground"
