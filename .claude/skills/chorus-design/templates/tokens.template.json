@@ -1,0 +1,52 @@
+{
+  "$version": "1.0",
+  "$description": "REPLACE: <Your project> design tokens — Tokens Studio compatible SSOT for Pencil, CSS variables, and Tailwind bridges.",
+  "global": {
+    "color": {
+      "core": {
+        "background": {
+          "$value": "#REPLACE_HEX",
+          "$type": "color",
+          "$description": "App background",
+          "$extensions": {
+            "com.YOURPROJECT.design": {
+              "pencilHex": "#REPLACE_HEX",
+              "css": "--background",
+              "tailwind": "bg-background",
+              "light": "REPLACE_HSL_LIGHT",
+              "dark": "REPLACE_HSL_DARK"
+            }
+          }
+        },
+        "foreground": {
+          "$value": "#REPLACE_HEX",
+          "$type": "color",
+          "$description": "Primary text",
+          "$extensions": {
+            "com.YOURPROJECT.design": {
+              "pencilHex": "#REPLACE_HEX",
+              "css": "--foreground",
+              "tailwind": "text-foreground",
+              "light": "REPLACE_HSL_LIGHT",
+              "dark": "REPLACE_HSL_DARK"
+            }
+          }
+        },
+        "brand": {
+          "$value": "#REPLACE_HEX",
+          "$type": "color",
+          "$description": "Brand accent color",
+          "$extensions": {
+            "com.YOURPROJECT.design": {
+              "pencilHex": "#REPLACE_HEX",
+              "css": "--brand",
+              "tailwind": "text-brand",
+              "light": "REPLACE_HSL_LIGHT",
+              "dark": "REPLACE_HSL_DARK"
+            }
+          }
+        }
+      }
+    }
+  }
+}

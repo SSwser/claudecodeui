@@ -11,12 +11,12 @@
 
 ## Document Map
 
-| File                              | Scope                                                                                      |
-| --------------------------------- | ------------------------------------------------------------------------------------------ |
-| **This file**                     | Product-wide mental model, architecture, status model, UX+visual principles                |
-| [`design/TOKENS.md`](./TOKENS.md) | Auto-generated agent context artifact — token registry rendered from `tokens.json`         |
-| [`design/main.pen`](./main.pen)   | Canonical wireframe — visual composition, spacing, component layout                        |
-| [`DESIGN.md`](../DESIGN.md)       | Raycast design system reference — visual inspiration, shadow recipes, typography specimens |
+| File                                                                                                                          | Scope                                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **This file**                                                                                                                 | Product-wide mental model, architecture, status model, UX+visual principles                |
+| [`design/TOKENS.md`](./TOKENS.md)                                                                                             | Auto-generated agent context artifact — token registry rendered from `tokens.json`         |
+| [`design/main.pen`](./main.pen)                                                                                               | Canonical wireframe — visual composition, spacing, component layout                        |
+| [`.claude/skills/chorus-design/references/visual-language.md`](../.claude/skills/chorus-design/references/visual-language.md) | Raycast design system reference — visual inspiration, shadow recipes, typography specimens |
 
 ---
 
@@ -157,7 +157,7 @@ These rules apply everywhere session status is expressed (sidebar dots, status b
 ## 6. Visual Design Language
 
 This section captures product-level visual intent only. Raw implementation details such as exact color tables,
-shadow recipes, and typography specimens live in [`DESIGN.md`](../DESIGN.md) and the generated
+shadow recipes, and typography specimens live in [`.claude/skills/chorus-design/references/visual-language.md`](../.claude/skills/chorus-design/references/visual-language.md) and the generated
 [`TOKENS.md`](./TOKENS.md).
 
 ### 6.1 Brand Personality
@@ -175,9 +175,9 @@ shadow recipes, and typography specimens live in [`DESIGN.md`](../DESIGN.md) and
 ### 6.2 Aesthetic Direction
 
 - **Dark-first**: preserve the near-black, blue-cold base. Dark mode is primary; light mode is optional.
-- **Raycast-inspired precision**: preserve crisp macOS-like elevation, restrained contrast, and tight micro-detail. See [`DESIGN.md`](../DESIGN.md) for the exact visual reference.
+- **Raycast-inspired precision**: preserve crisp macOS-like elevation, restrained contrast, and tight micro-detail. See [`.claude/skills/chorus-design/references/visual-language.md`](../.claude/skills/chorus-design/references/visual-language.md) for the exact visual reference.
 - **Brand accent**: use brand red as punctuation, not wallpaper. Reserve it for Waiting state, primary CTAs, and destructive actions.
-- **Typography**: Inter for UI copy and GeistMono for code-like content. Exact specimens and sizing references live in [`DESIGN.md`](../DESIGN.md).
+- **Typography**: Inter for UI copy and GeistMono for code-like content. Exact specimens and sizing references live in [`.claude/skills/chorus-design/references/visual-language.md`](../.claude/skills/chorus-design/references/visual-language.md).
 
 ### 6.3 Surface Elevation System
 

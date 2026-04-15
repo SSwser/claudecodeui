@@ -9,14 +9,14 @@
 
 ## Design Files
 
-| File                                             | Purpose                                                                             |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| `design/main.pen`                                | Primary wireframe canvas — visual SSOT for layout, spacing, component anatomy       |
-| `design/tokens.json`                             | Token SSOT — Pencil hex ↔ CSS token ↔ Tailwind class mapping                        |
-| `design/TOKENS.md`                               | Auto-generated reference table (never edit manually)                                |
-| `design/PRODUCT.md`                              | Canonical product design decisions — overrides any phase brief                      |
-| `DESIGN.md`                                      | Raycast-inspired aesthetic reference — shadow recipes, typography                   |
-| `.claude/skills/chorus-design/PROJECT-CHORUS.md` | Chorus design-system adaptation — token mappings, sync pipeline, canvas conventions |
+| File                                                         | Purpose                                                                             |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `design/main.pen`                                            | Primary wireframe canvas — visual SSOT for layout, spacing, component anatomy       |
+| `design/tokens.json`                                         | Token SSOT — Pencil hex ↔ CSS token ↔ Tailwind class mapping                        |
+| `design/TOKENS.md`                                           | Auto-generated reference table (never edit manually)                                |
+| `design/PRODUCT.md`                                          | Canonical product design decisions — overrides any phase brief                      |
+| `.claude/skills/chorus-design/references/visual-language.md` | Raycast-inspired aesthetic reference — shadow recipes, typography, do/don'ts        |
+| `.claude/skills/chorus-design/PROJECT-CHORUS.md`             | Chorus design-system adaptation — token mappings, sync pipeline, canvas conventions |
 
 Always open `design/main.pen` as the entry point. Do not create new `.pen` files without explicit instruction.
 
@@ -49,11 +49,11 @@ For the full token pipeline, read [`../chorus-design/PROJECT-CHORUS.md`](../chor
 
 Do not duplicate these here — read the canonical sources directly:
 
-| Topic                                           | SSOT                                       | Key facts for Pencil use                                                                     |
-| ----------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| Visual aesthetic (shadows, colors, typography)  | [`DESIGN.md`](DESIGN.md)                   | Near-black base; brand red as punctuation only; airy positive letter-spacing                 |
-| App shell zones, status model, responsive rules | [`design/PRODUCT.md`](design/PRODUCT.md)   | 3-zone shell: Sidebar + Main Canvas + Mobile Nav; no global HUD; status in 3-layer hierarchy |
-| Token values and mappings                       | [`design/tokens.json`](design/tokens.json) | Canonical token metadata lives here — never copy raw values into this file                   |
+| Topic                                           | SSOT                                                                   | Key facts for Pencil use                                                                     |
+| ----------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Visual aesthetic (shadows, colors, typography)  | [`visual-language.md`](../chorus-design/references/visual-language.md) | Near-black base; brand red as punctuation only; airy positive letter-spacing                 |
+| App shell zones, status model, responsive rules | [`design/PRODUCT.md`](design/PRODUCT.md)                               | 3-zone shell: Sidebar + Main Canvas + Mobile Nav; no global HUD; status in 3-layer hierarchy |
+| Token values and mappings                       | [`design/tokens.json`](design/tokens.json)                             | Canonical token metadata lives here — never copy raw values into this file                   |
 
 ---
 

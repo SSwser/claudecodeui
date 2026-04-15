@@ -1,0 +1,30 @@
+{
+  "$version": "1.0",
+  "$updated": "YYYY-MM-DD",
+  "$description": "Machine-readable SSOT for Pencil canvas node IDs, statuses, and design ↔ code relationships. AI tools query this file directly for node IDs.",
+  "$file": "design/main.pen",
+  "$schema": {
+    "status": {
+      "locked": "Design finalized — ready for code handoff. Do not edit without version bump.",
+      "wip": "Actively being iterated.",
+      "pending": "Planned but not yet drawn."
+    }
+  },
+  "rootFrames": {
+    "REPLACE_NODE_ID": { "label": "01 — Pages" }
+  },
+  "pages": {
+    "Main": {
+      "frames": [
+        {
+          "screenId": "REPLACE_NODE_ID",
+          "name": "REPLACE — Screen Name",
+          "status": "wip",
+          "brief": null,
+          "notes": ""
+        }
+      ]
+    }
+  },
+  "components": {}
+}

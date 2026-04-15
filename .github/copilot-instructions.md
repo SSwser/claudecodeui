@@ -6,7 +6,8 @@
 ## Reading Order
 
 1. Read `AGENTS.md` in the repo root — contains all project conventions, GSD workflow policy, and architecture rules.
-2. This file — Copilot-specific overrides (none currently; file is reserved for future Copilot-only rules).
+2. For UI tasks, obey the repo-local SSOT workflow in `AGENTS.md`: use the fast lane for small/local adjustments; use `/impeccable` for shaping and brief refinement; require `gsd-ui-phase` + `UI-SPEC.md` before planning larger UI work.
+3. This file — Copilot-specific overrides.
 
 ## Design Context
 

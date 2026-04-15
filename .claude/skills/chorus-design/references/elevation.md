@@ -1,6 +1,6 @@
 # Elevation & Depth Reference — Chorus
 
-> Source: `DESIGN.md §6` (Raycast shadow recipes) + `PRODUCT.md §6.3` (surface-level semantic rules).
+> Source: `visual-language.md §6` (Raycast shadow recipes) + `PRODUCT.md §6.3` (surface-level semantic rules).
 > This file is the authoritative reference for elevation decisions. `PRODUCT.md §6.3` only carries a pointer here.
 
 ---
@@ -24,7 +24,7 @@
 
 ---
 
-## Raycast Shadow Recipes (DESIGN.md §6)
+## Raycast Shadow Recipes (visual-language.md §6)
 
 | Level              | Treatment                                                                                                                                     | Use                                                                |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |

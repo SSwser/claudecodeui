@@ -1,4 +1,14 @@
-# Design System Inspired by Raycast
+# Visual Language Reference — Chorus
+
+> Canonical visual language reference for the Chorus design system.
+> Formerly `DESIGN.md` at the repo root — moved here as a skill asset so the visual language spec travels with the skill.
+>
+> Design-system practitioners: read §1–§7 for the core aesthetic principles.
+> Agents generating UI code: start from the Quick Color Reference in §9.
+> For elevation implementation details, also load [`elevation.md`](./elevation.md).
+> For typography specimens and type scale, also load [`typography.md`](./typography.md).
+
+---
 
 ## 1. Visual Theme & Atmosphere
 

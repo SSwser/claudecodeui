@@ -6,18 +6,18 @@ Use this file with [`SKILL.md`](./SKILL.md) when working on the Chorus design sy
 
 ## Canonical Files
 
-| File                                                    | Role                                                                           |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `design/tokens.json`                                    | Tokens Studio compatible token SSOT                                            |
-| `design/TOKENS.md`                                      | Generated agent context artifact from `tokens.json`                            |
-| `design/canvas.json`                                    | Machine-readable node index for top-level Pencil frames and component variants |
-| `design/main.pen`                                       | Visual SSOT for composition, spacing, and component anatomy                    |
-| `src/index.css`                                         | CSS variable bridge for light and dark theme values                            |
-| `tailwind.config.js`                                    | Tailwind bridge from CSS variables to semantic utilities                       |
-| `design/PRODUCT.md`                                     | Product-level design intent and UX constraints                                 |
-| `DESIGN.md`                                             | Raw visual language reference and implementation detail                        |
-| `.claude/skills/chorus-design/references/elevation.md`  | Surface level table, shadow recipes, semantic tinting rules                    |
-| `.claude/skills/chorus-design/references/typography.md` | Full type scale, font families, OpenType settings                              |
+| File                                                         | Role                                                                           |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `design/tokens.json`                                         | Tokens Studio compatible token SSOT                                            |
+| `design/TOKENS.md`                                           | Generated agent context artifact from `tokens.json`                            |
+| `design/canvas.json`                                         | Machine-readable node index for top-level Pencil frames and component variants |
+| `design/main.pen`                                            | Visual SSOT for composition, spacing, and component anatomy                    |
+| `src/index.css`                                              | CSS variable bridge for light and dark theme values                            |
+| `tailwind.config.js`                                         | Tailwind bridge from CSS variables to semantic utilities                       |
+| `design/PRODUCT.md`                                          | Product-level design intent and UX constraints                                 |
+| `.claude/skills/chorus-design/references/visual-language.md` | Raw visual language reference — color palette, shadows, typography, do/don'ts  |
+| `.claude/skills/chorus-design/references/elevation.md`       | Surface level table, shadow recipes, semantic tinting rules                    |
+| `.claude/skills/chorus-design/references/typography.md`      | Full type scale, font families, OpenType settings                              |
 
 ---
 

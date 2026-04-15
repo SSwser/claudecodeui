@@ -1,6 +1,6 @@
 # Typography Reference — Chorus
 
-> Source: `DESIGN.md §3` (Raycast typography rules).
+> Source: `visual-language.md §3` (Raycast typography rules).
 > Specimens and exact values live here; `PRODUCT.md §6.2` only carries a summary pointer.
 
 ---

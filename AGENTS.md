@@ -190,14 +190,96 @@ Always use the current working directory (the worktree) for all file reads and e
 - Commit `.planning/` changes separately from source code changes
 - `gsd-code-review` runs before any phase is marked complete
 
+### Fast Adjustment Lane — Use This Instead of Full GSD When Scope Is Small
+
+Not every change should pay the cost of the full discuss → plan → execute loop.
+
+Use the **fast lane** (`gsd-quick`, `gsd-fast`, or an equivalent one-shot worktree task) when the change is **local, reversible, and does not alter architecture**:
+
+- visual polish inside an existing screen or component
+- copy, spacing, icon, or hierarchy cleanup
+- token bridge completion (`tokens.json` → `index.css` → `tailwind.config.js`)
+- Pencil-only refinement with no behavior change
+- isolated bug fixes that do not introduce a new screen state or contract
+
+Stay on the **full phase flow** when the work changes product behavior or coordination boundaries:
+
+- new feature or screen state
+- new API / DB / schema / route contract
+- cross-component interaction redesign
+- new token families or design-system primitives
+- any change that needs a new brief, `UI-SPEC.md`, or multi-plan verification
+
+**Fast lane rule**: still obey SSOT. Update the owning source once, run focused verification, and commit atomically. Do not spin up a full planning loop for a one-file or one-surface adjustment.
+
+### Repo-local Frontend Planning Gate — MANDATORY
+
+For any UI-facing phase, **run `gsd-ui-phase` before `gsd-plan-phase` unless the task qualifies for the fast lane above**.
+
+A frontend phase is **not ready for planning** until these inputs exist and are current:
+
+1. product intent from `design/PRODUCT.md`
+2. token mapping from `design/tokens.json` / `design/TOKENS.md`
+3. visual references from `design/main.pen` and `design/canvas.json`
+4. phase-specific design intent (`*-DESIGN-BRIEF*.md`) when the phase changes UX behavior
+5. `*-UI-SPEC.md` when implementation must match a designed UI contract
+
+If one of these is missing, the next step is to create or refresh that artifact — **not** to let the executor guess.
+
+### Repo-local Plan / Execute Override — Strict SSOT Enforcement
+
+This repo extends GSD behavior through project instructions instead of patching upstream skills.
+
+#### For `gsd-plan-phase`
+
+Treat `/impeccable` output as a **shaping input**, not the final execution contract. It may refine the brief or canvas, but for non-fast-lane UI work the plan still needs a repo-local `UI-SPEC.md` before execution.
+
+When a plan touches UI, the plan context must reference the correct SSOT layers already used successfully in Phase 01 and Phase 999.2:
+
+- `design/PRODUCT.md` for product intent and UX constraints
+- `design/TOKENS.md` for token bridge reference
+- `design/canvas.json` for machine-readable Pencil node lookup
+- `*-UI-SPEC.md` for implementation contract
+- `*-DESIGN-BRIEF*.md` only for intent, rationale, and state-flow decisions
+
+Each plan should make the ownership explicit: **behavior**, **visual**, **token bridge**, or **mixed**.
+
+#### For `gsd-execute-phase` / `gsd-executor`
+
+For UI work, always read in this order:
+
+1. `design/PRODUCT.md` — product rules and mental model
+2. `*-DESIGN-BRIEF*.md` — why, structure, and interactions
+3. `*-UI-SPEC.md` — implementation contract for the phase
+4. `design/canvas.json` + Pencil canvas — node IDs and visual reference
+5. `design/TOKENS.md` plus runtime bridges in `src/index.css` / `tailwind.config.js`
+6. implementation code in `src/`
+
+**SSOT conflict rule**:
+
+- token value conflicts → `design/tokens.json` wins
+- visual/layout conflicts → Pencil (`design/main.pen` / `design/canvas.json`) wins
+- interaction/intent conflicts → phase brief wins unless overridden by `design/PRODUCT.md`
+- shipped runtime behavior → code is canonical after delivery
+
+**Hard rule**: never copy raw hex or spacing guesses from a brief into React code. If a visual value matters in code, first bridge it through the token pipeline.
+
 ## Design Workflow
 
-### Token System
+### Token Pipeline
 
-- **Single source of truth**: `design/tokens.json` — all Pencil hex ↔ CSS token ↔ Tailwind class mappings
-- **Reference table**: `design/TOKENS.md` — auto-generated session context artifact; run `npm run build:tokens` to regenerate; never edit manually
-- **CSS variables**: `src/index.css` — HSL-based, dual theme (`:root` light + `.dark`)
-- **Tailwind bridge**: `tailwind.config.js` — maps CSS vars to utilities via `hsl(var(--xxx))`
+```text
+design/tokens.json  ─── npm run build:tokens ───▶  design/TOKENS.md (agent context artifact)
+      │ (SSOT)
+      ▼ (manual sync)
+src/index.css          HSL CSS variables, :root light + .dark dark
+      │
+      ▼ (bridge)
+tailwind.config.js     hsl(var(--xxx)) → Tailwind semantic utilities
+      │
+      ▼ (set_variables)
+design/main.pen        Pencil canvas variable bindings
+```
 
 When adding or changing a design token:
 
@@ -205,6 +287,25 @@ When adding or changing a design token:
 2. Update `src/index.css` (light + dark values)
 3. If new token, add Tailwind mapping in `tailwind.config.js`
 4. Run `npm run build:tokens` to regenerate `TOKENS.md`
+
+### Layer Authority
+
+| Layer                      | Authority                         | Notes                                                              |
+| -------------------------- | --------------------------------- | ------------------------------------------------------------------ |
+| Product decisions          | `design/PRODUCT.md`               | Mental model, state system, UX principles; long-lived              |
+| Phase design intent        | phase brief (`.planning/`)        | "Why", structure, interaction constraints; archived after delivery |
+| UI implementation contract | `XX-UI-SPEC.md`                   | Execution contract; freezes UI constraints for a phase             |
+| Visual/layout              | Pencil canvas (`design/main.pen`) | Visual SSOT for layout, spacing, and appearance                    |
+| Node index                 | `design/canvas.json`              | Machine-readable Pencil node index for agent lookups               |
+| Token mapping              | `design/tokens.json`              | Pencil hex ↔ CSS token ↔ Tailwind mapping                          |
+| Behavior/logic             | code (`src/` + `server/`)         | After delivery, code is the canonical implementation               |
+
+### Token System
+
+- **Single source of truth**: `design/tokens.json` — all Pencil hex ↔ CSS token ↔ Tailwind class mappings
+- **Reference table**: `design/TOKENS.md` — auto-generated session context artifact; run `npm run build:tokens` to regenerate; never edit manually
+- **CSS variables**: `src/index.css` — HSL-based, dual theme (`:root` light + `.dark`)
+- **Tailwind bridge**: `tailwind.config.js` — maps CSS vars to utilities via `hsl(var(--xxx))`
 
 ### Canvas Node Index
 

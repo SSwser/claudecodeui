@@ -84,10 +84,46 @@ Keep this skill generic. Move repo-specific details into a sibling project adapt
 - Generic skill owns: workflow, schema expectations, artifact boundaries
 - Project adaptation owns: file paths, token prefixes, theme axes, naming conventions, concrete mappings
 
+## Templateable Architecture
+
+This skill is designed to be portable across projects. The directory structure separates generic workflow from project-specific knowledge:
+
+```
+.claude/skills/chorus-design/
+  SKILL.md                        ← generic workflow (shared, never project-specific)
+  PROJECT-<YOURPROJECT>.md        ← project adaptation: paths, prefix, token maps
+  references/
+    visual-language.md            ← project's raw visual system (colors, components, do/don'ts)
+    elevation.md                  ← surface level table + shadow recipes
+    typography.md                 ← type scale, font families, OpenType settings
+  templates/
+    new-project.md                ← step-by-step guide for adopting in a new repo
+    tokens.template.json          ← seed file for a new project's tokens.json
+    canvas.template.json          ← seed file for a new project's canvas.json
+  scripts/
+    build-tokens.cjs              ← project instance of the token doc generator
+    build-tokens.template.cjs     ← portable template for generating TOKENS.md
+```
+
+**To adopt in a new project:**
+
+1. Copy the entire `chorus-design/` directory to `.claude/skills/your-design/`
+2. Create `PROJECT-<YOURPROJECT>.md` from `templates/new-project.md`
+3. Replace `references/*.md` with your project's visual language
+4. Seed `design/tokens.json` from `templates/tokens.template.json`
+5. Seed `design/canvas.json` from `templates/canvas.template.json`
+6. Copy `scripts/build-tokens.template.cjs` → `scripts/build-tokens.cjs`, adjust paths
+
+**Self-evolution rule**: when you discover a better generic pattern, update `SKILL.md`. When you discover a better project-specific pattern, update `PROJECT-XXX.md`. Never mix the two.
+
 ## Bundled Resources
 
 - `PROJECT-CHORUS.md`: Chorus-specific adaptation for this repo
+- `references/visual-language.md`: raw visual language — color palette, component stylings, do/don'ts, agent prompt guide
 - `references/elevation.md`: surface level table, Raycast shadow recipes, and CSS card shadow implementation
 - `references/typography.md`: full type scale, font families, and OpenType settings
+- `templates/new-project.md`: guide for adopting this skill in a new project
+- `templates/tokens.template.json`: minimal DTCG-style token schema seed
+- `templates/canvas.template.json`: minimal canvas.json seed
 - `scripts/build-tokens.cjs`: Chorus instance of the token doc generator (called by `npm run build:tokens`)
 - `scripts/build-tokens.template.cjs`: portable template for adopting this workflow in other projects
