@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { authenticatedFetch } from '../../../utils/api';
-import { CLAUDE_MODELS, CODEX_MODELS, CURSOR_MODELS, GEMINI_MODELS } from '../../../../shared/modelConstants';
+import { CLAUDE_MODELS, CODEX_MODELS, CURSOR_MODELS, GEMINI_MODELS } from '@shared/modelConstants';
 import type { PendingPermissionRequest, PermissionMode } from '../types/types';
-import type { ProjectSession, SessionProvider } from '../../../types/app';
+import { authenticatedFetch } from '@/utils/api';
+import type { ProjectSession, SessionProvider } from '@/types/app';
 
 interface UseChatProviderStateArgs {
   selectedSession: ProjectSession | null;
@@ -10,7 +10,9 @@ interface UseChatProviderStateArgs {
 
 export function useChatProviderState({ selectedSession }: UseChatProviderStateArgs) {
   const [permissionMode, setPermissionMode] = useState<PermissionMode>('default');
-  const [pendingPermissionRequests, setPendingPermissionRequests] = useState<PendingPermissionRequest[]>([]);
+  const [pendingPermissionRequests, setPendingPermissionRequests] = useState<
+    PendingPermissionRequest[]
+  >([]);
   const [provider, setProvider] = useState<SessionProvider>(() => {
     return (localStorage.getItem('selected-provider') as SessionProvider) || 'claude';
   });
@@ -57,7 +59,7 @@ export function useChatProviderState({ selectedSession }: UseChatProviderStateAr
 
   useEffect(() => {
     setPendingPermissionRequests((previous) =>
-      previous.filter((request) => !request.sessionId || request.sessionId === selectedSession?.id),
+      previous.filter((request) => !request.sessionId || request.sessionId === selectedSession?.id)
     );
   }, [selectedSession?.id]);
 

@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../../ui/button';
 import AuthErrorAlert from './AuthErrorAlert';
 import AuthInputField from './AuthInputField';
 import AuthScreenLayout from './AuthScreenLayout';
+import { Button } from '@/components/ui/button';
 
 type SetupFormState = {
   username: string;
@@ -83,10 +83,10 @@ export default function SetupForm() {
 
   return (
     <AuthScreenLayout
-      title="Welcome to Claude Code UI"
+      title="Welcome to Chorus"
       description="Set up your account to get started"
       footerText="This is a single-user system. Only one account can be created."
-      logo={<img src="/logo.svg" alt="CloudCLI" className="h-16 w-16" />}
+      logo={<img src="/logo.svg" alt="Chorus" className="h-16 w-16" />}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthInputField

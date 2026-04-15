@@ -2,15 +2,15 @@ import { useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import type { TFunction } from 'i18next';
-import { Button } from '../../../../shared/view/ui';
-import Settings from '../../../settings/view/Settings';
-import VersionUpgradeModal from '../../../version-upgrade/view';
-import type { Project } from '../../../../types/app';
-import type { ReleaseInfo } from '../../../../types/sharedTypes';
-import type { InstallMode } from '../../../../hooks/useVersionCheck';
-import { normalizeProjectForSettings } from '../../utils/utils';
-import type { DeleteProjectConfirmation, SessionDeleteConfirmation, SettingsProject } from '../../types/types';
-import ProjectCreationWizard from '../../../project-creation-wizard';
+import { Button } from '@/shared/view/ui';
+import Settings from '@/components/settings/view/Settings';
+import VersionUpgradeModal from '@/components/version-upgrade/view';
+import type { Project } from '@/types/app';
+import type { ReleaseInfo } from '@/types/sharedTypes';
+import type { InstallMode } from '@/hooks/useVersionCheck';
+import { normalizeProjectForSettings } from '@/components/sidebar/utils/utils';
+import type { DeleteProjectConfirmation, SettingsProject } from '@/components/sidebar/types/types';
+import ProjectWizard from '@/components/project-wizard';
 
 type SidebarModalsProps = {
   projects: Project[];
@@ -23,9 +23,6 @@ type SidebarModalsProps = {
   deleteConfirmation: DeleteProjectConfirmation | null;
   onCancelDeleteProject: () => void;
   onConfirmDeleteProject: () => void;
-  sessionDeleteConfirmation: SessionDeleteConfirmation | null;
-  onCancelDeleteSession: () => void;
-  onConfirmDeleteSession: () => void;
   showVersionModal: boolean;
   onCloseVersionModal: () => void;
   releaseInfo: ReleaseInfo | null;
@@ -59,9 +56,6 @@ export default function SidebarModals({
   deleteConfirmation,
   onCancelDeleteProject,
   onConfirmDeleteProject,
-  sessionDeleteConfirmation,
-  onCancelDeleteSession,
-  onConfirmDeleteSession,
   showVersionModal,
   onCloseVersionModal,
   releaseInfo,
@@ -71,21 +65,21 @@ export default function SidebarModals({
   t,
 }: SidebarModalsProps) {
   // Settings expects project identity/path fields to be present for dropdown labels and local-scope MCP config.
-  const settingsProjects = useMemo(
-    () => projects.map(normalizeProjectForSettings),
-    [projects],
-  );
+  const settingsProjects = useMemo(() => projects.map(normalizeProjectForSettings), [projects]);
 
   return (
     <>
-      {showNewProject &&
-        ReactDOM.createPortal(
-          <ProjectCreationWizard
-            onClose={onCloseNewProject}
-            onProjectCreated={onProjectCreated}
-          />,
-          document.body,
-        )}
+      {showNewProject ? (
+        <ProjectWizard
+          open={showNewProject}
+          onOpenChange={(open) => {
+            if (!open) {
+              onCloseNewProject();
+            }
+          }}
+          onProjectCreated={onProjectCreated}
+        />
+      ) : null}
 
       {showSettings &&
         ReactDOM.createPortal(
@@ -95,7 +89,7 @@ export default function SidebarModals({
             projects={settingsProjects}
             initialTab={settingsInitialTab}
           />,
-          document.body,
+          document.body
         )}
 
       {deleteConfirmation &&
@@ -121,7 +115,9 @@ export default function SidebarModals({
                     {deleteConfirmation.sessionCount > 0 && (
                       <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
                         <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                          {t('deleteConfirmation.sessionCount', { count: deleteConfirmation.sessionCount })}
+                          {t('deleteConfirmation.sessionCount', {
+                            count: deleteConfirmation.sessionCount,
+                          })}
                         </p>
                         <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                           {t('deleteConfirmation.allConversationsDeleted')}
@@ -149,51 +145,7 @@ export default function SidebarModals({
               </div>
             </div>
           </div>,
-          document.body,
-        )}
-
-      {sessionDeleteConfirmation &&
-        ReactDOM.createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-md overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
-              <div className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-                    <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="mb-2 text-lg font-semibold text-foreground">
-                      {t('deleteConfirmation.deleteSession')}
-                    </h3>
-                    <p className="mb-1 text-sm text-muted-foreground">
-                      {t('deleteConfirmation.confirmDelete')}{' '}
-                      <span className="font-medium text-foreground">
-                        {sessionDeleteConfirmation.sessionTitle || t('sessions.unnamed')}
-                      </span>
-                      ?
-                    </p>
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      {t('deleteConfirmation.cannotUndo')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-3 border-t border-border bg-muted/30 p-4">
-                <Button variant="outline" className="flex-1" onClick={onCancelDeleteSession}>
-                  {t('actions.cancel')}
-                </Button>
-                <Button
-                  variant="destructive"
-                  className="flex-1 bg-red-600 text-white hover:bg-red-700"
-                  onClick={onConfirmDeleteSession}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {t('actions.delete')}
-                </Button>
-              </div>
-            </div>
-          </div>,
-          document.body,
+          document.body
         )}
 
       <VersionUpgradeModal

@@ -1,13 +1,13 @@
 import { FolderPlus, MessageSquarePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../ui/button';
-import type { SelectOption } from '../../ui/select';
 import FavoritesSection, {
   type FavoriteSessionCard,
   type FavoriteWorkspaceCard,
 } from './FavoritesSection';
 import HomeFilters from './HomeFilters';
 import RecentSessionsList, { type RecentSessionItem } from './RecentSessionsList';
+import type { SelectOption } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 export type LandingPageViewModel = {
   filters: {
@@ -58,7 +58,7 @@ export default function LandingPage({
         <section className="rounded-large border border-border/70 bg-card/95 p-6 shadow-ring sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-ui text-brand">CloudCLI UI</p>
+              <p className="text-xs font-semibold uppercase tracking-ui text-brand">Chorus</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-display text-foreground sm:text-4xl">
                 {t('landing.title')}
               </h1>

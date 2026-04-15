@@ -4,4 +4,4 @@
  */
 export const IS_PLATFORM = import.meta.env.VITE_IS_PLATFORM === 'true';
 
-export const IS_DEV_AUTO_LOGIN = import.meta.env.VITE_DEV_AUTO_LOGIN === 'true';
+export const IS_LOCAL_DEV = import.meta.env.VITE_LOCAL_DEV === 'true';

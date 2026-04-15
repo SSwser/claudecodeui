@@ -4,7 +4,7 @@ import { notificationPreferencesDb, pushSubscriptionsDb, sessionNamesDb } from '
 const KIND_TO_PREF_KEY = {
   action_required: 'actionRequired',
   stop: 'stop',
-  error: 'error'
+  error: 'error',
 };
 
 const PROVIDER_LABELS = {
@@ -12,7 +12,7 @@ const PROVIDER_LABELS = {
   cursor: 'Cursor',
   codex: 'Codex',
   gemini: 'Gemini',
-  system: 'System'
+  system: 'System',
 };
 
 const recentEventKeys = new Map();
@@ -37,7 +37,9 @@ function shouldSendPush(preferences, event) {
 
 function isDuplicate(event) {
   cleanupOldEventKeys();
-  const key = event.dedupeKey || `${event.provider}:${event.kind || 'info'}:${event.code || 'generic'}:${event.sessionId || 'none'}`;
+  const key =
+    event.dedupeKey ||
+    `${event.provider}:${event.kind || 'info'}:${event.code || 'generic'}:${event.sessionId || 'none'}`;
   if (recentEventKeys.has(key)) {
     return true;
   }
@@ -53,7 +55,7 @@ function createNotificationEvent({
   meta = {},
   severity = 'info',
   dedupeKey = null,
-  requiresUserAction = false
+  requiresUserAction = false,
 }) {
   return {
     provider,
@@ -64,7 +66,7 @@ function createNotificationEvent({
     severity,
     requiresUserAction,
     dedupeKey,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
 }
 
@@ -116,24 +118,28 @@ function buildPushBody(event) {
       ? `Action Required: Tool "${event.meta.toolName}" needs approval`
       : 'Action Required: A tool needs your approval',
     'run.stopped': event.meta?.stopReason || 'Run Stopped: The run has stopped',
-    'run.failed': event.meta?.error ? `Run Failed: ${event.meta.error}` : 'Run Failed: The run encountered an error',
-    'agent.notification': event.meta?.message ? String(event.meta.message) : 'You have a new notification',
-    'push.enabled': 'Push notifications are now enabled!'
+    'run.failed': event.meta?.error
+      ? `Run Failed: ${event.meta.error}`
+      : 'Run Failed: The run encountered an error',
+    'agent.notification': event.meta?.message
+      ? String(event.meta.message)
+      : 'You have a new notification',
+    'push.enabled': 'Push notifications are now enabled!',
   };
   const providerLabel = PROVIDER_LABELS[event.provider] || 'Assistant';
   const sessionName = resolveSessionName(event);
   const message = CODE_MAP[event.code] || 'You have a new notification';
 
   return {
-    title: sessionName || 'Claude Code UI',
+    title: sessionName || 'Chorus',
     body: `${providerLabel}: ${message}`,
     data: {
       sessionId: event.sessionId || null,
       code: event.code,
       provider: event.provider || null,
       sessionName,
-      tag: `${event.provider || 'assistant'}:${event.sessionId || 'none'}:${event.code}`
-    }
+      tag: `${event.provider || 'assistant'}:${event.sessionId || 'none'}:${event.code}`,
+    },
   };
 }
 
@@ -150,8 +156,8 @@ async function sendWebPush(userId, event) {
           endpoint: sub.endpoint,
           keys: {
             p256dh: sub.keys_p256dh,
-            auth: sub.keys_auth
-          }
+            auth: sub.keys_auth,
+          },
         },
         payload
       )
@@ -187,7 +193,13 @@ function notifyUserIfEnabled({ userId, event }) {
   });
 }
 
-function notifyRunStopped({ userId, provider, sessionId = null, stopReason = 'completed', sessionName = null }) {
+function notifyRunStopped({
+  userId,
+  provider,
+  sessionId = null,
+  stopReason = 'completed',
+  sessionName = null,
+}) {
   notifyUserIfEnabled({
     userId,
     event: createNotificationEvent({
@@ -197,8 +209,8 @@ function notifyRunStopped({ userId, provider, sessionId = null, stopReason = 'co
       code: 'run.stopped',
       meta: { stopReason, sessionName },
       severity: 'info',
-      dedupeKey: `${provider}:run:stop:${sessionId || 'none'}:${stopReason}`
-    })
+      dedupeKey: `${provider}:run:stop:${sessionId || 'none'}:${stopReason}`,
+    }),
   });
 }
 
@@ -214,14 +226,9 @@ function notifyRunFailed({ userId, provider, sessionId = null, error, sessionNam
       code: 'run.failed',
       meta: { error: errorMessage, sessionName },
       severity: 'error',
-      dedupeKey: `${provider}:run:error:${sessionId || 'none'}:${errorMessage}`
-    })
+      dedupeKey: `${provider}:run:error:${sessionId || 'none'}:${errorMessage}`,
+    }),
   });
 }
 
-export {
-  createNotificationEvent,
-  notifyUserIfEnabled,
-  notifyRunStopped,
-  notifyRunFailed
-};
+export { createNotificationEvent, notifyUserIfEnabled, notifyRunStopped, notifyRunFailed };

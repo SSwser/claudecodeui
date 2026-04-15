@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Eye, EyeOff, FolderOpen, FolderPlus, Loader2, Plus, X } from 'lucide-react';
-import { Button, Input } from '../../../shared/view/ui';
 import { browseFilesystemFolders, createFolderInFilesystem } from '../data/workspaceApi';
 import { getParentPath, joinFolderPath } from '../utils/pathUtils';
 import type { FolderSuggestion } from '../types';
+import { Button, Input } from '@/shared/view/ui';
 
 type FolderBrowserModalProps = {
   isOpen: boolean;
@@ -96,8 +97,12 @@ export default function FolderBrowserModal({
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-large border border-border/70 bg-surface-2 text-foreground shadow-ring">
         <div className="flex items-center justify-between border-b border-border/70 p-4">
           <div className="flex items-center gap-3">
@@ -240,6 +245,7 @@ export default function FolderBrowserModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

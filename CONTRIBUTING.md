@@ -1,6 +1,6 @@
-# Contributing to CloudCLI UI
+# Contributing to Chorus
 
-Thanks for your interest in contributing to CloudCLI UI! Before you start, please take a moment to read through this guide.
+Thanks for your interest in contributing to Chorus! Before you start, please take a moment to read through this guide.
 
 ## Before You Start
 

@@ -1,4 +1,4 @@
-# ClaudecodeUI — Agent Instructions
+# Chorus — Agent Instructions
 
 > Universal agent instruction file. Applies to all AI coding tools:
 > Claude Code, GitHub Copilot, Cursor, Gemini CLI, and others.
@@ -10,7 +10,7 @@
 
 ## Project Overview
 
-ClaudecodeUI is a browser-based UI for managing Claude Code sessions. It provides project management, file editing, git integration, and real-time terminal output — all running as a local Express + React app.
+Chorus is a cloud-native AI work orchestration platform. It provides project management, file editing, git integration, and real-time terminal output — all running as a local Express + React app.
 
 ## Tech Stack
 

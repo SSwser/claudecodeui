@@ -1,6 +1,4 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from '../../../constants/config';
-import { api } from '../../../utils/api';
 import { AUTH_ERROR_MESSAGES, AUTH_TOKEN_STORAGE_KEY } from '../constants';
 import type {
   AuthContextValue,
@@ -12,6 +10,8 @@ import type {
   OnboardingStatusPayload,
 } from '../types';
 import { parseJsonSafely, resolveApiErrorMessage } from '../utils';
+import { api } from '@/utils/api';
+import { IS_PLATFORM, IS_LOCAL_DEV } from '@/constants/config';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     // Server-side auth is bypassed in this mode, so the client should enter the app immediately.
-    if (IS_DEV_AUTO_LOGIN) {
+    if (IS_LOCAL_DEV) {
       setUser({ username: 'dev' });
       setNeedsSetup(false);
       void checkOnboardingStatus().finally(() => {

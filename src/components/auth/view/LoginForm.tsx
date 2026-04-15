@@ -2,10 +2,10 @@ import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../../ui/button';
 import AuthErrorAlert from './AuthErrorAlert';
 import AuthInputField from './AuthInputField';
 import AuthScreenLayout from './AuthScreenLayout';
+import { Button } from '@/components/ui/button';
 
 type LoginFormState = {
   username: string;
@@ -59,7 +59,7 @@ export default function LoginForm() {
     <AuthScreenLayout
       title={t('login.title')}
       description={t('login.description')}
-      footerText="Enter your credentials to access Claude Code UI"
+      footerText="Enter your credentials to access Chorus"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthInputField
