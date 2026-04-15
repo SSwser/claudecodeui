@@ -73,13 +73,8 @@
 - **文件浏览器** - 交互式文件树，支持语法高亮与实时编辑
 - **Git 浏览器** - 查看、暂存并提交更改，还可切换分支
 - **会话管理** - 恢复对话、管理多个会话并跟踪历史记录
-<<<<<<< HEAD
-- **插件系统** - 通过自定义选项卡、后端服务与集成扩展 CloudCLI。 [开始构建 →](https://github.com/cloudcli-ai/cloudcli-plugin-starter)
-- **TaskMaster AI 集成** _(可选)_ - 结合 AI 任务规划、PRD 分析与工作流自动化，实现高级项目管理
-=======
 - **插件系统** - 通过自定义选项卡、后端服务与集成扩展 Chorus。 [开始构建 →](https://github.com/chorus-dev/chorus-plugin-starter)
-- **TaskMaster AI 集成** *(可选)* - 结合 AI 任务规划、PRD 分析与工作流自动化，实现高级项目管理
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
+- **TaskMaster AI 集成** _(可选)_ - 结合 AI 任务规划、PRD 分析与工作流自动化，实现高级项目管理
 - **模型兼容性** - 支持 Claude、GPT、Gemini 模型家族（完整支持列表见 [`shared/modelConstants.js`](shared/modelConstants.js)）
 
 ## 快速开始
@@ -115,12 +110,11 @@ chorus
 
 Chorus 是 Chorus Cloud 的开源 UI 层。你可以在本地机器上自托管它，也可以使用提供团队功能与深入集成的 Chorus Cloud。
 
-<<<<<<< HEAD
-|                      | CloudCLI UI（自托管）                      | CloudCLI Cloud                                       |
+|                      | Chorus（自托管）                           | Chorus Cloud                                         |
 | -------------------- | ------------------------------------------ | ---------------------------------------------------- |
 | **适合对象**         | 需要为本地代理会话提供完整 UI 的开发者     | 需要部署在云端，随时从任何地方访问代理的团队与开发者 |
 | **访问方式**         | 通过 `[yourip]:port` 在浏览器中访问        | 浏览器、任意 IDE、REST API、n8n                      |
-| **设置**             | `npx @cloudcli-ai/cloudcli`                | 无需设置                                             |
+| **设置**             | `npx @anthropic-ai/chorus`                 | 无需设置                                             |
 | **机器需保持开机吗** | 是                                         | 否                                                   |
 | **移动端访问**       | 网络内任意浏览器                           | 任意设备（原生应用即将推出）                         |
 | **可用会话**         | 自动发现 `~/.claude` 中的所有会话          | 云端环境内的会话                                     |
@@ -132,24 +126,6 @@ Chorus 是 Chorus Cloud 的开源 UI 层。你可以在本地机器上自托管�
 | **n8n 节点**         | 否                                         | 是                                                   |
 | **团队共享**         | 否                                         | 是                                                   |
 | **平台费用**         | 免费开源                                   | 起价 $7/月                                           |
-=======
-| | Chorus（自托管） | Chorus Cloud |
-|---|---|---|
-| **适合对象** | 需要为本地代理会话提供完整 UI 的开发者 | 需要部署在云端，随时从任何地方访问代理的团队与开发者 |
-| **访问方式** | 通过 `[yourip]:port` 在浏览器中访问 | 浏览器、任意 IDE、REST API、n8n |
-| **设置** | `npx @anthropic-ai/chorus` | 无需设置 |
-| **机器需保持开机吗** | 是 | 否 |
-| **移动端访问** | 网络内任意浏览器 | 任意设备（原生应用即将推出） |
-| **可用会话** | 自动发现 `~/.claude` 中的所有会话 | 云端环境内的会话 |
-| **支持的 Agents** | Claude Code、Cursor CLI、Codex、Gemini CLI | Claude Code、Cursor CLI、Codex、Gemini CLI |
-| **文件浏览与 Git** | 内置于 UI | 内置于 UI |
-| **MCP 配置** | UI 管理，与本地 `~/.claude` 配置同步 | UI 管理 |
-| **IDE 访问** | 本地 IDE | 任何连接到云环境的 IDE |
-| **REST API** | 是 | 是 |
-| **n8n 节点** | 否 | 是 |
-| **团队共享** | 否 | 是 |
-| **平台费用** | 免费开源 | 起价 $7/月 |
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 
 > 两种方式都使用你自己的 AI 订阅（Claude、Cursor 等）— Chorus 提供环境，而非 AI。
 
@@ -182,15 +158,9 @@ Chorus 配备插件系统，允许你添加带自定义前端 UI 和可选 Node.
 
 ### 可用插件
 
-<<<<<<< HEAD
-| 插件                                                                        | 描述                                                                     |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| **[Project Stats](https://github.com/cloudcli-ai/cloudcli-plugin-starter)** | 展示当前项目的文件数、代码行数、文件类型分布、最大文件以及最近修改的文件 |
-=======
-| 插件 | 描述 |
-|---|---|
+| 插件                                                                     | 描述                                                                     |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | **[Project Stats](https://github.com/chorus-dev/chorus-plugin-starter)** | 展示当前项目的文件数、代码行数、文件类型分布、最大文件以及最近修改的文件 |
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 
 ### 自行构建
 

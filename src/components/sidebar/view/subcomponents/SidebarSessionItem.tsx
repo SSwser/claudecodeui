@@ -60,7 +60,8 @@ export default function SidebarSessionItem({
   const [contextMenu, setContextMenu] = useState(false);
 
   // Derive session status: prefer WS-driven override, then session data field, then time-based heuristic
-  const rawStatus = (session.status as SessionStatus | undefined) ?? (sessionView.isActive ? 'active' : undefined);
+  const rawStatus =
+    (session.status as SessionStatus | undefined) ?? (sessionView.isActive ? 'active' : undefined);
   const effectiveStatus = lifecycle.getStatus(session.id, rawStatus ?? 'active');
   const isSessionLoading = lifecycle.loadingIds.has(session.id);
 
@@ -107,7 +108,7 @@ export default function SidebarSessionItem({
             !isSelected && effectiveStatus === 'active' && sessionView.isActive
               ? 'border-green-500/30 bg-green-50/5 dark:bg-green-900/5'
               : 'border-border/30',
-            effectiveStatus === 'archived' ? 'opacity-60' : '',
+            effectiveStatus === 'archived' ? 'opacity-60' : ''
           )}
           onClick={selectMobileSession}
         >
@@ -162,7 +163,7 @@ export default function SidebarSessionItem({
           className={cn(
             'w-full justify-start p-2 h-auto font-normal text-left hover:bg-accent/50 transition-colors duration-200',
             isSelected && 'bg-accent text-accent-foreground',
-            effectiveStatus === 'archived' && 'opacity-60',
+            effectiveStatus === 'archived' && 'opacity-60'
           )}
           onClick={() => onSessionSelect(session, project.name)}
         >

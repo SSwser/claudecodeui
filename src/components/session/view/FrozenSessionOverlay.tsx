@@ -24,7 +24,7 @@ export default function FrozenSessionOverlay({
     <div
       className={cn(
         'flex flex-col items-center justify-center gap-4 border-t border-sky-200 bg-background/80 px-6 py-8 backdrop-blur-sm dark:border-sky-900/40',
-        className,
+        className
       )}
     >
       <div className="flex flex-col items-center gap-3 text-center">

@@ -64,7 +64,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
       try {
         const response = await authenticatedFetch(
           `/api/sessions/${encodeURIComponent(sessionId)}/freeze`,
-          { method: 'POST' },
+          { method: 'POST' }
         );
         if (!response.ok) {
           const body = (await response.json().catch(() => ({}))) as { error?: string };
@@ -80,7 +80,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
         setLoading(sessionId, false);
       }
     },
-    [setLoading, revertOverride],
+    [setLoading, revertOverride]
   );
 
   const resumeSession = useCallback(
@@ -91,7 +91,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
       try {
         const response = await authenticatedFetch(
           `/api/sessions/${encodeURIComponent(sessionId)}/resume`,
-          { method: 'POST' },
+          { method: 'POST' }
         );
         if (!response.ok) {
           const body = (await response.json().catch(() => ({}))) as { error?: string };
@@ -106,7 +106,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
         setLoading(sessionId, false);
       }
     },
-    [setLoading, revertOverride],
+    [setLoading, revertOverride]
   );
 
   const archiveSession = useCallback(
@@ -117,7 +117,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
       try {
         const response = await authenticatedFetch(
           `/api/sessions/${encodeURIComponent(sessionId)}/archive`,
-          { method: 'POST' },
+          { method: 'POST' }
         );
         if (!response.ok) {
           const body = (await response.json().catch(() => ({}))) as { error?: string };
@@ -132,7 +132,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
         setLoading(sessionId, false);
       }
     },
-    [setLoading, revertOverride],
+    [setLoading, revertOverride]
   );
 
   const deleteSession = useCallback(
@@ -145,7 +145,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
       try {
         const response = await authenticatedFetch(
           `/api/sessions/${encodeURIComponent(sessionId)}`,
-          { method: 'DELETE' },
+          { method: 'DELETE' }
         );
         if (!response.ok) {
           const body = (await response.json().catch(() => ({}))) as { error?: string };
@@ -160,13 +160,13 @@ export function useSessionLifecycle(): SessionLifecycleHook {
         setLoading(sessionId, false);
       }
     },
-    [setLoading, revertOverride],
+    [setLoading, revertOverride]
   );
 
   const getSessionState = useCallback(async (sessionId: string): Promise<unknown> => {
     try {
       const response = await authenticatedFetch(
-        `/api/sessions/${encodeURIComponent(sessionId)}/state`,
+        `/api/sessions/${encodeURIComponent(sessionId)}/state`
       );
       if (!response.ok) return null;
       return response.json();
@@ -179,7 +179,7 @@ export function useSessionLifecycle(): SessionLifecycleHook {
     (sessionId: string, fallback: SessionStatus): SessionStatus => {
       return statusOverrides[sessionId] ?? fallback;
     },
-    [statusOverrides],
+    [statusOverrides]
   );
 
   return {

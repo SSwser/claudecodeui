@@ -190,11 +190,7 @@ export default function SessionTopBar({
       {lifecycle.error && (
         <div className="border-b border-destructive/30 bg-destructive/5 px-4 py-2 text-xs text-destructive">
           {lifecycle.error}
-          <button
-            type="button"
-            className="ml-2 underline"
-            onClick={lifecycle.clearError}
-          >
+          <button type="button" className="ml-2 underline" onClick={lifecycle.clearError}>
             Dismiss
           </button>
         </div>

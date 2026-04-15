@@ -10,7 +10,12 @@ type MainContentTitleProps = {
   shouldShowTasksTab: boolean;
 };
 
-function getTabTitle(activeTab: AppTab, shouldShowTasksTab: boolean, t: (key: string) => string, pluginDisplayName?: string) {
+function getTabTitle(
+  activeTab: AppTab,
+  shouldShowTasksTab: boolean,
+  t: (key: string) => string,
+  pluginDisplayName?: string
+) {
   if (activeTab.startsWith('plugin:') && pluginDisplayName) {
     return pluginDisplayName;
   }
@@ -72,19 +77,25 @@ export default function MainContentTitle({
             <h2 className="scrollbar-hide overflow-x-auto whitespace-nowrap text-sm font-semibold leading-tight text-foreground">
               {getSessionTitle(selectedSession)}
             </h2>
-            <div className="truncate text-[11px] leading-tight text-muted-foreground">{selectedProject.displayName}</div>
+            <div className="truncate text-[11px] leading-tight text-muted-foreground">
+              {selectedProject.displayName}
+            </div>
           </div>
         ) : showProjectInbox ? (
           <div className="min-w-0">
             <h2 className="text-base font-semibold leading-tight text-foreground">Project Inbox</h2>
-            <div className="truncate text-xs leading-tight text-muted-foreground">{selectedProject.displayName}</div>
+            <div className="truncate text-xs leading-tight text-muted-foreground">
+              {selectedProject.displayName}
+            </div>
           </div>
         ) : (
           <div className="min-w-0">
             <h2 className="text-sm font-semibold leading-tight text-foreground">
               {getTabTitle(activeTab, shouldShowTasksTab, t, pluginDisplayName)}
             </h2>
-            <div className="truncate text-[11px] leading-tight text-muted-foreground">{selectedProject.displayName}</div>
+            <div className="truncate text-[11px] leading-tight text-muted-foreground">
+              {selectedProject.displayName}
+            </div>
           </div>
         )}
       </div>

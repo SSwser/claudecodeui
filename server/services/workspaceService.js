@@ -36,11 +36,13 @@ function runCommand(command, args, options = {}) {
 }
 
 function slugifyForPath(value) {
-  return String(value || 'workspace')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'workspace';
+  return (
+    String(value || 'workspace')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'workspace'
+  );
 }
 
 function mapWorkspaceRow(row) {

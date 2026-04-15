@@ -1,3 +1,5 @@
+import type { SessionStatus } from './session';
+
 export type SessionProvider = 'claude' | 'cursor' | 'codex' | 'gemini';
 
 export type AppTab = 'chat' | 'files' | 'shell' | 'git' | 'tasks' | 'preview' | `plugin:${string}`;
@@ -95,7 +97,31 @@ export interface LoadingProgressMessage extends LoadingProgress {
   type: 'loading_progress';
 }
 
+export interface SessionStateChangedMessage {
+  type: 'session_state_changed';
+  sessionId: string;
+  status: SessionStatus;
+  provider: SessionProvider;
+}
+
+export interface ProjectCreatedMessage {
+  type: 'project_created';
+  project: {
+    id: number;
+    name: string;
+    directoryPath: string;
+  };
+}
+
+export interface ProjectDeletedMessage {
+  type: 'project_deleted';
+  projectId: number;
+}
+
 export type AppSocketMessage =
   | LoadingProgressMessage
   | ProjectsUpdatedMessage
+  | SessionStateChangedMessage
+  | ProjectCreatedMessage
+  | ProjectDeletedMessage
   | { type?: string; [key: string]: unknown };

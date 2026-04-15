@@ -81,7 +81,7 @@ const getSavedLanguage = () => {
   try {
     const saved = localStorage.getItem('userLanguage');
     // Validate that the saved language is supported
-    if (saved && languages.some(lang => lang.value === saved)) {
+    if (saved && languages.some((lang) => lang.value === saved)) {
       return saved;
     }
     return 'en';

@@ -73,11 +73,7 @@ For Chinese-speaking users, we recommend saying the English name directly, close
 - **File Explorer** - Interactive file tree with syntax highlighting and live editing
 - **Git Explorer** - View, stage and commit your changes. You can also switch branches
 - **Session Management** - Resume conversations, manage multiple sessions, and track history
-<<<<<<< HEAD
 - **Plugin System** - Extend CloudCLI with custom plugins — add new tabs, backend services, and integrations. [Build your own →](https://github.com/cloudcli-ai/cloudcli-plugin-starter)
-=======
-- **Plugin System** - Extend Chorus with custom plugins — add new tabs, backend services, and integrations. [Build your own →](https://github.com/chorus-dev/chorus-plugin-starter)
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 - **TaskMaster AI Integration** _(Optional)_ - Advanced project management with AI-powered task planning, PRD parsing, and workflow automation
 - **Model Compatibility** - Works with Claude, GPT, and Gemini model families (see [`shared/modelConstants.js`](shared/modelConstants.js) for the full list of supported models)
 
@@ -87,11 +83,7 @@ For Chinese-speaking users, we recommend saying the English name directly, close
 
 The fastest way to get started — no local setup required. Get a fully managed, containerized development environment accessible from the web, mobile app, API, or your favorite IDE.
 
-<<<<<<< HEAD
 **[Get started with CloudCLI Cloud](https://cloudcli.ai)**
-=======
-**[Get started with Chorus Cloud](https://chorus.dev)**
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 
 ### Self-Hosted (Open source)
 
@@ -110,11 +102,7 @@ chorus
 
 Open `http://localhost:3001` — all your existing sessions are discovered automatically.
 
-<<<<<<< HEAD
 Visit the **[documentation →](https://cloudcli.ai/docs)** for more full configuration options, PM2, remote server setup and more
-=======
-Visit the **[documentation →](https://chorus.dev/docs)** for more full configuration options, PM2, remote server setup and more
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 
 ---
 
@@ -122,19 +110,11 @@ Visit the **[documentation →](https://chorus.dev/docs)** for more full configu
 
 Chorus is the open source UI layer that powers Chorus Cloud. You can self-host it on your own machine, or use Chorus Cloud which builds on top of it with a full managed cloud environment, team features, and deeper integrations.
 
-<<<<<<< HEAD
 |                              | CloudCLI UI (Self-hosted)                                                   | CloudCLI Cloud                                                                      |
 | ---------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | **Best for**                 | Developers who want a full UI for local agent sessions on their own machine | Teams and developers who want agents running in the cloud, accessible from anywhere |
 | **How you access it**        | Browser via `[yourip]:port`                                                 | Browser, any IDE, REST API, n8n                                                     |
 | **Setup**                    | `npx @cloudcli-ai/cloudcli`                                                 | No setup required                                                                   |
-=======
-|                              | Chorus (Self-hosted)                                                        | Chorus Cloud                                                                        |
-| ---------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| **Best for**                 | Developers who want a full UI for local agent sessions on their own machine | Teams and developers who want agents running in the cloud, accessible from anywhere |
-| **How you access it**        | Browser via `[yourip]:port`                                                 | Browser, any IDE, REST API, n8n                                                     |
-| **Setup**                    | `npx @anthropic-ai/chorus`                                                  | No setup required                                                                   |
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 | **Machine needs to stay on** | Yes                                                                         | No                                                                                  |
 | **Mobile access**            | Any browser on your network                                                 | Any device, native app coming                                                       |
 | **Sessions available**       | All sessions auto-discovered from `~/.claude`                               | All sessions within your cloud environment                                          |
@@ -180,17 +160,10 @@ Chorus has a plugin system that lets you add custom tabs with their own frontend
 
 ### Available Plugins
 
-<<<<<<< HEAD
 | Plugin                                                                      | Description                                                                                                                |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **[Project Stats](https://github.com/cloudcli-ai/cloudcli-plugin-starter)** | Shows file counts, lines of code, file-type breakdown, largest files, and recently modified files for your current project |
 | **[Web Terminal](https://github.com/cloudcli-ai/cloudcli-plugin-terminal)** | Full xterm.js terminal with multi-tab support                                                                              |
-=======
-| Plugin                                                                   | Description                                                                                                                |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| **[Project Stats](https://github.com/chorus-dev/chorus-plugin-starter)** | Shows file counts, lines of code, file-type breakdown, largest files, and recently modified files for your current project |
-| **[Web Terminal](https://github.com/chorus-dev/chorus-plugin-terminal)** | Full xterm.js terminal with multi-tab support                                                                              |
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 
 ### Build Your Own
 
@@ -255,11 +228,7 @@ GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later) — see [LIC
 
 This project is open source and free to use, modify, and distribute under the AGPL-3.0-or-later license. If you modify this software and run it as a network service, you must make your modified source code available to users of that service.
 
-<<<<<<< HEAD
 CloudCLI UI - (https://cloudcli.ai).
-=======
-Chorus - (https://chorus.dev).
->>>>>>> 5cdfe52 (refactor: rename instances of "Claude Code UI" to "Chorus" across the codebase)
 
 ## Acknowledgments
 
