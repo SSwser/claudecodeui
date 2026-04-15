@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { authenticatedFetch } from '../../../utils/api';
-import { CLAUDE_MODELS, CODEX_MODELS, CURSOR_MODELS, GEMINI_MODELS } from '../../../../shared/modelConstants';
+import { authenticatedFetch } from '@/utils/api';
+import { CLAUDE_MODELS, CODEX_MODELS, CURSOR_MODELS, GEMINI_MODELS } from '@shared/modelConstants';
 import type { PendingPermissionRequest, PermissionMode } from '../types/types';
-import type { ProjectSession, SessionProvider } from '../../../types/app';
+import type { ProjectSession, SessionProvider } from '@/types/app';
 
 interface UseChatProviderStateArgs {
   selectedSession: ProjectSession | null;

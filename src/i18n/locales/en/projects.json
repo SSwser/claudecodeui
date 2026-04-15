@@ -1,0 +1,69 @@
+{
+  "wizard": {
+    "title": "Create project",
+    "description": "Set up a project inbox in three steps: name it, point to the directory, then decide whether it should manage multiple workspaces.",
+    "steps": {
+      "1": "Basics",
+      "2": "Directory",
+      "3": "Workspace"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "back": "Back",
+      "next": "Next",
+      "create": "Create project",
+      "creating": "Creating...",
+      "cloning": "Cloning..."
+    },
+    "errors": {
+      "createFailed": "Failed to create project."
+    },
+    "basics": {
+      "label": "Project name",
+      "placeholder": "Checkout refactor",
+      "help": "Give the project a concise working name. You can rename the display label later.",
+      "errors": {
+        "required": "Project name is required.",
+        "short": "Project name must be at least 3 characters.",
+        "long": "Project name must be 100 characters or fewer."
+      }
+    },
+    "directory": {
+      "directoryLabel": "Local directory",
+      "directoryPlaceholder": "C:\\Users\\you\\projects\\checkout",
+      "directoryHelp": "Use an existing local folder, or choose the target path where a repository clone should land.",
+      "gitUrlLabel": "Git repository URL",
+      "gitUrlPlaceholder": "https://github.com/org/repo.git",
+      "gitUrlHelp": "Optional. If provided, the wizard clones the repository first, then registers the cloned folder as the project directory.",
+      "browse": "Browse",
+      "browsePrompt": "Enter the local folder path",
+      "errors": {
+        "required": "A local directory is required.",
+        "missingLocalPath": "That local directory does not exist yet. Use Browse to pick or create a folder, or provide a git repository URL."
+      },
+      "validation": {
+        "validating": "Checking whether the folder exists...",
+        "exists": "Folder found. You can continue.",
+        "missing": "Folder not found. Use Browse to choose or create an existing local directory.",
+        "cloneTargetMissing": "Folder not found yet. That is okay if the repository clone will create it."
+      }
+    },
+    "workspace": {
+      "title": "Enable multi-workspace management",
+      "description": "Turn this on if the project should expose multiple git worktree-backed workspaces in the Phase 2 inbox and git flows.",
+      "warningTitle": "This cannot be undone.",
+      "warningBody": "The toggle changes how this project is managed from now on. Keep it off unless you need parallel worktree streams inside one project.",
+      "enabledDetails": "Active workspaces will be surfaced in the inbox header, session cards, and git tooling as named worktree contexts."
+    },
+    "summary": {
+      "title": "Review",
+      "name": "Project name",
+      "directory": "Directory",
+      "repository": "Repository",
+      "workspaces": "Multi-workspace",
+      "none": "None",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    }
+  }
+}

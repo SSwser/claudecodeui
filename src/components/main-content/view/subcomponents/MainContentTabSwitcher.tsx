@@ -1,15 +1,24 @@
-import { MessageSquare, Terminal, Folder, GitBranch, ClipboardCheck, type LucideIcon } from 'lucide-react';
+import {
+  MessageSquare,
+  Terminal,
+  Folder,
+  GitBranch,
+  ClipboardCheck,
+  type LucideIcon,
+} from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tooltip, PillBar, Pill } from '../../../../shared/view/ui';
-import type { AppTab } from '../../../../types/app';
-import { usePlugins } from '../../../../contexts/PluginsContext';
-import PluginIcon from '../../../plugins/view/PluginIcon';
+import { cn } from '@/lib/utils';
+import type { AppTab } from '@/types/app';
+import { usePlugins } from '@/contexts/PluginsContext';
+import PluginIcon from '@/components/plugins/view/PluginIcon';
 
 type MainContentTabSwitcherProps = {
   activeTab: AppTab;
   setActiveTab: Dispatch<SetStateAction<AppTab>>;
   shouldShowTasksTab: boolean;
+  /** When true, show project-level tabs (Sessions) instead of session-level (Chat, Shell) */
+  isProjectView?: boolean;
 };
 
 type BuiltInTab = {
@@ -29,17 +38,25 @@ type PluginTab = {
 
 type TabDefinition = BuiltInTab | PluginTab;
 
-const BASE_TABS: BuiltInTab[] = [
-  { kind: 'builtin', id: 'chat',  labelKey: 'tabs.chat',  icon: MessageSquare },
+/** Project-level tabs — no Shell, Chat becomes "Sessions" */
+const PROJECT_TABS: BuiltInTab[] = [
+  { kind: 'builtin', id: 'chat', labelKey: 'Sessions', icon: MessageSquare },
+  { kind: 'builtin', id: 'files', labelKey: 'Files', icon: Folder },
+  { kind: 'builtin', id: 'git', labelKey: 'Version Control', icon: GitBranch },
+];
+
+/** Session-level tabs — includes Shell */
+const SESSION_TABS: BuiltInTab[] = [
+  { kind: 'builtin', id: 'chat', labelKey: 'tabs.chat', icon: MessageSquare },
   { kind: 'builtin', id: 'shell', labelKey: 'tabs.shell', icon: Terminal },
-  { kind: 'builtin', id: 'files', labelKey: 'tabs.files', icon: Folder },
-  { kind: 'builtin', id: 'git',   labelKey: 'tabs.git',   icon: GitBranch },
+  { kind: 'builtin', id: 'files', labelKey: 'Files', icon: Folder },
+  { kind: 'builtin', id: 'git', labelKey: 'Version Control', icon: GitBranch },
 ];
 
 const TASKS_TAB: BuiltInTab = {
   kind: 'builtin',
   id: 'tasks',
-  labelKey: 'tabs.tasks',
+  labelKey: 'Tasks',
   icon: ClipboardCheck,
 };
 
@@ -47,11 +64,13 @@ export default function MainContentTabSwitcher({
   activeTab,
   setActiveTab,
   shouldShowTasksTab,
+  isProjectView = false,
 }: MainContentTabSwitcherProps) {
   const { t } = useTranslation();
   const { plugins } = usePlugins();
 
-  const builtInTabs: BuiltInTab[] = shouldShowTasksTab ? [...BASE_TABS, TASKS_TAB] : BASE_TABS;
+  const baseTabs = isProjectView ? PROJECT_TABS : SESSION_TABS;
+  const builtInTabs: BuiltInTab[] = shouldShowTasksTab ? [...baseTabs, TASKS_TAB] : baseTabs;
 
   const pluginTabs: PluginTab[] = plugins
     .filter((p) => p.enabled)
@@ -66,32 +85,33 @@ export default function MainContentTabSwitcher({
   const tabs: TabDefinition[] = [...builtInTabs, ...pluginTabs];
 
   return (
-    <PillBar>
+    <div className="flex items-center gap-1">
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
-        const displayLabel = tab.kind === 'builtin' ? t(tab.labelKey) : tab.label;
+        // Literal labels (not translation keys) start uppercase and don't contain dots
+        const displayLabel =
+          tab.kind === 'builtin'
+            ? tab.labelKey.includes('.')
+              ? t(tab.labelKey)
+              : tab.labelKey
+            : tab.label;
 
         return (
-          <Tooltip key={tab.id} content={displayLabel} position="bottom">
-            <Pill
-              isActive={isActive}
-              onClick={() => setActiveTab(tab.id)}
-              className="px-2.5 py-[5px]"
-            >
-              {tab.kind === 'builtin' ? (
-                <tab.icon className="h-3.5 w-3.5" strokeWidth={isActive ? 2.2 : 1.8} />
-              ) : (
-                <PluginIcon
-                  pluginName={tab.pluginName}
-                  iconFile={tab.iconFile}
-                  className="flex h-3.5 w-3.5 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
-                />
-              )}
-              <span className="hidden lg:inline">{displayLabel}</span>
-            </Pill>
-          </Tooltip>
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              'rounded-[6px] px-[14px] py-[6px] text-[12px] font-medium transition-colors',
+              isActive
+                ? 'bg-surface-3 text-foreground'
+                : 'text-dim-foreground hover:text-muted-foreground'
+            )}
+          >
+            {displayLabel}
+          </button>
         );
       })}
-    </PillBar>
+    </div>
   );
 }

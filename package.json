@@ -1,11 +1,11 @@
 {
-  "name": "@cloudcli-ai/cloudcli",
+  "name": "@anthropic-ai/chorus",
   "version": "1.28.0",
-  "description": "A web-based UI for Claude Code CLI",
+  "description": "Cloud-native AI work orchestration platform",
   "type": "module",
   "main": "server/index.js",
   "bin": {
-    "cloudcli": "server/cli.js"
+    "chorus": "server/cli.js"
   },
   "files": [
     "server/",
@@ -14,7 +14,7 @@
     "scripts/",
     "README.md"
   ],
-  "homepage": "https://cloudcli.ai",
+  "homepage": "https://chorus.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/siteboon/claudecodeui.git"
@@ -23,19 +23,24 @@
     "url": "https://github.com/siteboon/claudecodeui/issues"
   },
   "scripts": {
-    "dev": "concurrently --kill-others \"npm run dev:server\" \"npm run dev:client\"",
+    "dev": "node scripts/dev.mjs",
     "dev:server": "npm run server",
     "dev:client": "vite --host 127.0.0.1 --port 4000 --strictPort",
     "server": "node server/index.js",
     "client": "vite",
     "build": "vite build",
-    "build:tokens": "node .claude/skills/chorus-design/scripts/build-tokens.cjs",
+    "build:canvas": "node scripts/build-canvas-map.cjs",
+    "build:tokens": "node scripts/build-tokens.cjs",
+    "imports:alias": "node scripts/rewrite-import-aliases.cjs",
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
+    "lint:fix:imports": "node scripts/rewrite-import-aliases.cjs --dir src",
+    "lint:fix:imports:staged": "node scripts/rewrite-import-aliases.cjs --staged --restage",
+    "lint:imports": "node scripts/rewrite-import-aliases.cjs --dir src --check",
     "lint:i18n": "node scripts/check-hardcoded-strings.cjs",
     "lint:design-md": "node scripts/check-visual-hardcoded-colors.cjs",
     "test:visual": "playwright test tests/visual/",
@@ -49,7 +54,7 @@
     "claude code",
     "claude-code",
     "claude-code-ui",
-    "cloudcli",
+    "chorus",
     "codex",
     "gemini",
     "gemini-cli",
@@ -63,7 +68,7 @@
     "ui",
     "mobile IDE"
   ],
-  "author": "CloudCLI UI Contributors",
+  "author": "Chorus Contributors",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.59",
@@ -167,6 +172,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs,json,md,css,yml,yaml}": "prettier --write",
     "src/**/*.{ts,tsx,js,jsx}": [
+      "npm run lint:fix:imports:staged --",
       "prettier --write",
       "eslint --fix"
     ]

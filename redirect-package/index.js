@@ -1,2 +1,2 @@
-export * from '@cloudcli-ai/cloudcli';
-export { default } from '@cloudcli-ai/cloudcli';
+export * from '@anthropic-ai/chorus';
+export { default } from '@anthropic-ai/chorus';

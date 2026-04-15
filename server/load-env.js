@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 try {
   const envPath = path.join(__dirname, '../.env');
   const envFile = fs.readFileSync(envPath, 'utf8');
-  envFile.split('\n').forEach(line => {
+  envFile.split('\n').forEach((line) => {
     const trimmedLine = line.trim();
     if (trimmedLine && !trimmedLine.startsWith('#')) {
       const [key, ...valueParts] = trimmedLine.split('=');
@@ -25,5 +25,5 @@ try {
 }
 
 if (!process.env.DATABASE_PATH) {
-  process.env.DATABASE_PATH = path.join(os.homedir(), '.cloudcli', 'auth.db');
+  process.env.DATABASE_PATH = path.join(os.homedir(), '.chorus', 'auth.db');
 }
