@@ -6,8 +6,8 @@ import ProjectWizard from './ProjectWizard';
 import {
   browseFilesystemFolders,
   cloneWorkspaceWithProgress,
-} from '../../project-creation-wizard/data/workspaceApi';
-import { authenticatedFetch } from '../../../utils/api';
+} from '@/components/project-creation-wizard/data/workspaceApi';
+import { authenticatedFetch } from '@/utils/api';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -100,5 +100,24 @@ describe('ProjectWizard', () => {
 
     expect(await screen.findByText('wizard.workspace.title')).toBeTruthy();
     expect(screen.queryByDisplayValue('C:/Users/admin/projects/checkout')).toBeNull();
+  });
+
+  it('validates local directories via the dedicated project validation endpoint', async () => {
+    render(<ProjectWizard open onOpenChange={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText('wizard.basics.label'), {
+      target: { value: 'Unicode search project' },
+    });
+    fireEvent.click(screen.getByText('wizard.actions.next'));
+
+    fireEvent.change(screen.getByLabelText('wizard.directory.directoryLabel'), {
+      target: { value: 'D:/outside/workspaces/demo-project' },
+    });
+
+    await waitFor(() => {
+      expect(mockedAuthenticatedFetch).toHaveBeenCalledWith(
+        '/api/projects/validate-directory?path=D%3A%2Foutside%2Fworkspaces%2Fdemo-project'
+      );
+    });
   });
 });

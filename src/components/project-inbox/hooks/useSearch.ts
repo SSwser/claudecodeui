@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { authenticatedFetch } from '../../../utils/api';
-import type { SessionState, SessionSearchResult } from '../../../types/session';
+import { authenticatedFetch } from '@/utils/api';
+import type { SessionState, SessionSearchResult } from '@/types/session';
 
 const CONTENT_SEARCH_DEBOUNCE_MS = 300;
 
@@ -37,23 +37,23 @@ export function useSearch({ projectId, sessions }: UseSearchArgs): UseSearchRetu
         ? sessions.filter(
             (s) =>
               (s.title ?? '').toLowerCase().includes(lower) ||
-              (s.summary ?? '').toLowerCase().includes(lower),
+              (s.summary ?? '').toLowerCase().includes(lower)
           )
         : [],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [trimmed, lower, sessions],
+     
+    [trimmed, lower, sessions]
   );
 
   const titleMatchIds = useMemo(
-    () => new Set(titleMatches.map((s) => s.sessionId)),
-    [titleMatches],
+    () => new Set(titleMatches.map((s) => `${s.provider}:${s.sessionId}`)),
+    [titleMatches]
   );
 
   // Deduplicate: sessions already surfaced by title match are excluded from content matches
   // so each session appears in exactly one section of the results dropdown.
   const contentMatches = useMemo(
-    () => contentResults.filter((r) => !titleMatchIds.has(r.sessionId)),
-    [contentResults, titleMatchIds],
+    () => contentResults.filter((r) => !titleMatchIds.has(`${r.provider}:${r.sessionId}`)),
+    [contentResults, titleMatchIds]
   );
 
   const runContentSearch = useCallback(
@@ -97,7 +97,7 @@ export function useSearch({ projectId, sessions }: UseSearchArgs): UseSearchRetu
         }
       }
     },
-    [projectId],
+    [projectId]
   );
 
   useEffect(() => {

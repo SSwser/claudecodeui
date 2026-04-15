@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, Search, X } from 'lucide-react';
-import { Badge } from '../../../shared/view/ui';
-import { cn } from '../../../lib/utils';
-import SessionProviderLogo from '../../llm-logo-provider/SessionProviderLogo';
-import type { SessionProvider } from '../../../types/app';
-import type { SessionSearchResult, SessionStatus } from '../../../types/session';
-import type { SessionState } from '../../../types/session';
 import { useSearch } from '../hooks/useSearch';
+import { Badge } from '@/shared/view/ui';
+import { cn } from '@/lib/utils';
+import SessionProviderLogo from '@/components/llm-logo-provider/SessionProviderLogo';
+import type { SessionProvider } from '@/types/app';
+import type { SessionSearchResult, SessionState, SessionStatus } from '@/types/session';
 
 type SearchBarProps = {
   projectId: number;
@@ -33,8 +32,20 @@ const STATUS_LABEL: Record<SessionStatus, string> = {
 };
 
 type FlatResult =
-  | { kind: 'title'; sessionId: string; provider: SessionProvider; title: string; status: SessionStatus }
-  | { kind: 'content'; sessionId: string; provider: SessionProvider; title: string; status: SessionStatus };
+  | {
+      kind: 'title';
+      sessionId: string;
+      provider: SessionProvider;
+      title: string;
+      status: SessionStatus;
+    }
+  | {
+      kind: 'content';
+      sessionId: string;
+      provider: SessionProvider;
+      title: string;
+      status: SessionStatus;
+    };
 
 function toFlatTitle(s: SessionState): FlatResult {
   return {
@@ -163,7 +174,7 @@ export default function SearchBar({ projectId, sessions, onSelectSession }: Sear
             'w-full rounded-medium border border-border bg-background py-2 pl-9 pr-8 text-sm',
             'text-foreground placeholder:text-muted-foreground',
             'focus:outline-none focus:ring-2 focus:ring-ring/40',
-            'transition-colors',
+            'transition-colors'
           )}
         />
         {hasQuery && (
@@ -189,7 +200,7 @@ export default function SearchBar({ projectId, sessions, onSelectSession }: Sear
           aria-label="Search results"
           className={cn(
             'absolute z-50 mt-1 w-full overflow-y-auto rounded-large border border-border bg-popover shadow-lg',
-            'max-h-96',
+            'max-h-96'
           )}
         >
           {!hasResults && (
@@ -257,7 +268,7 @@ function ResultRow({ title, provider, status, isSelected, onClick }: ResultRowPr
       className={cn(
         'flex cursor-pointer items-center gap-3 px-3 py-2 text-sm transition-colors',
         'hover:bg-accent hover:text-accent-foreground',
-        isSelected && 'bg-accent text-accent-foreground',
+        isSelected && 'bg-accent text-accent-foreground'
       )}
     >
       <SessionProviderLogo provider={provider} className="h-4 w-4 shrink-0" />

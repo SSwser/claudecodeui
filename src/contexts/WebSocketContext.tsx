@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useAuth } from '../components/auth/context/AuthContext';
 import { IS_PLATFORM } from '../constants/config';
 
@@ -43,19 +51,21 @@ const useWebSocketProviderState = (): WebSocketContextType => {
     window.dispatchEvent(new CustomEvent(eventName, { detail }));
   }, []);
 
-  useEffect(() => {
-    connect();
+  const closeSocket = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
 
-    return () => {
-      unmountedRef.current = true;
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [token]); // everytime token changes, we reconnect
+    const currentSocket = wsRef.current;
+    if (currentSocket) {
+      currentSocket.onclose = null;
+      currentSocket.close();
+      wsRef.current = null;
+    }
+
+    setIsConnected(false);
+  }, []);
 
   const connect = useCallback(() => {
     if (unmountedRef.current) return; // Prevent connection if unmounted
@@ -134,11 +144,28 @@ const useWebSocketProviderState = (): WebSocketContextType => {
       websocket.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
-
     } catch (error) {
       console.error('Error creating WebSocket connection:', error);
     }
   }, [dispatchBrowserEvent, token]); // everytime token changes, we reconnect
+
+  useEffect(() => {
+    unmountedRef.current = false;
+
+    return () => {
+      unmountedRef.current = true;
+      closeSocket();
+    };
+  }, [closeSocket]);
+
+  useEffect(() => {
+    unmountedRef.current = false;
+    connect();
+
+    return () => {
+      closeSocket();
+    };
+  }, [closeSocket, connect, token]); // everytime token changes, we reconnect
 
   const sendMessage = useCallback((message: any) => {
     const socket = wsRef.current;
@@ -149,13 +176,15 @@ const useWebSocketProviderState = (): WebSocketContextType => {
     }
   }, []);
 
-  const value: WebSocketContextType = useMemo(() =>
-  ({
-    ws: wsRef.current,
-    sendMessage,
-    latestMessage,
-    isConnected
-  }), [sendMessage, latestMessage, isConnected]);
+  const value: WebSocketContextType = useMemo(
+    () => ({
+      ws: wsRef.current,
+      sendMessage,
+      latestMessage,
+      isConnected,
+    }),
+    [sendMessage, latestMessage, isConnected]
+  );
 
   return value;
 };
@@ -163,11 +192,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
 export const WebSocketProvider = ({ children }: { children: React.ReactNode }) => {
   const webSocketData = useWebSocketProviderState();
 
-  return (
-    <WebSocketContext.Provider value={webSocketData}>
-      {children}
-    </WebSocketContext.Provider>
-  );
+  return <WebSocketContext.Provider value={webSocketData}>{children}</WebSocketContext.Provider>;
 };
 
 export default WebSocketContext;

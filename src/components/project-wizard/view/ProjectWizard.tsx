@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FolderGit2, FolderPlus, Layers3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../ui/button';
+import WizardStepBasics from './WizardStepBasics';
+import WizardStepDirectory from './WizardStepDirectory';
+import WizardStepWorkspace from './WizardStepWorkspace';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,13 +12,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../ui/dialog';
-import { authenticatedFetch } from '../../../utils/api';
-import { cloneWorkspaceWithProgress } from '../../project-creation-wizard/data/workspaceApi';
-import FolderBrowserModal from '../../project-creation-wizard/components/FolderBrowserModal';
-import WizardStepBasics from './WizardStepBasics';
-import WizardStepDirectory from './WizardStepDirectory';
-import WizardStepWorkspace from './WizardStepWorkspace';
+} from '@/components/ui/dialog';
+import { authenticatedFetch } from '@/utils/api';
+import { cloneWorkspaceWithProgress } from '@/components/project-creation-wizard/data/workspaceApi';
+import FolderBrowserModal from '@/components/project-creation-wizard/components/FolderBrowserModal';
 
 type WizardStep = 1 | 2 | 3;
 
@@ -62,7 +62,7 @@ async function createProjectRequest(payload: {
 
 async function validateDirectoryPath(pathValue: string) {
   const response = await authenticatedFetch(
-    `/api/browse-filesystem?path=${encodeURIComponent(pathValue)}`
+    `/api/projects/validate-directory?path=${encodeURIComponent(pathValue)}`
   );
 
   return response.ok;
