@@ -15,6 +15,7 @@ import type { LandingPageData } from '../components/main-content/types/types';
 type UseProjectsStateArgs = {
   sessionId?: string;
   projectId?: string;
+  streamName?: string;
   navigate: NavigateFunction;
   latestMessage: AppSocketMessage | null;
   isMobile: boolean;
@@ -225,6 +226,7 @@ const readPersistedTab = (): AppTab => {
 export function useProjectsState({
   sessionId,
   projectId,
+  streamName,
   navigate,
   latestMessage,
   isMobile,
@@ -267,6 +269,18 @@ export function useProjectsState({
     recordOpenContext(selectedProject?.name || null, selectedSession?.id || null);
   }, [recordOpenContext, selectedProject?.name, selectedSession?.id]);
 
+  const getProjectRoute = useCallback((project: Project | null) => {
+    if (!project?.id) {
+      return '/';
+    }
+
+    if (project.name) {
+      return `/project/${project.id}/${encodeURIComponent(project.name)}`;
+    }
+
+    return `/project/${project.id}`;
+  }, []);
+
   useEffect(() => {
     if (sessionId) {
       return;
@@ -284,7 +298,14 @@ export function useProjectsState({
       return;
     }
 
-    const matchedProject = projects.find((project) => project.id === normalizedProjectId) || null;
+    const matchedProject =
+      (streamName
+        ? projects.find(
+            (project) => project.id === normalizedProjectId && project.name === streamName
+          )
+        : null) ||
+      projects.find((project) => project.id === normalizedProjectId) ||
+      null;
     if (!matchedProject) {
       return;
     }
@@ -296,7 +317,7 @@ export function useProjectsState({
     if (selectedSession) {
       setSelectedSession(null);
     }
-  }, [projectId, projects, selectedProject, selectedSession, sessionId]);
+  }, [projectId, projects, selectedProject, selectedSession, sessionId, streamName]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -543,13 +564,13 @@ export function useProjectsState({
       setSelectedProject(project);
       setSelectedSession(null);
       setActiveTab('chat');
-      navigate(project.id ? `/project/${project.id}` : '/');
+      navigate(getProjectRoute(project));
 
       if (isMobile) {
         setSidebarOpen(false);
       }
     },
-    [isMobile, navigate]
+    [getProjectRoute, isMobile, navigate]
   );
 
   const handleSessionSelect = useCallback(
@@ -584,20 +605,20 @@ export function useProjectsState({
       setSelectedProject(project);
       setSelectedSession(null);
       setActiveTab('chat');
-      navigate(project.id ? `/project/${project.id}` : '/');
+      navigate(getProjectRoute(project));
 
       if (isMobile) {
         setSidebarOpen(false);
       }
     },
-    [isMobile, navigate]
+    [getProjectRoute, isMobile, navigate]
   );
 
   const handleSessionDelete = useCallback(
     (sessionIdToDelete: string) => {
       if (selectedSession?.id === sessionIdToDelete) {
         setSelectedSession(null);
-        navigate(selectedProject?.id ? `/project/${selectedProject.id}` : '/');
+        navigate(getProjectRoute(selectedProject));
       }
 
       setProjects((prevProjects) =>
@@ -611,7 +632,7 @@ export function useProjectsState({
         }))
       );
     },
-    [navigate, selectedProject?.id, selectedSession?.id]
+    [getProjectRoute, navigate, selectedProject, selectedSession?.id]
   );
 
   const handleSidebarRefresh = useCallback(async () => {

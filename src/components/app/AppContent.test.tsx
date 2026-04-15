@@ -3,8 +3,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { useProjectsState } from '@/hooks/useProjectsState';
 import AppContent from './AppContent';
-import { useProjectsState } from '../../hooks/useProjectsState';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -143,7 +143,7 @@ function renderApp(initialEntry = '/') {
           }
         />
         <Route
-          path="/project/:projectId"
+          path="/project/:projectId/:streamName"
           element={
             <>
               <LocationProbe />

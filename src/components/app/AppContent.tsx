@@ -3,16 +3,25 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../sidebar/view/Sidebar';
 import MainContent from '../main-content/view/MainContent';
-import { useWebSocket } from '../../contexts/WebSocketContext';
-import { useAppTabs } from '../../hooks/useAppTabs';
-import { useDeviceSettings } from '../../hooks/useDeviceSettings';
-import { useSessionProtection } from '../../hooks/useSessionProtection';
-import { useProjectsState } from '../../hooks/useProjectsState';
 import MobileNav from './MobileNav';
+import { useWebSocket } from '@/contexts/WebSocketContext';
+import { useAppTabs } from '@/hooks/useAppTabs';
+import { useDeviceSettings } from '@/hooks/useDeviceSettings';
+import { useSessionProtection } from '@/hooks/useSessionProtection';
+import { useProjectsState } from '@/hooks/useProjectsState';
 
 export default function AppContent() {
   const navigate = useNavigate();
-  const { sessionId, projectId } = useParams<{ sessionId?: string; projectId?: string }>();
+  const {
+    sessionId,
+    projectId,
+    streamName: routeStreamName,
+  } = useParams<{
+    sessionId?: string;
+    projectId?: string;
+    streamName?: string;
+  }>();
+  const streamName = routeStreamName;
   const { t } = useTranslation('common');
   const { isMobile } = useDeviceSettings({ trackPWA: false });
   const { ws, sendMessage, latestMessage, isConnected } = useWebSocket();
@@ -61,6 +70,7 @@ export default function AppContent() {
   } = useProjectsState({
     sessionId,
     projectId,
+    streamName,
     navigate,
     latestMessage,
     isMobile,
@@ -255,7 +265,7 @@ export default function AppContent() {
       ) : null}
 
       <div
-        className={`flex min-w-0 flex-1 flex-col overflow-hidden ${isMobile ? 'pb-mobile-nav' : ''}`}
+        className={`flex min-w-0 flex-1 flex-col overflow-hidden bg-card ${isMobile ? 'pb-mobile-nav' : ''}`}
       >
         <div className="flex min-h-0 flex-1 overflow-hidden">
           {/* State-only views such as landing and new-session have narrow intrinsic content.

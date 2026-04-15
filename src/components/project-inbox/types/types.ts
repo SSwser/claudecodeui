@@ -1,10 +1,19 @@
-import type { ProjectSession } from '../../../types/app';
-import type { SessionState, SessionStatus } from '../../../types/session';
+import type { ProjectSession } from '@/types/app';
+import type { SessionState, SessionStatus } from '@/types/session';
 
 export type ProjectInboxProps = {
   projectId: number;
   projectName?: string;
   projectDisplayName?: string;
+  /** Pre-select this workspace when the inbox first loads.  Set by the
+   *  sidebar when the user clicks a specific stream row in a multi-workspace
+   *  project so the inbox immediately shows that worktree's sessions. */
+  initialWorkspaceId?: number;
+  /** Controlled search query lifted to MainContent so the ghost search in
+   *  the tabs row and the inbox list stay in sync. When provided the inbox
+   *  uses this value instead of its internal state. */
+  searchQuery?: string;
+  onSearchQueryChange?: (value: string) => void;
   onOpenSession: (session: ProjectSession) => void;
   onCreateSession: () => void;
 };

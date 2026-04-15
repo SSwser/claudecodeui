@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useWebSocket } from '../../../contexts/WebSocketContext';
-import { authenticatedFetch } from '../../../utils/api';
-import type { SessionState } from '../../../types/session';
+import { useWebSocket } from '@/contexts/WebSocketContext';
+import { authenticatedFetch } from '@/utils/api';
+import type { SessionState } from '@/types/session';
 import type {
   InboxSortOrder,
   InboxStatusFilter,
@@ -13,15 +13,37 @@ type SessionStateRow = SessionState & { workspaceName?: string | null };
 
 type UseProjectInboxArgs = {
   projectId: number;
+  /** Pre-select this workspace on first load (set when navigating from a
+   *  specific sidebar stream row in a multi-workspace project). */
+  initialWorkspaceId?: number;
 };
 
 const SEARCH_DEBOUNCE_MS = 350;
+
+function resolveWorkspaceId(
+  workspaces: ProjectInboxWorkspace[],
+  preferredWorkspaceId: number | undefined,
+  currentWorkspaceId: number | null
+) {
+  if (
+    preferredWorkspaceId &&
+    workspaces.some((workspace) => workspace.id === preferredWorkspaceId)
+  ) {
+    return preferredWorkspaceId;
+  }
+
+  if (currentWorkspaceId && workspaces.some((workspace) => workspace.id === currentWorkspaceId)) {
+    return currentWorkspaceId;
+  }
+
+  return workspaces.find((workspace) => workspace.isDefault)?.id ?? workspaces[0]?.id ?? null;
+}
 
 function bySortOrder(sortOrder: InboxSortOrder) {
   return (left: SessionStateRow, right: SessionStateRow) => {
     if (sortOrder === 'name') {
       return (left.title || left.summary || left.sessionId).localeCompare(
-        right.title || right.summary || right.sessionId,
+        right.title || right.summary || right.sessionId
       );
     }
 
@@ -33,7 +55,7 @@ function bySortOrder(sortOrder: InboxSortOrder) {
   };
 }
 
-export function useProjectInbox({ projectId }: UseProjectInboxArgs) {
+export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInboxArgs) {
   const { latestMessage } = useWebSocket();
   const [project, setProject] = useState<ProjectInboxProject | null>(null);
   const [workspaces, setWorkspaces] = useState<ProjectInboxWorkspace[]>([]);
@@ -46,6 +68,11 @@ export function useProjectInbox({ projectId }: UseProjectInboxArgs) {
   const [statusFilter, setStatusFilter] = useState<InboxStatusFilter>('all');
   const [sortOrder, setSortOrder] = useState<InboxSortOrder>('recent');
   const fetchSeqRef = useRef(0);
+  const selectedWorkspaceIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    selectedWorkspaceIdRef.current = selectedWorkspaceId;
+  }, [selectedWorkspaceId]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -64,54 +91,73 @@ export function useProjectInbox({ projectId }: UseProjectInboxArgs) {
     }
 
     const data = (await response.json()) as ProjectInboxProject;
+    const nextWorkspaces = data.workspaces ?? [];
+    const nextWorkspaceId = resolveWorkspaceId(
+      nextWorkspaces,
+      initialWorkspaceId,
+      selectedWorkspaceIdRef.current
+    );
+
     setProject(data);
-    setWorkspaces(data.workspaces ?? []);
-    setSelectedWorkspaceId((currentValue) => {
-      if (currentValue && data.workspaces?.some((workspace) => workspace.id === currentValue)) {
-        return currentValue;
+    setWorkspaces(nextWorkspaces);
+
+    return nextWorkspaceId;
+  }, [projectId, initialWorkspaceId]);
+
+  useEffect(() => {
+    const nextWorkspaceId = resolveWorkspaceId(
+      workspaces,
+      initialWorkspaceId,
+      selectedWorkspaceIdRef.current
+    );
+
+    if (nextWorkspaceId !== selectedWorkspaceIdRef.current) {
+      setSelectedWorkspaceId(nextWorkspaceId);
+    }
+  }, [initialWorkspaceId, workspaces]);
+
+  const fetchSessions = useCallback(
+    async (workspaceIdOverride?: number | null) => {
+      const requestId = fetchSeqRef.current + 1;
+      fetchSeqRef.current = requestId;
+
+      const params = new URLSearchParams();
+      const workspaceId = workspaceIdOverride ?? selectedWorkspaceIdRef.current;
+
+      if (workspaceId) {
+        params.set('workspaceId', String(workspaceId));
+      }
+      if (statusFilter !== 'all') {
+        params.set('status', statusFilter);
+      }
+      if (debouncedQuery) {
+        params.set('q', debouncedQuery);
       }
 
-      return data.workspaces?.find((workspace) => workspace.isDefault)?.id ?? data.workspaces?.[0]?.id ?? null;
-    });
-  }, [projectId]);
+      const response = await authenticatedFetch(
+        `/api/projects/${projectId}/sessions${params.size ? `?${params.toString()}` : ''}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to load sessions');
+      }
 
-  const fetchSessions = useCallback(async () => {
-    const requestId = fetchSeqRef.current + 1;
-    fetchSeqRef.current = requestId;
+      const data = (await response.json()) as SessionStateRow[];
+      if (fetchSeqRef.current !== requestId) {
+        return;
+      }
 
-    const params = new URLSearchParams();
-    if (selectedWorkspaceId) {
-      params.set('workspaceId', String(selectedWorkspaceId));
-    }
-    if (statusFilter !== 'all') {
-      params.set('status', statusFilter);
-    }
-    if (debouncedQuery) {
-      params.set('q', debouncedQuery);
-    }
-
-    const response = await authenticatedFetch(
-      `/api/projects/${projectId}/sessions${params.size ? `?${params.toString()}` : ''}`,
-    );
-    if (!response.ok) {
-      throw new Error('Failed to load sessions');
-    }
-
-    const data = (await response.json()) as SessionStateRow[];
-    if (fetchSeqRef.current !== requestId) {
-      return;
-    }
-
-    setRawSessions(data);
-  }, [debouncedQuery, projectId, selectedWorkspaceId, statusFilter]);
+      setRawSessions(data);
+    },
+    [debouncedQuery, projectId, selectedWorkspaceId, statusFilter]
+  );
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      await fetchProject();
-      await fetchSessions();
+      const nextWorkspaceId = await fetchProject();
+      await fetchSessions(nextWorkspaceId);
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : 'Failed to load inbox');
     } finally {
@@ -132,7 +178,8 @@ export function useProjectInbox({ projectId }: UseProjectInboxArgs) {
       setRawSessions((previousSessions) => {
         const hasMatch = previousSessions.some(
           (session) =>
-            session.sessionId === latestMessage.sessionId && session.provider === latestMessage.provider,
+            session.sessionId === latestMessage.sessionId &&
+            session.provider === latestMessage.provider
         );
 
         if (!hasMatch) {
@@ -141,15 +188,19 @@ export function useProjectInbox({ projectId }: UseProjectInboxArgs) {
         }
 
         return previousSessions.map((session) =>
-          session.sessionId === latestMessage.sessionId && session.provider === latestMessage.provider
+          session.sessionId === latestMessage.sessionId &&
+          session.provider === latestMessage.provider
             ? { ...session, status: latestMessage.status }
-            : session,
+            : session
         );
       });
       return;
     }
 
-    if (latestMessage.type === 'projects_updated' || latestMessage.type === 'websocket-reconnected') {
+    if (
+      latestMessage.type === 'projects_updated' ||
+      latestMessage.type === 'websocket-reconnected'
+    ) {
       void fetchSessions();
     }
   }, [fetchSessions, latestMessage]);

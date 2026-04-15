@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { AppTab, Project, ProjectSession } from '../../../types/app';
+import type { AppTab, Project, ProjectSession } from '@/types/app';
 
 export type SessionLifecycleHandler = (sessionId?: string | null) => void;
 
@@ -84,6 +84,13 @@ export type MainContentHeaderProps = {
   isMobile: boolean;
   onMenuClick: () => void;
   onCreateSession?: () => void;
+  /** Count of sessions actively being processed by the AI (yellow pill). */
+  runningCount?: number;
+  /** Count of sessions waiting for user input (red pill). */
+  waitingCount?: number;
+  /** Controlled search query shared with ProjectInbox via MainContent. */
+  searchQuery?: string;
+  onSearchQueryChange?: (value: string) => void;
 };
 
 export type MainContentStateViewProps = {

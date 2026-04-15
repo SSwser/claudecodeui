@@ -8,10 +8,10 @@ import {
 } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '../../../../lib/utils';
-import type { AppTab } from '../../../../types/app';
-import { usePlugins } from '../../../../contexts/PluginsContext';
-import PluginIcon from '../../../plugins/view/PluginIcon';
+import { cn } from '@/lib/utils';
+import type { AppTab } from '@/types/app';
+import { usePlugins } from '@/contexts/PluginsContext';
+import PluginIcon from '@/components/plugins/view/PluginIcon';
 
 type MainContentTabSwitcherProps = {
   activeTab: AppTab;
@@ -42,7 +42,7 @@ type TabDefinition = BuiltInTab | PluginTab;
 const PROJECT_TABS: BuiltInTab[] = [
   { kind: 'builtin', id: 'chat', labelKey: 'Sessions', icon: MessageSquare },
   { kind: 'builtin', id: 'files', labelKey: 'Files', icon: Folder },
-  { kind: 'builtin', id: 'git', labelKey: 'Git', icon: GitBranch },
+  { kind: 'builtin', id: 'git', labelKey: 'Version Control', icon: GitBranch },
 ];
 
 /** Session-level tabs — includes Shell */
@@ -50,7 +50,7 @@ const SESSION_TABS: BuiltInTab[] = [
   { kind: 'builtin', id: 'chat', labelKey: 'tabs.chat', icon: MessageSquare },
   { kind: 'builtin', id: 'shell', labelKey: 'tabs.shell', icon: Terminal },
   { kind: 'builtin', id: 'files', labelKey: 'Files', icon: Folder },
-  { kind: 'builtin', id: 'git', labelKey: 'Git', icon: GitBranch },
+  { kind: 'builtin', id: 'git', labelKey: 'Version Control', icon: GitBranch },
 ];
 
 const TASKS_TAB: BuiltInTab = {
@@ -103,7 +103,9 @@ export default function MainContentTabSwitcher({
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               'rounded-[6px] px-[14px] py-[6px] text-[12px] font-medium transition-colors',
-              isActive ? 'bg-surface-3 text-foreground' : 'text-dim-foreground hover:text-muted-foreground'
+              isActive
+                ? 'bg-surface-3 text-foreground'
+                : 'text-dim-foreground hover:text-muted-foreground'
             )}
           >
             {displayLabel}

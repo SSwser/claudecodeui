@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
-import type { MainContentHeaderProps } from '../../types/types';
+import { Plus, Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { MainContentHeaderProps } from '@/components/main-content/types/types';
 import MobileMenuButton from './MobileMenuButton';
 import MainContentTabSwitcher from './MainContentTabSwitcher';
 
@@ -13,6 +14,10 @@ export default function MainContentHeader({
   isMobile,
   onMenuClick,
   onCreateSession,
+  runningCount = 0,
+  waitingCount = 0,
+  searchQuery = '',
+  onSearchQueryChange,
 }: MainContentHeaderProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -35,11 +40,9 @@ export default function MainContentHeader({
   }, [updateScrollState]);
 
   return (
-    <div className="flex-shrink-0 bg-canvas">
+    <div className="flex-shrink-0 bg-card">
       {/* PV/Header — 52px */}
-      <div
-        className="flex h-[52px] items-center gap-3 border-b border-surface-3 px-5"
-      >
+      <div className="flex h-[52px] items-center gap-3 border-b border-surface-3 px-5">
         {isMobile && <MobileMenuButton onMenuClick={onMenuClick} />}
 
         {/* Project icon */}
@@ -51,6 +54,29 @@ export default function MainContentHeader({
             ? (selectedSession.summary as string) || 'New Session'
             : selectedProject.displayName}
         </span>
+
+        {/* Change A: status pills — project view only, shown when there is activity */}
+        {!selectedSession && (runningCount > 0 || waitingCount > 0) && (
+          <div className="flex flex-shrink-0 items-center gap-[6px] rounded-[5px] bg-surface-elevated px-[10px] py-[3px]">
+            {runningCount > 0 && (
+              <>
+                <span className="h-[6px] w-[6px] rounded-full bg-warning" />
+                <span className="text-[11px] font-medium leading-none text-warning">
+                  {runningCount}
+                </span>
+              </>
+            )}
+            {runningCount > 0 && waitingCount > 0 && <div className="h-[10px] w-px bg-surface-3" />}
+            {waitingCount > 0 && (
+              <>
+                <span className="h-[6px] w-[6px] rounded-full bg-brand" />
+                <span className="text-[11px] font-medium leading-none text-brand">
+                  {waitingCount}
+                </span>
+              </>
+            )}
+          </div>
+        )}
 
         {/* + New Session button — project view only */}
         {!selectedSession && onCreateSession && (
@@ -66,9 +92,7 @@ export default function MainContentHeader({
       </div>
 
       {/* PV/Tabs — 44px */}
-      <div
-        className="flex h-[44px] items-center border-b border-surface-3 px-5"
-      >
+      <div className="flex h-[44px] items-center border-b border-surface-3 px-5">
         <div className="relative min-w-0 flex-1 overflow-hidden">
           {canScrollLeft && (
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-canvas to-transparent" />
@@ -89,6 +113,34 @@ export default function MainContentHeader({
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-canvas to-transparent" />
           )}
         </div>
+
+        {/* Change B: ghost search — project view, Sessions tab only */}
+        {!selectedSession && activeTab === 'chat' && (
+          <label
+            className={cn(
+              'ml-2 flex flex-shrink-0 cursor-text items-center gap-1.5 rounded-[6px] px-[10px] py-[6px] transition-all',
+              searchQuery ? 'bg-surface-elevated ring-1 ring-border' : 'hover:bg-surface-3/50'
+            )}
+          >
+            <Search
+              className={cn(
+                'h-[13px] w-[13px] flex-shrink-0 transition-colors',
+                searchQuery ? 'text-foreground' : 'text-label-dim'
+              )}
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchQueryChange?.(e.target.value)}
+              placeholder="Search sessions…"
+              className={cn(
+                'border-none bg-transparent text-[12px] text-foreground outline-none transition-[width] duration-200 ease-out',
+                'placeholder:text-label-dim',
+                searchQuery ? 'w-[200px]' : 'w-[140px] focus:w-[200px]'
+              )}
+            />
+          </label>
+        )}
       </div>
     </div>
   );

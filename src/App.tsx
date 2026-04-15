@@ -41,7 +41,7 @@ export default function App() {
                           }
                         />
                         <Route
-                          path="/project/:projectId"
+                          path="/project/:projectId/:streamName"
                           element={
                             <ProtectedRoute>
                               <AppContent />
