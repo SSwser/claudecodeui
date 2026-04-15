@@ -1,15 +1,15 @@
 <div align="center">
-  <img src="public/logo.svg" alt="CloudCLI UI" width="64" height="64">
-  <h1>Cloud CLI (aka Claude Code UI)</h1>
+  <img src="public/logo.svg" alt="Chorus" width="64" height="64">
+  <h1>Chorus</h1>
   <p>A desktop and mobile UI for <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a>, <a href="https://docs.cursor.com/en/cli/overview">Cursor CLI</a>, <a href="https://developers.openai.com/codex">Codex</a>, and <a href="https://geminicli.com/">Gemini-CLI</a>.<br>Use it locally or remotely to view your active projects and sessions from everywhere.</p>
 </div>
 
 <p align="center">
-  <a href="https://cloudcli.ai">CloudCLI Cloud</a> · <a href="https://cloudcli.ai/docs">Documentation</a> · <a href="https://discord.gg/buxwujPNRE">Discord</a> · <a href="https://github.com/siteboon/claudecodeui/issues">Bug Reports</a> · <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="https://chorus.dev">Chorus Cloud</a> · <a href="https://chorus.dev/docs">Documentation</a> · <a href="https://discord.gg/buxwujPNRE">Discord</a> · <a href="https://github.com/siteboon/claudecodeui/issues">Bug Reports</a> · <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 <p align="center">
-  <a href="https://cloudcli.ai"><img src="https://img.shields.io/badge/☁️_CloudCLI_Cloud-Try_Now-0066FF?style=for-the-badge" alt="CloudCLI Cloud"></a>
+  <a href="https://chorus.dev"><img src="https://img.shields.io/badge/☁️_Chorus_Cloud-Try_Now-0066FF?style=for-the-badge" alt="Chorus Cloud"></a>
   <a href="https://discord.gg/buxwujPNRE"><img src="https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join our Discord"></a>
   <br><br>
   <a href="https://trendshift.io/repositories/15586" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15586" alt="siteboon%2Fclaudecodeui | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -79,7 +79,7 @@ For Chinese-speaking users, we recommend saying the English name directly, close
 
 ## Quick Start
 
-### CloudCLI Cloud (Recommended)
+### Chorus Cloud (Recommended)
 
 The fastest way to get started — no local setup required. Get a fully managed, containerized development environment accessible from the web, mobile app, API, or your favorite IDE.
 
@@ -87,17 +87,17 @@ The fastest way to get started — no local setup required. Get a fully managed,
 
 ### Self-Hosted (Open source)
 
-Try CloudCLI UI instantly with **npx** (requires **Node.js** v22+):
+Try Chorus instantly with **npx** (requires **Node.js** v22+):
 
 ```
-npx @cloudcli-ai/cloudcli
+npx @anthropic-ai/chorus
 ```
 
 Or install **globally** for regular use:
 
 ```
-npm install -g @cloudcli-ai/cloudcli
-cloudcli
+npm install -g @anthropic-ai/chorus
+chorus
 ```
 
 Open `http://localhost:3001` — all your existing sessions are discovered automatically.
@@ -108,7 +108,7 @@ Visit the **[documentation →](https://cloudcli.ai/docs)** for more full config
 
 ## Which option is right for you?
 
-CloudCLI UI is the open source UI layer that powers CloudCLI Cloud. You can self-host it on your own machine, or use CloudCLI Cloud which builds on top of it with a full managed cloud environment, team features, and deeper integrations.
+Chorus is the open source UI layer that powers Chorus Cloud. You can self-host it on your own machine, or use Chorus Cloud which builds on top of it with a full managed cloud environment, team features, and deeper integrations.
 
 |                              | CloudCLI UI (Self-hosted)                                                   | CloudCLI Cloud                                                                      |
 | ---------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -127,7 +127,7 @@ CloudCLI UI is the open source UI layer that powers CloudCLI Cloud. You can self
 | **Team sharing**             | No                                                                          | Yes                                                                                 |
 | **Platform cost**            | Free, open source                                                           | Starts at $7/month                                                                  |
 
-> Both options use your own AI subscriptions (Claude, Cursor, etc.) — CloudCLI provides the environment, not the AI.
+> Both options use your own AI subscriptions (Claude, Cursor, etc.) — Chorus provides the environment, not the AI.
 
 ---
 
@@ -156,7 +156,7 @@ _Tools Settings interface - enable only what you need_
 
 ## Plugins
 
-CloudCLI has a plugin system that lets you add custom tabs with their own frontend UI and optional Node.js backend. Install plugins from git repos directly in **Settings > Plugins**, or build your own.
+Chorus has a plugin system that lets you add custom tabs with their own frontend UI and optional Node.js backend. Install plugins from git repos directly in **Settings > Plugins**, or build your own.
 
 ### Available Plugins
 
@@ -167,9 +167,9 @@ CloudCLI has a plugin system that lets you add custom tabs with their own fronte
 
 ### Build Your Own
 
-**[Plugin Starter Template →](https://github.com/cloudcli-ai/cloudcli-plugin-starter)** — fork this repo to create your own plugin. It includes a working example with frontend rendering, live context updates, and RPC communication to a backend server.
+**[Plugin Starter Template →](https://github.com/chorus-dev/chorus-plugin-starter)** — fork this repo to create your own plugin. It includes a working example with frontend rendering, live context updates, and RPC communication to a backend server.
 
-**[Plugin Documentation →](https://cloudcli.ai/docs/plugin-overview)** — full guide to the plugin API, manifest format, security model, and more.
+**[Plugin Documentation →](https://chorus.dev/docs/plugin-overview)** — full guide to the plugin API, manifest format, security model, and more.
 
 ---
 
@@ -180,36 +180,36 @@ CloudCLI has a plugin system that lets you add custom tabs with their own fronte
 
 Claude Code Remote Control lets you send messages to a session already running in your local terminal. Your machine has to stay on, your terminal has to stay open, and sessions time out after roughly 10 minutes without a network connection.
 
-CloudCLI UI and CloudCLI Cloud extend Claude Code rather than sit alongside it — your MCP servers, permissions, settings, and sessions are the exact same ones Claude Code uses natively. Nothing is duplicated or managed separately.
+Chorus extends Claude Code rather than sit alongside it — your MCP servers, permissions, settings, and sessions are the exact same ones Claude Code uses natively. Nothing is duplicated or managed separately.
 
 Here's what that means in practice:
 
-- **All your sessions, not just one** — CloudCLI UI auto-discovers every session from your `~/.claude` folder. Remote Control only exposes the single active session to make it available in the Claude mobile app.
-- **Your settings are your settings** — MCP servers, tool permissions, and project config you change in CloudCLI UI are written directly to your Claude Code config and take effect immediately, and vice versa.
+- **All your sessions, not just one** — Chorus auto-discovers every session from your `~/.claude` folder. Remote Control only exposes the single active session to make it available in the Claude mobile app.
+- **Your settings are your settings** — MCP servers, tool permissions, and project config you change in Chorus are written directly to your Claude Code config and take effect immediately, and vice versa.
 - **Works with more agents** — Claude Code, Cursor CLI, Codex, and Gemini CLI, not just Claude Code.
 - **Full UI, not just a chat window** — file explorer, Git integration, MCP management, and a shell terminal are all built in.
-- **CloudCLI Cloud runs in the cloud** — close your laptop, the agent keeps running. No terminal to babysit, no machine to keep awake.
+- **Chorus Cloud runs in the cloud** — close your laptop, the agent keeps running. No terminal to babysit, no machine to keep awake.
 
 </details>
 
 <details>
 <summary>Do I need to pay for an AI subscription separately?</summary>
 
-Yes. CloudCLI provides the environment, not the AI. You bring your own Claude, Cursor, Codex, or Gemini subscription. CloudCLI Cloud starts at $7/month for the hosted environment on top of that.
+Yes. Chorus provides the environment, not the AI. You bring your own Claude, Cursor, Codex, or Gemini subscription. Chorus Cloud starts at $7/month for the hosted environment on top of that.
 
 </details>
 
 <details>
-<summary>Can I use CloudCLI UI on my phone?</summary>
+<summary>Can I use Chorus on my phone?</summary>
 
-Yes. For self-hosted, run the server on your machine and open `[yourip]:port` in any browser on your network. For CloudCLI Cloud, open it from any device — no VPN, no port forwarding, no setup. A native app is also in the works.
+Yes. For self-hosted, run the server on your machine and open `[yourip]:port` in any browser on your network. For Chorus Cloud, open it from any device — no VPN, no port forwarding, no setup. A native app is also in the works.
 
 </details>
 
 <details>
 <summary>Will changes I make in the UI affect my local Claude Code setup?</summary>
 
-Yes, for self-hosted. CloudCLI UI reads from and writes to the same `~/.claude` config that Claude Code uses natively. MCP servers you add via the UI show up in Claude Code immediately and vice versa.
+Yes, for self-hosted. Chorus reads from and writes to the same `~/.claude` config that Claude Code uses natively. MCP servers you add via the UI show up in Claude Code immediately and vice versa.
 
 </details>
 
@@ -217,7 +217,7 @@ Yes, for self-hosted. CloudCLI UI reads from and writes to the same `~/.claude` 
 
 ## Community & Support
 
-- **[Documentation](https://cloudcli.ai/docs)** — installation, configuration, features, and troubleshooting
+- **[Documentation](https://chorus.dev/docs)** — installation, configuration, features, and troubleshooting
 - **[Discord](https://discord.gg/buxwujPNRE)** — get help and connect with other users
 - **[GitHub Issues](https://github.com/siteboon/claudecodeui/issues)** — bug reports and feature requests
 - **[Contributing Guide](CONTRIBUTING.md)** — how to contribute to the project

@@ -21,6 +21,7 @@ import enAuth from './locales/en/auth.json';
 import enSidebar from './locales/en/sidebar.json';
 import enChat from './locales/en/chat.json';
 import enCodeEditor from './locales/en/codeEditor.json';
+import enProjects from './locales/en/projects.json';
 // eslint-disable-next-line import-x/order
 import enTasks from './locales/en/tasks.json';
 
@@ -29,6 +30,7 @@ import koSettings from './locales/ko/settings.json';
 import koAuth from './locales/ko/auth.json';
 import koSidebar from './locales/ko/sidebar.json';
 import koChat from './locales/ko/chat.json';
+import koProjects from './locales/ko/projects.json';
 // eslint-disable-next-line import-x/order
 import koCodeEditor from './locales/ko/codeEditor.json';
 
@@ -37,6 +39,7 @@ import zhSettings from './locales/zh-CN/settings.json';
 import zhAuth from './locales/zh-CN/auth.json';
 import zhSidebar from './locales/zh-CN/sidebar.json';
 import zhChat from './locales/zh-CN/chat.json';
+import zhProjects from './locales/zh-CN/projects.json';
 // eslint-disable-next-line import-x/order
 import zhCodeEditor from './locales/zh-CN/codeEditor.json';
 
@@ -46,6 +49,7 @@ import jaAuth from './locales/ja/auth.json';
 import jaSidebar from './locales/ja/sidebar.json';
 import jaChat from './locales/ja/chat.json';
 import jaCodeEditor from './locales/ja/codeEditor.json';
+import jaProjects from './locales/ja/projects.json';
 // eslint-disable-next-line import-x/order
 import jaTasks from './locales/ja/tasks.json';
 
@@ -55,6 +59,7 @@ import ruAuth from './locales/ru/auth.json';
 import ruSidebar from './locales/ru/sidebar.json';
 import ruChat from './locales/ru/chat.json';
 import ruCodeEditor from './locales/ru/codeEditor.json';
+import ruProjects from './locales/ru/projects.json';
 // eslint-disable-next-line import-x/order
 import ruTasks from './locales/ru/tasks.json';
 
@@ -64,6 +69,7 @@ import deAuth from './locales/de/auth.json';
 import deSidebar from './locales/de/sidebar.json';
 import deChat from './locales/de/chat.json';
 import deCodeEditor from './locales/de/codeEditor.json';
+import deProjects from './locales/de/projects.json';
 // eslint-disable-next-line import-x/order
 import deTasks from './locales/de/tasks.json';
 
@@ -75,7 +81,7 @@ const getSavedLanguage = () => {
   try {
     const saved = localStorage.getItem('userLanguage');
     // Validate that the saved language is supported
-    if (saved && languages.some(lang => lang.value === saved)) {
+    if (saved && languages.some((lang) => lang.value === saved)) {
       return saved;
     }
     return 'en';
@@ -98,6 +104,7 @@ i18n
         sidebar: enSidebar,
         chat: enChat,
         codeEditor: enCodeEditor,
+        projects: enProjects,
         tasks: enTasks,
       },
       ko: {
@@ -106,6 +113,7 @@ i18n
         auth: koAuth,
         sidebar: koSidebar,
         chat: koChat,
+        projects: koProjects,
         codeEditor: koCodeEditor,
       },
       'zh-CN': {
@@ -114,6 +122,7 @@ i18n
         auth: zhAuth,
         sidebar: zhSidebar,
         chat: zhChat,
+        projects: zhProjects,
         codeEditor: zhCodeEditor,
       },
       ja: {
@@ -123,6 +132,7 @@ i18n
         sidebar: jaSidebar,
         chat: jaChat,
         codeEditor: jaCodeEditor,
+        projects: jaProjects,
         tasks: jaTasks,
       },
       ru: {
@@ -132,6 +142,7 @@ i18n
         sidebar: ruSidebar,
         chat: ruChat,
         codeEditor: ruCodeEditor,
+        projects: ruProjects,
         tasks: ruTasks,
       },
       de: {
@@ -141,6 +152,7 @@ i18n
         sidebar: deSidebar,
         chat: deChat,
         codeEditor: deCodeEditor,
+        projects: deProjects,
         tasks: deTasks,
       },
     },
@@ -155,7 +167,7 @@ i18n
     debug: import.meta.env.DEV,
 
     // Namespaces - load only what's needed
-    ns: ['common', 'settings', 'auth', 'sidebar', 'chat', 'codeEditor', 'tasks'],
+    ns: ['common', 'settings', 'auth', 'sidebar', 'chat', 'codeEditor', 'projects', 'tasks'],
     defaultNS: 'common',
 
     // Key separator for nested keys (default: '.')

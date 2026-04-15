@@ -19,6 +19,11 @@
     "tryDifferentSearch": "尝试调整您的搜索词",
     "runClaudeCli": "在项目目录中运行 Claude CLI 以开始使用"
   },
+  "recents": "最近会话",
+  "recentsEmpty": "暂无最近会话",
+  "workspaceIndicator": {
+    "currentWorkspace": "工作区"
+  },
   "app": {
     "title": "Claude Code UI",
     "subtitle": "AI 编程助手"

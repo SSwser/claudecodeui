@@ -1,24 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type React from 'react';
 import type { TFunction } from 'i18next';
-import { api } from '../../../utils/api';
-import type { Project, ProjectSession, SessionProvider } from '../../../types/app';
 import type {
-  AdditionalSessionsByProject,
   DeleteProjectConfirmation,
-  LoadingSessionsByProject,
-  ProjectSortOrder,
-  SessionDeleteConfirmation,
-  SessionWithProvider,
+  SidebarProjectGroup,
+  SidebarProjectListItem,
+  SidebarRecentSession,
 } from '../types/types';
 import {
-  filterProjects,
   getAllSessions,
-  loadStarredProjects,
-  persistStarredProjects,
-  readProjectSortOrder,
-  sortProjects,
+  getProjectLastActivity,
+  getSessionDate,
+  getSessionName,
 } from '../utils/utils';
+import { useHomePreferences } from '@/hooks/useHomePreferences';
+import type { Project, ProjectSession } from '@/types/app';
+import { formatTimeAgo } from '@/utils/dateUtils';
+import { api } from '@/utils/api';
 
 type SnippetHighlight = {
   start: number;
@@ -61,62 +58,171 @@ export type SearchProgress = {
 type UseSidebarControllerArgs = {
   projects: Project[];
   selectedProject: Project | null;
-  selectedSession: ProjectSession | null;
   isLoading: boolean;
   isMobile: boolean;
   t: TFunction;
   onRefresh: () => Promise<void> | void;
   onProjectSelect: (project: Project) => void;
-  onSessionSelect: (session: ProjectSession) => void;
-  onSessionDelete?: (sessionId: string) => void;
+  onOpenSession: (session: ProjectSession) => void;
   onProjectDelete?: (projectName: string) => void;
   setCurrentProject: (project: Project) => void;
   setSidebarVisible: (visible: boolean) => void;
   sidebarVisible: boolean;
 };
 
+const EMPTY_ADDITIONAL_SESSIONS = {};
+const ACTIVE_SESSION_WINDOW_MS = 10 * 60 * 1000;
+
+const splitPathSegments = (pathValue?: string): string[] => {
+  if (!pathValue) {
+    return [];
+  }
+
+  return pathValue.replace(/\\/g, '/').split('/').filter(Boolean);
+};
+
+const getWorkspaceLabel = (project: Project): string => {
+  const segments = splitPathSegments(project.fullPath || project.path);
+  return segments[segments.length - 1] || project.displayName || project.name;
+};
+
+const isMultiWorkspaceEnabled = (project: Project | null): boolean => {
+  if (!project) {
+    return false;
+  }
+
+  return Boolean(
+    (project as { multi_workspace_enabled?: boolean }).multi_workspace_enabled ??
+    (project as { multiWorkspaceEnabled?: boolean }).multiWorkspaceEnabled
+  );
+};
+
+const resolveActivityTimestamp = (session: ProjectSession): string => {
+  const candidates = [
+    session.lastActivity,
+    session.updated_at,
+    session.createdAt,
+    session.created_at,
+  ];
+  const value = candidates.find(
+    (candidate) => typeof candidate === 'string' && candidate.length > 0
+  );
+  return value || new Date(0).toISOString();
+};
+
+const matchesSearch = (values: Array<string | undefined>, searchValue: string): boolean => {
+  if (!searchValue) {
+    return true;
+  }
+
+  return values.some((value) => (value || '').toLowerCase().includes(searchValue));
+};
+
+/**
+ * Normalize a file-system path to forward slashes for comparison.
+ */
+const normalizePath = (p: string): string => p.replace(/\\/g, '/');
+
+/**
+ * Group flat project list items into multi-stream groups (design brief §3).
+ *
+ * Uses `project.gitCommonDir` (populated server-side via `git rev-parse
+ * --git-common-dir`) to reliably detect worktrees regardless of directory
+ * naming conventions.  Projects that share the same gitCommonDir are all
+ * worktrees of the same repo.
+ *
+ * Fallback: if gitCommonDir is unavailable (non-git project or old server),
+ * each project becomes a standalone single-stream group.
+ *
+ * "Main" heuristic: pick the project whose fullPath equals or is the direct
+ * parent of the gitCommonDir (.git lives at root of main checkout), otherwise
+ * fall back to the project with the shortest fullPath.
+ */
+function groupProjectsIntoStreams(items: SidebarProjectListItem[]): SidebarProjectGroup[] {
+  // Bucket projects by normalized gitCommonDir
+  const byCommonDir = new Map<string, SidebarProjectListItem[]>();
+  const standalone: SidebarProjectListItem[] = [];
+
+  for (const item of items) {
+    const raw = item.project.gitCommonDir;
+    if (!raw) {
+      standalone.push(item);
+      continue;
+    }
+    const key = normalizePath(raw);
+    const bucket = byCommonDir.get(key) ?? [];
+    bucket.push(item);
+    byCommonDir.set(key, bucket);
+  }
+
+  const groups: SidebarProjectGroup[] = [];
+
+  for (const bucket of byCommonDir.values()) {
+    if (bucket.length === 1) {
+      groups.push({ main: bucket[0], children: [] });
+      continue;
+    }
+
+    // Identify the "main" project: the one whose fullPath is the direct parent
+    // of the .git directory (i.e. gitCommonDir starts with fullPath + '/.git').
+    // Falls back to shortest path so the repo root sorts to the top.
+    const sorted = [...bucket].sort((a, b) => {
+      const aPath = normalizePath(a.project.fullPath);
+      const bPath = normalizePath(b.project.fullPath);
+      const commonDir = normalizePath(a.project.gitCommonDir ?? '');
+      const aIsMain = commonDir.startsWith(aPath + '/') || commonDir === aPath;
+      const bIsMain = commonDir.startsWith(bPath + '/') || commonDir === bPath;
+      if (aIsMain !== bIsMain) return aIsMain ? -1 : 1;
+      return aPath.length - bPath.length;
+    });
+
+    groups.push({ main: sorted[0], children: sorted.slice(1) });
+  }
+
+  // Append standalone (non-git / missing gitCommonDir) projects as single-stream
+  for (const item of standalone) {
+    groups.push({ main: item, children: [] });
+  }
+
+  return groups;
+}
+
 export function useSidebarController({
   projects,
   selectedProject,
-  selectedSession,
   isLoading,
   isMobile,
   t,
   onRefresh,
   onProjectSelect,
-  onSessionSelect,
-  onSessionDelete,
+  onOpenSession,
   onProjectDelete,
   setCurrentProject,
   setSidebarVisible,
   sidebarVisible,
 }: UseSidebarControllerArgs) {
-  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const { preferences, markFavoriteAccessed } = useHomePreferences();
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [editingName, setEditingName] = useState('');
-  const [loadingSessions, setLoadingSessions] = useState<LoadingSessionsByProject>({});
-  const [additionalSessions, setAdditionalSessions] = useState<AdditionalSessionsByProject>({});
-  const [initialSessionsLoaded, setInitialSessionsLoaded] = useState<Set<string>>(new Set());
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [projectSortOrder, setProjectSortOrder] = useState<ProjectSortOrder>('name');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [projectHasMoreOverrides, setProjectHasMoreOverrides] = useState<Record<string, boolean>>({});
-  const [editingSession, setEditingSession] = useState<string | null>(null);
-  const [editingSessionName, setEditingSessionName] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
   const [deletingProjects, setDeletingProjects] = useState<Set<string>>(new Set());
-  const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteProjectConfirmation | null>(null);
-  const [sessionDeleteConfirmation, setSessionDeleteConfirmation] = useState<SessionDeleteConfirmation | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteProjectConfirmation | null>(
+    null
+  );
   const [showVersionModal, setShowVersionModal] = useState(false);
-  const [starredProjects, setStarredProjects] = useState<Set<string>>(() => loadStarredProjects());
   const [searchMode, setSearchMode] = useState<'projects' | 'conversations'>('projects');
-  const [conversationResults, setConversationResults] = useState<ConversationSearchResults | null>(null);
+  const [conversationResults, setConversationResults] = useState<ConversationSearchResults | null>(
+    null
+  );
   const [isSearching, setIsSearching] = useState(false);
   const [searchProgress, setSearchProgress] = useState<SearchProgress | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchSeqRef = useRef(0);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const projectSelectDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSidebarCollapsed = !isMobile && !sidebarVisible;
 
@@ -126,64 +232,6 @@ export function useSidebarController({
     }, 60000);
 
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    setAdditionalSessions({});
-    setInitialSessionsLoaded(new Set());
-    setProjectHasMoreOverrides({});
-  }, [projects]);
-
-  useEffect(() => {
-    if (selectedProject) {
-      setExpandedProjects((prev) => {
-        if (prev.has(selectedProject.name)) {
-          return prev;
-        }
-        const next = new Set(prev);
-        next.add(selectedProject.name);
-        return next;
-      });
-    }
-  }, [selectedSession, selectedProject]);
-
-  useEffect(() => {
-    if (projects.length > 0 && !isLoading) {
-      const loadedProjects = new Set<string>();
-      projects.forEach((project) => {
-        if (project.sessions && project.sessions.length >= 0) {
-          loadedProjects.add(project.name);
-        }
-      });
-      setInitialSessionsLoaded(loadedProjects);
-    }
-  }, [projects, isLoading]);
-
-  useEffect(() => {
-    const loadSortOrder = () => {
-      setProjectSortOrder(readProjectSortOrder());
-    };
-
-    loadSortOrder();
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'claude-settings') {
-        loadSortOrder();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    const interval = setInterval(() => {
-      if (document.hasFocus()) {
-        loadSortOrder();
-      }
-    }, 1000);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
   }, []);
 
   // Debounced conversation search with SSE streaming
@@ -219,7 +267,10 @@ export function useSidebarController({
       let totalMatches = 0;
 
       es.addEventListener('result', (evt) => {
-        if (seq !== searchSeqRef.current) { es.close(); return; }
+        if (seq !== searchSeqRef.current) {
+          es.close();
+          return;
+        }
         try {
           const data = JSON.parse(evt.data) as {
             projectResult: ConversationProjectResult;
@@ -230,25 +281,41 @@ export function useSidebarController({
           accumulated.push(data.projectResult);
           totalMatches = data.totalMatches;
           setConversationResults({ results: [...accumulated], totalMatches, query });
-          setSearchProgress({ scannedProjects: data.scannedProjects, totalProjects: data.totalProjects });
+          setSearchProgress({
+            scannedProjects: data.scannedProjects,
+            totalProjects: data.totalProjects,
+          });
         } catch {
           // Ignore malformed SSE data
         }
       });
 
       es.addEventListener('progress', (evt) => {
-        if (seq !== searchSeqRef.current) { es.close(); return; }
+        if (seq !== searchSeqRef.current) {
+          es.close();
+          return;
+        }
         try {
-          const data = JSON.parse(evt.data) as { totalMatches: number; scannedProjects: number; totalProjects: number };
+          const data = JSON.parse(evt.data) as {
+            totalMatches: number;
+            scannedProjects: number;
+            totalProjects: number;
+          };
           totalMatches = data.totalMatches;
-          setSearchProgress({ scannedProjects: data.scannedProjects, totalProjects: data.totalProjects });
+          setSearchProgress({
+            scannedProjects: data.scannedProjects,
+            totalProjects: data.totalProjects,
+          });
         } catch {
           // Ignore malformed SSE data
         }
       });
 
       es.addEventListener('done', () => {
-        if (seq !== searchSeqRef.current) { es.close(); return; }
+        if (seq !== searchSeqRef.current) {
+          es.close();
+          return;
+        }
         es.close();
         eventSourceRef.current = null;
         setIsSearching(false);
@@ -259,7 +326,10 @@ export function useSidebarController({
       });
 
       es.addEventListener('error', () => {
-        if (seq !== searchSeqRef.current) { es.close(); return; }
+        if (seq !== searchSeqRef.current) {
+          es.close();
+          return;
+        }
         es.close();
         eventSourceRef.current = null;
         setIsSearching(false);
@@ -274,6 +344,9 @@ export function useSidebarController({
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
+      if (projectSelectDebounceRef.current) {
+        clearTimeout(projectSelectDebounceRef.current);
+      }
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;
@@ -281,87 +354,115 @@ export function useSidebarController({
     };
   }, [searchFilter, searchMode]);
 
-  const handleTouchClick = useCallback(
-    (callback: () => void) =>
-      (event: React.TouchEvent<HTMLElement>) => {
-        const target = event.target as HTMLElement;
-        if (target.closest('.overflow-y-auto') || target.closest('[data-scroll-container]')) {
-          return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-        callback();
-      },
-    [],
-  );
-
-  const toggleProject = useCallback((projectName: string) => {
-    setExpandedProjects((prev) => {
-      const next = new Set<string>();
-      if (!prev.has(projectName)) {
-        next.add(projectName);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleSessionClick = useCallback(
-    (session: SessionWithProvider, projectName: string) => {
-      onSessionSelect({ ...session, __projectName: projectName });
-    },
-    [onSessionSelect],
-  );
-
-  const toggleStarProject = useCallback((projectName: string) => {
-    setStarredProjects((prev) => {
-      const next = new Set(prev);
-      if (next.has(projectName)) {
-        next.delete(projectName);
-      } else {
-        next.add(projectName);
-      }
-
-      persistStarredProjects(next);
-      return next;
-    });
-  }, []);
-
-  const isProjectStarred = useCallback(
-    (projectName: string) => starredProjects.has(projectName),
-    [starredProjects],
-  );
-
-  const getProjectSessions = useCallback(
-    (project: Project) => getAllSessions(project, additionalSessions),
-    [additionalSessions],
-  );
-
-  const projectsWithSessionMeta = useMemo(
+  const favoriteSessionIds = useMemo(
     () =>
-      projects.map((project) => {
-        const hasMoreOverride = projectHasMoreOverrides[project.name];
-        if (hasMoreOverride === undefined) {
-          return project;
-        }
+      new Set(
+        preferences.favorites
+          .filter((favorite) => favorite.kind === 'session')
+          .map((favorite) => favorite.sessionId)
+      ),
+    [preferences.favorites]
+  );
+
+  const normalizedSearch = searchFilter.trim().toLowerCase();
+
+  const sidebarProjects = useMemo<SidebarProjectListItem[]>(() => {
+    return projects
+      .map((project) => {
+        const sessions = getAllSessions(project, EMPTY_ADDITIONAL_SESSIONS);
+        const latestActivity = getProjectLastActivity(project, EMPTY_ADDITIONAL_SESSIONS);
+        const hasActiveSessions = sessions.some(
+          (session) =>
+            currentTime.getTime() - getSessionDate(session).getTime() < ACTIVE_SESSION_WINDOW_MS
+        );
 
         return {
-          ...project,
-          sessionMeta: { ...project.sessionMeta, hasMore: hasMoreOverride },
+          project,
+          displayName: project.displayName || project.name,
+          workspaceName: getWorkspaceLabel(project),
+          branch: project.gitBranch ?? undefined,
+          hasActiveSessions,
+          // TODO: compute from session data once the session model exposes a
+          // "waiting for user input" flag. Until then this is always false to
+          // avoid misleading the user with incorrect status dots.
+          hasWaitingSessions: false,
+          latestActivity,
         };
-      }),
-    [projectHasMoreOverrides, projects],
+      })
+      .filter((projectItem) =>
+        matchesSearch(
+          [projectItem.displayName, projectItem.project.name, projectItem.workspaceName],
+          normalizedSearch
+        )
+      )
+      .sort((left, right) => {
+        const activityDiff = right.latestActivity.getTime() - left.latestActivity.getTime();
+        if (activityDiff !== 0) {
+          return activityDiff;
+        }
+
+        return left.displayName.localeCompare(right.displayName);
+      })
+      .map(({ latestActivity: _latestActivity, ...projectItem }) => projectItem);
+  }, [currentTime, normalizedSearch, projects]);
+
+  /** Multi-stream groups — design brief §3 (Adaptive C2 Pattern). */
+  const groupedProjects = useMemo<SidebarProjectGroup[]>(
+    () => groupProjectsIntoStreams(sidebarProjects),
+    [sidebarProjects]
   );
 
-  const sortedProjects = useMemo(
-    () => sortProjects(projectsWithSessionMeta, projectSortOrder, starredProjects, additionalSessions),
-    [additionalSessions, projectSortOrder, projectsWithSessionMeta, starredProjects],
-  );
+  // Expansion state is now fully derived from the URL (selectedProject).
+  // Clicking the +N badge or the divider header navigates to the main project
+  // via onProjectSelect, so no local expansion state is needed.
 
-  const filteredProjects = useMemo(
-    () => filterProjects(sortedProjects, searchFilter),
-    [searchFilter, sortedProjects],
-  );
+  const recentSessions = useMemo<SidebarRecentSession[]>(() => {
+    return projects
+      .flatMap((project) => {
+        const workspaceName = getWorkspaceLabel(project);
+
+        return getAllSessions(project, EMPTY_ADDITIONAL_SESSIONS).map((session) => ({
+          project,
+          session,
+          title: getSessionName(session, t),
+          displayProjectName: project.displayName || project.name,
+          workspaceName: isMultiWorkspaceEnabled(project) ? workspaceName : undefined,
+          summary: typeof session.summary === 'string' ? session.summary : undefined,
+          lastActivityLabel: formatTimeAgo(resolveActivityTimestamp(session), currentTime, t),
+          isFavorite: favoriteSessionIds.has(session.id),
+          lastActivity: getSessionDate(session),
+        }));
+      })
+      .filter((recentSession) =>
+        matchesSearch(
+          [
+            recentSession.title,
+            recentSession.displayProjectName,
+            recentSession.project.name,
+            recentSession.workspaceName,
+            recentSession.summary,
+          ],
+          normalizedSearch
+        )
+      )
+      .sort((left, right) => {
+        if (left.isFavorite !== right.isFavorite) {
+          return left.isFavorite ? -1 : 1;
+        }
+
+        return right.lastActivity.getTime() - left.lastActivity.getTime();
+      })
+      .slice(0, 10)
+      .map(({ lastActivity: _lastActivity, ...recentSession }) => recentSession);
+  }, [currentTime, favoriteSessionIds, normalizedSearch, projects, t]);
+
+  const activeWorkspaceName = useMemo(() => {
+    if (!isMultiWorkspaceEnabled(selectedProject)) {
+      return null;
+    }
+
+    return selectedProject ? getWorkspaceLabel(selectedProject) : null;
+  }, [selectedProject]);
 
   const startEditing = useCallback((project: Project) => {
     setEditingProject(project.name);
@@ -393,64 +494,15 @@ export function useSidebarController({
         setEditingName('');
       }
     },
-    [editingName],
+    [editingName]
   );
 
-  const showDeleteSessionConfirmation = useCallback(
-    (
-      projectName: string,
-      sessionId: string,
-      sessionTitle: string,
-      provider: SessionDeleteConfirmation['provider'] = 'claude',
-    ) => {
-      setSessionDeleteConfirmation({ projectName, sessionId, sessionTitle, provider });
-    },
-    [],
-  );
-
-  const confirmDeleteSession = useCallback(async () => {
-    if (!sessionDeleteConfirmation) {
-      return;
-    }
-
-    const { projectName, sessionId, provider } = sessionDeleteConfirmation;
-    setSessionDeleteConfirmation(null);
-
-    try {
-      let response;
-      if (provider === 'codex') {
-        response = await api.deleteCodexSession(sessionId);
-      } else if (provider === 'gemini') {
-        response = await api.deleteGeminiSession(sessionId);
-      } else {
-        response = await api.deleteSession(projectName, sessionId);
-      }
-
-      if (response.ok) {
-        onSessionDelete?.(sessionId);
-      } else {
-        const errorText = await response.text();
-        console.error('[Sidebar] Failed to delete session:', {
-          status: response.status,
-          error: errorText,
-        });
-        alert(t('messages.deleteSessionFailed'));
-      }
-    } catch (error) {
-      console.error('[Sidebar] Error deleting session:', error);
-      alert(t('messages.deleteSessionError'));
-    }
-  }, [onSessionDelete, sessionDeleteConfirmation, t]);
-
-  const requestProjectDelete = useCallback(
-    (project: Project) => {
-      setDeleteConfirmation({
-        project,
-        sessionCount: getProjectSessions(project).length,
-      });
-    },
-    [getProjectSessions],
-  );
+  const requestProjectDelete = useCallback((project: Project) => {
+    setDeleteConfirmation({
+      project,
+      sessionCount: getAllSessions(project, EMPTY_ADDITIONAL_SESSIONS).length,
+    });
+  }, []);
 
   const confirmDeleteProject = useCallback(async () => {
     if (!deleteConfirmation) {
@@ -484,55 +536,46 @@ export function useSidebarController({
     }
   }, [deleteConfirmation, onProjectDelete, t]);
 
-  const loadMoreSessions = useCallback(
-    async (project: Project) => {
-      const hasMoreOverride = projectHasMoreOverrides[project.name];
-      const canLoadMore =
-        hasMoreOverride !== undefined ? hasMoreOverride : project.sessionMeta?.hasMore === true;
-      if (!canLoadMore || loadingSessions[project.name]) {
-        return;
-      }
-
-      setLoadingSessions((prev) => ({ ...prev, [project.name]: true }));
-
-      try {
-        const currentSessionCount =
-          (project.sessions?.length || 0) + (additionalSessions[project.name]?.length || 0);
-        const response = await api.sessions(project.name, 5, currentSessionCount);
-
-        if (!response.ok) {
-          return;
-        }
-
-        const result = (await response.json()) as {
-          sessions?: ProjectSession[];
-          hasMore?: boolean;
-        };
-
-        setAdditionalSessions((prev) => ({
-          ...prev,
-          [project.name]: [...(prev[project.name] || []), ...(result.sessions || [])],
-        }));
-
-        if (result.hasMore === false) {
-          // Keep hasMore state in local hook state instead of mutating the project prop object.
-          setProjectHasMoreOverrides((prev) => ({ ...prev, [project.name]: false }));
-        }
-      } catch (error) {
-        console.error('Error loading more sessions:', error);
-      } finally {
-        setLoadingSessions((prev) => ({ ...prev, [project.name]: false }));
-      }
-    },
-    [additionalSessions, loadingSessions, projectHasMoreOverrides],
-  );
-
   const handleProjectSelect = useCallback(
     (project: Project) => {
-      onProjectSelect(project);
+      // Update local sidebar state immediately for responsive visual feedback,
+      // but debounce the actual navigation to prevent thrashing when the user
+      // clicks rapidly through several projects.
       setCurrentProject(project);
+      if (projectSelectDebounceRef.current) {
+        clearTimeout(projectSelectDebounceRef.current);
+      }
+      projectSelectDebounceRef.current = setTimeout(() => {
+        onProjectSelect(project);
+        projectSelectDebounceRef.current = null;
+      }, 150);
     },
-    [onProjectSelect, setCurrentProject],
+    [onProjectSelect, setCurrentProject]
+  );
+
+  const openSessionFromSidebar = useCallback(
+    (session: ProjectSession, project: Project | null = null) => {
+      const projectName = project?.name || session.__projectName;
+      const sessionToOpen = projectName ? { ...session, __projectName: projectName } : session;
+
+      if (project) {
+        // Opening a recent session should land on the session route directly.
+        // Debounced project navigation is useful for browsing the project list, but it would
+        // race with session routing here and can bounce users back to the inbox.
+        setCurrentProject(project);
+        if (projectSelectDebounceRef.current) {
+          clearTimeout(projectSelectDebounceRef.current);
+          projectSelectDebounceRef.current = null;
+        }
+      }
+
+      if (favoriteSessionIds.has(session.id)) {
+        markFavoriteAccessed(`session:${session.id}`);
+      }
+
+      onOpenSession(sessionToOpen);
+    },
+    [favoriteSessionIds, markFavoriteAccessed, onOpenSession, setCurrentProject]
   );
 
   const refreshProjects = useCallback(async () => {
@@ -544,33 +587,6 @@ export function useSidebarController({
     }
   }, [onRefresh]);
 
-  const updateSessionSummary = useCallback(
-    async (_projectName: string, sessionId: string, summary: string, provider: SessionProvider) => {
-      const trimmed = summary.trim();
-      if (!trimmed) {
-        setEditingSession(null);
-        setEditingSessionName('');
-        return;
-      }
-      try {
-        const response = await api.renameSession(sessionId, trimmed, provider);
-        if (response.ok) {
-          await onRefresh();
-        } else {
-          console.error('[Sidebar] Failed to rename session:', response.status);
-          alert(t('messages.renameSessionFailed'));
-        }
-      } catch (error) {
-        console.error('[Sidebar] Error renaming session:', error);
-        alert(t('messages.renameSessionError'));
-      } finally {
-        setEditingSession(null);
-        setEditingSessionName('');
-      }
-    },
-    [onRefresh, t],
-  );
-
   const collapseSidebar = useCallback(() => {
     setSidebarVisible(false);
   }, [setSidebarVisible]);
@@ -579,67 +595,51 @@ export function useSidebarController({
     setSidebarVisible(true);
   }, [setSidebarVisible]);
 
+  const clearConversationResults = useCallback(() => {
+    searchSeqRef.current += 1;
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    setIsSearching(false);
+    setSearchProgress(null);
+    setConversationResults(null);
+  }, []);
+
   return {
     isSidebarCollapsed,
-    expandedProjects,
     editingProject,
     showNewProject,
     editingName,
-    loadingSessions,
-    additionalSessions,
-    initialSessionsLoaded,
-    currentTime,
-    projectSortOrder,
     isRefreshing,
-    editingSession,
-    editingSessionName,
     searchFilter,
     deletingProjects,
     deleteConfirmation,
-    sessionDeleteConfirmation,
     showVersionModal,
-    starredProjects,
-    filteredProjects,
-    toggleProject,
-    handleSessionClick,
-    toggleStarProject,
-    isProjectStarred,
-    getProjectSessions,
+    sidebarProjects,
+    groupedProjects,
+    recentSessions,
+    activeWorkspaceName,
     startEditing,
     cancelEditing,
     saveProjectName,
-    showDeleteSessionConfirmation,
-    confirmDeleteSession,
     requestProjectDelete,
     confirmDeleteProject,
-    loadMoreSessions,
     handleProjectSelect,
+    openSessionFromSidebar,
     refreshProjects,
-    updateSessionSummary,
     collapseSidebar,
     expandSidebar,
     setShowNewProject,
     setEditingName,
-    setEditingSession,
-    setEditingSessionName,
     searchMode,
     setSearchMode,
     conversationResults,
     isSearching,
     searchProgress,
-    clearConversationResults: useCallback(() => {
-      searchSeqRef.current += 1;
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-      setIsSearching(false);
-      setSearchProgress(null);
-      setConversationResults(null);
-    }, []),
+    clearConversationResults,
     setSearchFilter,
     setDeleteConfirmation,
-    setSessionDeleteConfirmation,
     setShowVersionModal,
   };
 }

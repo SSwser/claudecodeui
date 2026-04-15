@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import crossSpawn from 'cross-spawn';
 import { notifyRunFailed, notifyRunStopped } from './services/notification-orchestrator.js';
+import { registerProcess } from './services/sessionLifecycleService.js';
 import { cursorAdapter } from './providers/cursor/adapter.js';
 import { createNormalizedMessage } from './providers/types.js';
 
@@ -13,7 +14,7 @@ const WORKSPACE_TRUST_PATTERNS = [
   /workspace trust required/i,
   /do you trust the contents of this directory/i,
   /working with untrusted contents/i,
-  /pass --trust,\s*--yolo,\s*or -f/i
+  /pass --trust,\s*--yolo,\s*or -f/i,
 ];
 
 function isWorkspaceTrustPrompt(text = '') {
@@ -26,16 +27,26 @@ function isWorkspaceTrustPrompt(text = '') {
 
 async function spawnCursor(command, options = {}, ws) {
   return new Promise(async (resolve, reject) => {
-    const { sessionId, projectPath, cwd, resume, toolsSettings, skipPermissions, model, sessionSummary } = options;
+    const {
+      sessionId,
+      projectPath,
+      cwd,
+      resume,
+      toolsSettings,
+      skipPermissions,
+      model,
+      sessionSummary,
+    } = options;
     let capturedSessionId = sessionId; // Track session ID throughout the process
     let sessionCreatedSent = false; // Track if we've already sent session-created event
     let hasRetriedWithTrust = false;
     let settled = false;
+    let registeredRuntimeSessionId = null;
 
     // Use tools settings passed from frontend, or defaults
     const settings = toolsSettings || {
       allowedShellCommands: [],
-      skipPermissions: false
+      skipPermissions: false,
     };
 
     // Build Cursor CLI command
@@ -100,7 +111,7 @@ async function spawnCursor(command, options = {}, ws) {
             provider: 'cursor',
             sessionId: finalSessionId,
             sessionName: sessionSummary,
-            stopReason: 'completed'
+            stopReason: 'completed',
           });
           return;
         }
@@ -110,7 +121,7 @@ async function spawnCursor(command, options = {}, ws) {
           provider: 'cursor',
           sessionId: finalSessionId,
           sessionName: sessionSummary,
-          error: error || `Cursor CLI exited with code ${code}`
+          error: error || `Cursor CLI exited with code ${code}`,
         });
       };
 
@@ -125,8 +136,38 @@ async function spawnCursor(command, options = {}, ws) {
       const cursorProcess = spawnFunction('cursor-agent', args, {
         cwd: workingDir,
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env } // Inherit all environment variables
+        env: { ...process.env }, // Inherit all environment variables
       });
+
+      const registerRuntime = (runtimeSessionId) => {
+        if (!runtimeSessionId || registeredRuntimeSessionId === runtimeSessionId) {
+          return;
+        }
+
+        registeredRuntimeSessionId = runtimeSessionId;
+
+        try {
+          registerProcess({
+            sessionId: runtimeSessionId,
+            provider: 'cursor',
+            pid: cursorProcess.pid,
+            process: cursorProcess,
+            runtimeType: 'child-process',
+            projectPath: workingDir,
+            title: sessionSummary || null,
+            summary: sessionSummary || null,
+          });
+        } catch (error) {
+          console.warn(
+            `[cursor-cli] Failed to register lifecycle state for ${runtimeSessionId}:`,
+            error.message
+          );
+        }
+      };
+
+      if (sessionId) {
+        registerRuntime(sessionId);
+      }
 
       activeCursorProcesses.set(processKey, cursorProcess);
 
@@ -166,6 +207,8 @@ async function spawnCursor(command, options = {}, ws) {
                     activeCursorProcesses.set(capturedSessionId, cursorProcess);
                   }
 
+                  registerRuntime(capturedSessionId);
+
                   // Set session ID on writer (for API endpoint compatibility)
                   if (ws.setSessionId && typeof ws.setSessionId === 'function') {
                     ws.setSessionId(capturedSessionId);
@@ -174,7 +217,16 @@ async function spawnCursor(command, options = {}, ws) {
                   // Send session-created event only once for new sessions
                   if (!sessionId && !sessionCreatedSent) {
                     sessionCreatedSent = true;
-                    ws.send(createNormalizedMessage({ kind: 'session_created', newSessionId: capturedSessionId, model: response.model, cwd: response.cwd, sessionId: capturedSessionId, provider: 'cursor' }));
+                    ws.send(
+                      createNormalizedMessage({
+                        kind: 'session_created',
+                        newSessionId: capturedSessionId,
+                        model: response.model,
+                        cwd: response.cwd,
+                        sessionId: capturedSessionId,
+                        provider: 'cursor',
+                      })
+                    );
                   }
                 }
 
@@ -188,8 +240,15 @@ async function spawnCursor(command, options = {}, ws) {
 
             case 'assistant':
               // Accumulate assistant message chunks
-              if (response.message && response.message.content && response.message.content.length > 0) {
-                const normalized = cursorAdapter.normalizeMessage(response, capturedSessionId || sessionId || null);
+              if (
+                response.message &&
+                response.message.content &&
+                response.message.content.length > 0
+              ) {
+                const normalized = cursorAdapter.normalizeMessage(
+                  response,
+                  capturedSessionId || sessionId || null
+                );
                 for (const msg of normalized) ws.send(msg);
               }
               break;
@@ -198,18 +257,21 @@ async function spawnCursor(command, options = {}, ws) {
               // Session complete — send stream end + lifecycle complete with result payload
               console.log('Cursor session result:', response);
               const resultText = typeof response.result === 'string' ? response.result : '';
-              ws.send(createNormalizedMessage({
-                kind: 'complete',
-                exitCode: response.subtype === 'success' ? 0 : 1,
-                resultText,
-                isError: response.subtype !== 'success',
-                sessionId: capturedSessionId || sessionId, provider: 'cursor',
-              }));
+              ws.send(
+                createNormalizedMessage({
+                  kind: 'complete',
+                  exitCode: response.subtype === 'success' ? 0 : 1,
+                  resultText,
+                  isError: response.subtype !== 'success',
+                  sessionId: capturedSessionId || sessionId,
+                  provider: 'cursor',
+                })
+              );
               break;
             }
 
             default:
-              // Unknown message types — ignore.
+            // Unknown message types — ignore.
           }
         } catch (parseError) {
           console.log('Non-JSON response:', line);
@@ -219,7 +281,10 @@ async function spawnCursor(command, options = {}, ws) {
           }
 
           // If not JSON, send as stream delta via adapter
-          const normalized = cursorAdapter.normalizeMessage(line, capturedSessionId || sessionId || null);
+          const normalized = cursorAdapter.normalizeMessage(
+            line,
+            capturedSessionId || sessionId || null
+          );
           for (const msg of normalized) ws.send(msg);
         }
       };
@@ -248,7 +313,14 @@ async function spawnCursor(command, options = {}, ws) {
           return;
         }
 
-        ws.send(createNormalizedMessage({ kind: 'error', content: stderrText, sessionId: capturedSessionId || sessionId || null, provider: 'cursor' }));
+        ws.send(
+          createNormalizedMessage({
+            kind: 'error',
+            content: stderrText,
+            sessionId: capturedSessionId || sessionId || null,
+            provider: 'cursor',
+          })
+        );
       });
 
       // Handle process completion
@@ -275,7 +347,15 @@ async function spawnCursor(command, options = {}, ws) {
           return;
         }
 
-        ws.send(createNormalizedMessage({ kind: 'complete', exitCode: code, isNewSession: !sessionId && !!command, sessionId: finalSessionId, provider: 'cursor' }));
+        ws.send(
+          createNormalizedMessage({
+            kind: 'complete',
+            exitCode: code,
+            isNewSession: !sessionId && !!command,
+            sessionId: finalSessionId,
+            provider: 'cursor',
+          })
+        );
 
         if (code === 0) {
           notifyTerminalState({ code });
@@ -294,7 +374,14 @@ async function spawnCursor(command, options = {}, ws) {
         const finalSessionId = capturedSessionId || sessionId || processKey;
         activeCursorProcesses.delete(finalSessionId);
 
-        ws.send(createNormalizedMessage({ kind: 'error', content: error.message, sessionId: capturedSessionId || sessionId || null, provider: 'cursor' }));
+        ws.send(
+          createNormalizedMessage({
+            kind: 'error',
+            content: error.message,
+            sessionId: capturedSessionId || sessionId || null,
+            provider: 'cursor',
+          })
+        );
         notifyTerminalState({ error });
 
         settleOnce(() => reject(error));
@@ -327,9 +414,4 @@ function getActiveCursorSessions() {
   return Array.from(activeCursorProcesses.keys());
 }
 
-export {
-  spawnCursor,
-  abortCursorSession,
-  isCursorSessionActive,
-  getActiveCursorSessions
-};
+export { spawnCursor, abortCursorSession, isCursorSessionActive, getActiveCursorSessions };

@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { AppTab, Project, ProjectSession } from '../../../types/app';
+import type { AppTab, Project, ProjectSession } from '@/types/app';
 
 export type SessionLifecycleHandler = (sessionId?: string | null) => void;
 
@@ -52,6 +52,8 @@ export type MainContentProps = {
   processingSessions: Set<string>;
   onReplaceTemporarySession: SessionLifecycleHandler;
   onNavigateToSession: (targetSessionId: string) => void;
+  onOpenProjectSession: (session: ProjectSession) => void;
+  onCreateProjectSession: (project: Project) => void;
   onShowSettings: () => void;
   externalMessageUpdate: number;
   showLandingPage: boolean;
@@ -81,12 +83,21 @@ export type MainContentHeaderProps = {
   shouldShowTasksTab: boolean;
   isMobile: boolean;
   onMenuClick: () => void;
+  onCreateSession?: () => void;
+  /** Count of sessions actively being processed by the AI (yellow pill). */
+  runningCount?: number;
+  /** Count of sessions waiting for user input (red pill). */
+  waitingCount?: number;
+  /** Controlled search query shared with ProjectInbox via MainContent. */
+  searchQuery?: string;
+  onSearchQueryChange?: (value: string) => void;
 };
 
 export type MainContentStateViewProps = {
   mode: 'loading' | 'empty' | 'home';
   isMobile: boolean;
   onMenuClick: () => void;
+  onCreateProject?: () => void;
   landingPageData?: LandingPageData;
   onLandingFiltersChange?: MainContentProps['onLandingFiltersChange'];
   onLandingActions?: MainContentProps['onLandingActions'];
@@ -138,6 +149,7 @@ export type RecentSessionSummary = {
 };
 
 export type LandingPageData = {
+  projectCount: number;
   filters: {
     search: string;
     project: string | null;

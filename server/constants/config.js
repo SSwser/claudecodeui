@@ -8,4 +8,4 @@ export const IS_PLATFORM = process.env.VITE_IS_PLATFORM === 'true';
  * Development-only auth bypass for local manual UAT and debugging.
  * This stays off unless the env var is explicitly set to the string 'true'.
  */
-export const IS_DEV_AUTO_LOGIN = process.env.VITE_DEV_AUTO_LOGIN === 'true';
+export const IS_LOCAL_DEV = process.env.VITE_LOCAL_DEV === 'true';

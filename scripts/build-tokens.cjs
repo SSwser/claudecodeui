@@ -1,55 +1,34 @@
 #!/usr/bin/env node
 
 /**
- * Token Build Script — Chorus
+ * Token Build Script
  *
- * Reads design/tokens.json (Tokens Studio compatible, SSOT) and regenerates
- * design/TOKENS.md as a human-readable reference table for AI context injection.
+ * Reads design/tokens.json (SSOT) and regenerates design/TOKENS.md
+ * as a human-readable reference table.
  *
- * Usage: node .claude/skills/chorus-design/scripts/build-tokens.cjs
- *    or: npm run build:tokens
+ * Usage: node scripts/build-tokens.js
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// 4 levels up from .claude/skills/chorus-design/scripts/ → project root
-const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
-const TOKENS_PATH = path.join(PROJECT_ROOT, 'design', 'tokens.json');
-const OUTPUT_PATH = path.join(PROJECT_ROOT, 'design', 'TOKENS.md');
-const EXTENSION_NAMESPACE = 'com.chorus.design';
+const TOKENS_PATH = path.resolve(__dirname, '..', 'design', 'tokens.json');
+const OUTPUT_PATH = path.resolve(__dirname, '..', 'design', 'TOKENS.md');
 
 function loadTokens() {
   const raw = fs.readFileSync(TOKENS_PATH, 'utf-8');
   return JSON.parse(raw);
 }
 
-function isTokenNode(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value) && '$value' in value;
-}
-
-function getTokenMeta(token) {
-  return token.$extensions?.[EXTENSION_NAMESPACE] || {};
-}
-
-function formatTitle(value) {
-  return value
-    .split(/[-_]/g)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
 function renderColorTable(title, tokens) {
   const rows = [];
   for (const [key, token] of Object.entries(tokens)) {
-    if (key.startsWith('$') || !isTokenNode(token)) continue;
-    const meta = getTokenMeta(token);
-    const hex = meta.pencilHex || '—';
-    const css = meta.css ? `\`${meta.css}\`` : '—';
-    const tw = meta.tailwind ? `\`${meta.tailwind}\`` : '—';
-    const desc = token.$description || '';
-    const note = meta.gap || meta.note || '';
+    if (key.startsWith('_')) continue;
+    const hex = token.pencilHex || '—';
+    const css = token.css ? `\`${token.css}\`` : '—';
+    const tw = token.tailwind ? `\`${token.tailwind}\`` : '—';
+    const desc = token.description || '';
+    const note = token._gap || token._note || '';
     const descCol = note ? `${desc} ⚠️ ${note}` : desc;
     rows.push(`| ${hex} | ${css} | ${tw} | ${descCol} |`);
   }
@@ -69,11 +48,9 @@ function renderColorTable(title, tokens) {
 function renderSimpleTable(title, tokens, columns) {
   const rows = [];
   for (const [key, token] of Object.entries(tokens)) {
-    if (key.startsWith('$') || !isTokenNode(token)) continue;
-
-    const meta = getTokenMeta(token);
+    if (key.startsWith('_')) continue;
     const cols = columns.map((col) => {
-      const val = col.key === 'value' ? token.$value : meta[col.key];
+      const val = token[col.key];
       if (val === undefined || val === null) return '—';
       if (col.code) return `\`${val}\``;
       if (Array.isArray(val)) return val.join(', ');
@@ -94,7 +71,6 @@ function renderSimpleTable(title, tokens, columns) {
 
 function build() {
   const tokens = loadTokens();
-  const tokenRoot = tokens.global || tokens;
 
   const sections = [];
 
@@ -103,25 +79,24 @@ function build() {
     [
       '# Design Tokens Reference',
       '',
-      '> **AI context injection artifact** — auto-generated from `design/tokens.json`. Do not edit manually.',
+      '> **Auto-generated** from `design/tokens.json`. Do not edit manually.',
       '> Run `npm run build:tokens` to regenerate.',
       '',
     ].join('\n')
   );
 
   // Color sections
-  const colorGroups = tokenRoot.color || {};
+  const colorGroups = tokens.color || {};
   for (const [groupName, group] of Object.entries(colorGroups)) {
-    if (groupName.startsWith('$')) continue;
-    const title = `${formatTitle(groupName)} Colors`;
+    const title = groupName.charAt(0).toUpperCase() + groupName.slice(1) + ' Colors';
     const table = renderColorTable(title, group);
     if (table) sections.push(table);
   }
 
   // Radius
-  if (tokenRoot.radius) {
+  if (tokens.radius) {
     sections.push(
-      renderSimpleTable('Border Radius', tokenRoot.radius, [
+      renderSimpleTable('Border Radius', tokens.radius, [
         { key: 'value', label: 'Value', code: false },
         { key: 'css', label: 'CSS Token', code: true },
         { key: 'tailwind', label: 'Tailwind', code: true },
@@ -130,9 +105,9 @@ function build() {
   }
 
   // Typography — font size
-  if (tokenRoot.typography?.fontSize) {
+  if (tokens.typography?.fontSize) {
     sections.push(
-      renderSimpleTable('Font Size', tokenRoot.typography.fontSize, [
+      renderSimpleTable('Font Size', tokens.typography.fontSize, [
         { key: 'value', label: 'Size', code: false },
         { key: 'lineHeight', label: 'Line Height', code: false },
         { key: 'css', label: 'CSS Token', code: true },
@@ -141,9 +116,9 @@ function build() {
   }
 
   // Typography — font weight
-  if (tokenRoot.typography?.fontWeight) {
+  if (tokens.typography?.fontWeight) {
     sections.push(
-      renderSimpleTable('Font Weight', tokenRoot.typography.fontWeight, [
+      renderSimpleTable('Font Weight', tokens.typography.fontWeight, [
         { key: 'value', label: 'Value', code: false },
         { key: 'css', label: 'CSS Token', code: true },
       ])
@@ -151,9 +126,9 @@ function build() {
   }
 
   // Typography — letter spacing
-  if (tokenRoot.typography?.letterSpacing) {
+  if (tokens.typography?.letterSpacing) {
     sections.push(
-      renderSimpleTable('Letter Spacing', tokenRoot.typography.letterSpacing, [
+      renderSimpleTable('Letter Spacing', tokens.typography.letterSpacing, [
         { key: 'value', label: 'Value', code: false },
         { key: 'css', label: 'CSS Token', code: true },
       ])
@@ -161,9 +136,9 @@ function build() {
   }
 
   // Spacing
-  if (tokenRoot.spacing) {
+  if (tokens.spacing) {
     sections.push(
-      renderSimpleTable('Spacing Scale', tokenRoot.spacing, [
+      renderSimpleTable('Spacing Scale', tokens.spacing, [
         { key: 'value', label: 'Value', code: false },
         { key: 'css', label: 'CSS Token', code: true },
       ])
@@ -175,9 +150,7 @@ function build() {
   console.log(`✓ Generated ${OUTPUT_PATH}`);
   console.log('');
   console.log('⚡ design/tokens.json updated — remember to sync Pencil variables:');
-  console.log(
-    '   In your AI agent, load chorus-design for token workflow and pencil-mcp for canvas updates'
-  );
+  console.log('   In your AI agent, run the pencil-mcp skill to push cc-- tokens to main.pen');
 }
 
 build();

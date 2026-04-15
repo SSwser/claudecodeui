@@ -6,14 +6,19 @@ let cachedKeys = null;
 function ensureVapidKeys() {
   if (cachedKeys) return cachedKeys;
 
-  const row = db.prepare('SELECT public_key, private_key FROM vapid_keys ORDER BY id DESC LIMIT 1').get();
+  const row = db
+    .prepare('SELECT public_key, private_key FROM vapid_keys ORDER BY id DESC LIMIT 1')
+    .get();
   if (row) {
     cachedKeys = { publicKey: row.public_key, privateKey: row.private_key };
     return cachedKeys;
   }
 
   const keys = webPush.generateVAPIDKeys();
-  db.prepare('INSERT INTO vapid_keys (public_key, private_key) VALUES (?, ?)').run(keys.publicKey, keys.privateKey);
+  db.prepare('INSERT INTO vapid_keys (public_key, private_key) VALUES (?, ?)').run(
+    keys.publicKey,
+    keys.privateKey
+  );
   cachedKeys = keys;
   return cachedKeys;
 }
@@ -24,11 +29,7 @@ function getPublicKey() {
 
 function configureWebPush() {
   const keys = ensureVapidKeys();
-  webPush.setVapidDetails(
-    'mailto:noreply@claudecodeui.local',
-    keys.publicKey,
-    keys.privateKey
-  );
+  webPush.setVapidDetails('mailto:noreply@chorus.local', keys.publicKey, keys.privateKey);
   console.log('Web Push notifications configured');
 }
 
