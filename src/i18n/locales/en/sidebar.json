@@ -19,11 +19,6 @@
     "tryDifferentSearch": "Try adjusting your search term",
     "runClaudeCli": "Run Claude CLI in a project directory to get started"
   },
-  "recents": "Recents",
-  "recentsEmpty": "No recent sessions yet",
-  "workspaceIndicator": {
-    "currentWorkspace": "Workspace"
-  },
   "app": {
     "title": "Claude Code UI",
     "subtitle": "AI coding assistant interface"

@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 
 export type SelectOption = {
   value: string;
@@ -18,10 +18,8 @@ type SelectProps = {
   value: string;
   onValueChange: (value: string) => void;
   options: SelectOption[];
-  className?: string; // Container className
-  triggerClassName?: string; // Trigger button className
+  className?: string;
   disabled?: boolean;
-  ariaLabel?: string;
 };
 
 function getNextEnabledIndex(options: SelectOption[], startIndex: number, direction: 1 | -1) {
@@ -46,9 +44,7 @@ export function Select({
   onValueChange,
   options,
   className,
-  triggerClassName,
   disabled = false,
-  ariaLabel,
 }: SelectProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -167,7 +163,6 @@ export function Select({
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label={ariaLabel || value}
         disabled={disabled}
         onClick={() => {
           if (open) {
@@ -178,10 +173,7 @@ export function Select({
           openDropdown();
         }}
         onKeyDown={handleKeyDown}
-        className={cn(
-          'flex h-10 w-full items-center justify-between rounded-medium border border-input bg-background px-3 py-2 text-sm font-medium tracking-body text-foreground shadow-subtle ring-offset-background transition-opacity focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50',
-          triggerClassName
-        )}
+        className="flex h-10 w-full items-center justify-between rounded-medium border border-input bg-background px-3 py-2 text-sm font-medium tracking-body text-foreground shadow-subtle ring-offset-background transition-opacity focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="truncate">{selectedOption?.label ?? value}</span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />

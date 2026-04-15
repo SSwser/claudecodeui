@@ -1,8 +1,13 @@
+#!/usr/bin/env sh
+
 # Windows + lint-staged can fail at backup/stash step with
 # "fatal: Needed a single revision". Try normal flow first, then fallback.
 case "$(uname -s)" in
 MINGW*|MSYS*|CYGWIN*)
-lint_staged_log=".git/.lint-staged-pre-commit.log"
+# In a git worktree, .git is a file that points at the real git dir.
+# Resolve it dynamically so the hook can write logs in both normal repos and worktrees.
+git_dir="$(git rev-parse --git-dir)"
+lint_staged_log="$git_dir/.lint-staged-pre-commit.log"
 npx lint-staged 2>"$lint_staged_log"
 status=$?
 

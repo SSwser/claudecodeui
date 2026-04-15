@@ -93,8 +93,6 @@ import mcpUtilsRoutes from './routes/mcp-utils.js';
 import commandsRoutes from './routes/commands.js';
 import settingsRoutes from './routes/settings.js';
 import agentRoutes from './routes/agent.js';
-import projectManagementRoutes from './routes/project-management.js';
-import sessionLifecycleRoutes from './routes/sessionLifecycle.js';
 import projectsRoutes, { WORKSPACES_ROOT, validateWorkspacePath } from './routes/projects.js';
 import cliAuthRoutes from './routes/cli-auth.js';
 import userRoutes from './routes/user.js';
@@ -102,7 +100,6 @@ import codexRoutes from './routes/codex.js';
 import geminiRoutes from './routes/gemini.js';
 import pluginsRoutes from './routes/plugins.js';
 import messagesRoutes from './routes/messages.js';
-import searchRoutes from './routes/search.js';
 import { createNormalizedMessage } from './providers/types.js';
 import {
   startEnabledPluginServers,
@@ -115,11 +112,9 @@ import {
   applyCustomSessionNames,
   userDb,
 } from './database/db.js';
-import { setSessionLifecycleBroadcaster } from './services/sessionLifecycleService.js';
-import { createProject } from './services/projectService.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
-import { IS_PLATFORM, IS_LOCAL_DEV } from './constants/config.js';
+import { IS_PLATFORM, IS_DEV_AUTO_LOGIN } from './constants/config.js';
 import { getConnectableHost } from '../shared/networkHosts.js';
 
 const VALID_PROVIDERS = ['claude', 'codex', 'cursor', 'gemini'];
@@ -342,7 +337,7 @@ const wss = new WebSocketServer({
     console.log('WebSocket connection attempt to:', info.req.url);
 
     // Dev auto-login must follow the same synchronous WebSocket gate as platform mode.
-    if (IS_PLATFORM || IS_LOCAL_DEV) {
+    if (IS_PLATFORM || IS_DEV_AUTO_LOGIN) {
       const user = authenticateWebSocket(null); // Will return first user
       if (!user) {
         console.log('[WARN] Platform/dev mode: No user found in database');
@@ -384,15 +379,6 @@ wss.on('error', (error) => {
 // Make WebSocket server available to routes
 app.locals.wss = wss;
 
-setSessionLifecycleBroadcaster((payload) => {
-  const message = JSON.stringify(payload);
-  for (const client of wss.clients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-});
-
 app.use(cors({ exposedHeaders: ['X-Refreshed-Token'] }));
 app.use(
   express.json({
@@ -426,7 +412,6 @@ app.use('/api/auth', authRoutes);
 
 // Projects API Routes (protected)
 app.use('/api/projects', authenticateToken, projectsRoutes);
-app.use('/api/projects', authenticateToken, projectManagementRoutes);
 
 // Git API Routes (protected)
 app.use('/api/git', authenticateToken, gitRoutes);
@@ -439,9 +424,6 @@ app.use('/api/cursor', authenticateToken, cursorRoutes);
 
 // TaskMaster API Routes (protected)
 app.use('/api/taskmaster', authenticateToken, taskmasterRoutes);
-
-// Session lifecycle API Routes (protected)
-app.use('/api/sessions', authenticateToken, sessionLifecycleRoutes);
 
 // MCP utilities
 app.use('/api/mcp-utils', authenticateToken, mcpUtilsRoutes);
@@ -469,9 +451,6 @@ app.use('/api/plugins', authenticateToken, pluginsRoutes);
 
 // Unified session messages route (protected)
 app.use('/api/sessions', authenticateToken, messagesRoutes);
-
-// Search API Routes (protected)
-app.use('/api/search', authenticateToken, searchRoutes);
 
 // Agent API Routes (uses API key authentication)
 app.use('/api/agent', agentRoutes);
@@ -513,7 +492,7 @@ app.post('/api/system/update', authenticateToken, async (req, res) => {
     const updateCommand =
       installMode === 'git'
         ? 'git checkout main && git pull && npm install'
-        : 'npm install -g @anthropic-ai/chorus@latest';
+        : 'npm install -g @cloudcli-ai/cloudcli@latest';
 
     const child = spawn('sh', ['-c', updateCommand], {
       cwd: installMode === 'git' ? projectRoot : os.homedir(),
@@ -2739,7 +2718,7 @@ async function listenWithReuse(serverInstance, port, host) {
         if (existingServer) {
           console.log('');
           console.log(
-            `${c.warn('[WARN]')} Port ${port} is already used by an existing Chorus server.`
+            `${c.warn('[WARN]')} Port ${port} is already used by an existing CloudCLI server.`
           );
           console.log(
             `${c.info('[INFO]')} Reusing existing server at ${c.bright(`http://127.0.0.1:${port}`)}`
@@ -2773,56 +2752,20 @@ async function startServer() {
     // Initialize authentication database
     await initializeDatabase();
 
-    // IS_LOCAL_DEV must guarantee a real user before any HTTP or WebSocket bypass runs.
-    if (IS_LOCAL_DEV) {
+    // DEV_AUTO_LOGIN must guarantee a real user before any HTTP or WebSocket bypass runs.
+    if (IS_DEV_AUTO_LOGIN) {
       const existingUser = userDb.getFirstUser();
       if (!existingUser) {
         console.log(
-          `${c.warn('[DEV]')} IS_LOCAL_DEV: no users found, creating default dev/dev user`
+          `${c.warn('[DEV]')} DEV_AUTO_LOGIN: no users found, creating default dev/dev user`
         );
         const hash = await bcrypt.hash('dev', 10);
         userDb.createUser('dev', hash);
         console.log(`${c.ok('[DEV]')} Created dev user (username: dev, password: dev)`);
       } else {
         console.log(
-          `${c.dim('[DEV]')} IS_LOCAL_DEV enabled - using existing user: ${existingUser.username}`
+          `${c.dim('[DEV]')} DEV_AUTO_LOGIN enabled - using existing user: ${existingUser.username}`
         );
-      }
-
-      // Seed dev projects — insert repo root(s) so the sidebar is populated on first run.
-      // If running from a git worktree (.git is a file, not a directory), also seed the
-      // main repo so both the worktree and the canonical project appear in the sidebar.
-      // createProject() throws "Project already exists" for already-registered paths;
-      // that error is silently swallowed so restarts are safe.
-      const seedProject = async (dir) => {
-        try {
-          await createProject({ name: path.basename(dir), directoryPath: dir }, { wss });
-          console.log(`${c.ok('[DEV]')} Seeded project: ${dir}`);
-        } catch (err) {
-          if (!err.message.includes('Project already exists')) {
-            console.warn(`${c.warn('[DEV]')} Could not seed project ${dir}: ${err.message}`);
-          }
-        }
-      };
-
-      const repoRoot = path.resolve(path.join(__dirname, '..'));
-      await seedProject(repoRoot);
-
-      // Detect git worktree: .git is a plain file (not a directory) in a worktree checkout.
-      // The file contains: "gitdir: /path/to/main/.git/worktrees/<name>"
-      // Go up 3 levels from that gitdir to reach the main repo root.
-      const gitEntry = path.join(repoRoot, '.git');
-      if (fs.existsSync(gitEntry) && fs.lstatSync(gitEntry).isFile()) {
-        const gitFileContent = fs.readFileSync(gitEntry, 'utf8').trim();
-        const match = gitFileContent.match(/^gitdir:\s*(.+)$/m);
-        if (match) {
-          const worktreeGitDir = path.resolve(repoRoot, match[1].trim());
-          // worktreeGitDir is <mainRepo>/.git/worktrees/<name> — go up 3 levels
-          const mainRepo = path.resolve(worktreeGitDir, '..', '..', '..');
-          if (mainRepo !== repoRoot && fs.existsSync(mainRepo)) {
-            await seedProject(mainRepo);
-          }
-        }
       }
     }
 
@@ -2856,14 +2799,14 @@ async function startServer() {
 
     console.log('');
     console.log(c.dim('═'.repeat(63)));
-    console.log(`  ${c.bright('Chorus Server - Ready')}`);
+    console.log(`  ${c.bright('Claude Code UI Server - Ready')}`);
     console.log(c.dim('═'.repeat(63)));
     console.log('');
     console.log(
       `${c.info('[INFO]')} Server URL:  ${c.bright('http://' + DISPLAY_HOST + ':' + SERVER_PORT)}`
     );
     console.log(`${c.info('[INFO]')} Installed at: ${c.dim(appInstallPath)}`);
-    console.log(`${c.tip('[TIP]')}  Run "chorus status" for full configuration details`);
+    console.log(`${c.tip('[TIP]')}  Run "cloudcli status" for full configuration details`);
     console.log('');
 
     // Start watching the projects folder for changes

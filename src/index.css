@@ -59,28 +59,12 @@
     --input: 220 12% 85%;
     --ring: 202 100% 67%;
 
-    /* Brand / status colors */
     --brand: 0 100% 69%;
     --brand-foreground: 0 0% 100%;
     --success: 151 59% 59%;
     --success-foreground: 155 47% 14%;
     --warning: 44 100% 45%;
     --warning-foreground: 33 88% 17%;
-    --frozen: 214 37% 47%;
-    --workspace-accent: 239 84% 60%;
-
-    /* Extended text hierarchy — supplements shadcn's --muted-foreground.
-       dim-foreground: auxiliary text (timestamps, sort labels, loaders);
-         lighter than muted on light bg, darker on dark bg (~3:1 AA-Large).
-       label-dim: compact UI chrome — icon badges, section headers, tags. */
-    --dim-foreground: 220 5% 54%;
-    --label-dim: 220 2% 46%;
-
-    /* Extended surface & border tokens */
-    --canvas: 220 15% 95%;
-    --border-subtle: 220 10% 90%;
-    --user-msg-border: 210 40% 82%;
-    --frozen-notice-border: 220 30% 83%;
 
     --radius: 0.75rem;
     --radius-micro: 3px;
@@ -120,7 +104,7 @@
     --status-frozen-bg: 220 85% 97%;
 
     /* Sidebar / shell tokens */
-    --sidebar-bg: 220 14% 96%;
+    --sidebar-bg: 220 23% 97%;
     --sidebar-fg: 220 10% 11%;
     --sidebar-border: 220 12% 85%;
     --sidebar-accent: 0 100% 69%;
@@ -137,6 +121,22 @@
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
+
+    /* Spacing scale */
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --spacing-8: 32px;
+    --spacing-10: 40px;
+    --spacing-12: 48px;
+    --spacing-16: 64px;
+    --spacing-20: 80px;
+    --spacing-24: 96px;
+    --spacing-32: 128px;
+    --spacing-40: 160px;
 
     /* Nav design tokens */
     --nav-glass-bg: 0 0% 100% / 0.85;
@@ -201,25 +201,12 @@
     --input: 195 5% 15%;
     --ring: 202 100% 67%;
 
-    /* Brand / status colors */
     --brand: 0 100% 69%;
     --brand-foreground: 0 0% 100%;
     --success: 151 59% 59%;
     --success-foreground: 155 47% 14%;
     --warning: 44 100% 45%;
     --warning-foreground: 33 88% 17%;
-    --frozen: 214 37% 47%;
-    --workspace-accent: 239 84% 67%;
-
-    /* Extended text hierarchy */
-    --dim-foreground: 210 1% 42%;
-    --label-dim: 220 1% 26%;
-
-    /* Extended surface & border tokens */
-    --canvas: 225 13% 6%;
-    --border-subtle: 210 4% 9%;
-    --user-msg-border: 210 50% 21%;
-    --frozen-notice-border: 220 33% 24%;
 
     --shadow-subtle: 0 1.189px 2.377px rgba(0, 0, 0, 0.28);
     --shadow-ring: 0 0 0 1px rgb(27, 28, 30), inset 0 0 0 1px rgb(7, 8, 10);

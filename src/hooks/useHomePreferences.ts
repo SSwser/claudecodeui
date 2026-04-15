@@ -14,8 +14,8 @@ import type {
   StartupBehavior,
 } from '../types/home';
 
-export const HOME_PREFERENCES_STORAGE_KEY = 'chorus:home-preferences';
-export const HOME_PREFERENCES_SYNC_EVENT = 'chorus:home-preferences-sync';
+export const HOME_PREFERENCES_STORAGE_KEY = 'cloudcli:home-preferences';
+export const HOME_PREFERENCES_SYNC_EVENT = 'cloudcli:home-preferences-sync';
 
 const MAX_WORKSPACE_FAVORITES = 20;
 const MAX_SESSION_FAVORITES = 20;
@@ -78,10 +78,8 @@ const DEFAULT_FILTERS: HomeFilters = {
 };
 
 export const DEFAULT_HOME_PREFERENCES: HomePreferences = {
-  version: 2,
-  // Default to 'landing' so the app opens fresh rather than restoring the last
-  // session automatically — users who want restore behaviour can change this in Settings.
-  startupBehavior: 'landing',
+  version: 1,
+  startupBehavior: 'restore-all',
   favorites: [],
   filters: DEFAULT_FILTERS,
   layout: createDefaultLayout(),
@@ -335,21 +333,11 @@ const normalizeHomePreferences = (value: unknown): HomePreferences => {
   const shellTabs = normalizeShellTabs(value.shellTabs);
   const normalizedActiveShellTabId = normalizeText(value.activeShellTabId);
 
-  // v1 → v2 migration: the default startup behaviour changed from 'restore-all' to
-  // 'landing'.  Reset any stored 'restore-all' that was written while it was the
-  // product default, so existing users get the new "open fresh" experience.  Users
-  // who explicitly want restore-all can re-enable it in Settings.
-  const storedStartupBehavior = isValidStartupBehavior(value.startupBehavior)
-    ? value.startupBehavior
-    : DEFAULT_HOME_PREFERENCES.startupBehavior;
-  const migratedStartupBehavior: StartupBehavior =
-    value.version === 1 && storedStartupBehavior === 'restore-all'
-      ? 'landing'
-      : storedStartupBehavior;
-
   return {
-    version: 2,
-    startupBehavior: migratedStartupBehavior,
+    version: 1,
+    startupBehavior: isValidStartupBehavior(value.startupBehavior)
+      ? value.startupBehavior
+      : DEFAULT_HOME_PREFERENCES.startupBehavior,
     favorites: normalizeFavorites(value.favorites),
     filters: normalizeFilters(value.filters),
     layout: normalizeLayout(value.layout),

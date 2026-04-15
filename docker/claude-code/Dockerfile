@@ -1,11 +1,11 @@
 FROM docker/sandbox-templates:claude-code
 
 USER root
-COPY shared/install-chorus.sh /tmp/install-chorus.sh
-RUN chmod +x /tmp/install-chorus.sh && /tmp/install-chorus.sh
+COPY shared/install-cloudcli.sh /tmp/install-cloudcli.sh
+RUN chmod +x /tmp/install-cloudcli.sh && /tmp/install-cloudcli.sh
 
 USER agent
-RUN npm install -g @anthropic-ai/chorus
+RUN npm install -g @cloudcli-ai/cloudcli
 
-COPY shared/start-chorus.sh /home/agent/.chorus-start.sh
-RUN echo '. ~/.chorus-start.sh' >> /home/agent/.bashrc
+COPY shared/start-cloudcli.sh /home/agent/.cloudcli-start.sh
+RUN echo '. ~/.cloudcli-start.sh' >> /home/agent/.bashrc

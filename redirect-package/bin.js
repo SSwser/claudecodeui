@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-import('@anthropic-ai/chorus/server/cli.js');
+import('@cloudcli-ai/cloudcli/server/cli.js');
