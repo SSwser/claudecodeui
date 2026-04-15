@@ -68,7 +68,7 @@ import os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import sessionManager from './sessionManager.js';
-import { applyCustomSessionNames } from './database/db.js';
+import { applyCustomSessionNames, db as appDb } from './database/db.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -94,6 +94,41 @@ async function getGitCommonDir(projectPath) {
   } catch {
     return null;
   }
+}
+
+function encodeProjectPath(projectPath) {
+  return path.resolve(projectPath).replace(/[\\/:\.\s~_]/g, '-');
+}
+
+function encodeLegacyProjectPath(projectPath) {
+  return path.resolve(projectPath).replace(/[\\/:\s~_]/g, '-');
+}
+
+async function resolveProjectStorageName(projectPath) {
+  const absolutePath = path.resolve(projectPath);
+  const config = await loadProjectConfig();
+  const configuredName = Object.entries(config).find(([, projectConfig]) => {
+    const configuredPath = projectConfig?.originalPath || projectConfig?.path;
+    return configuredPath && path.resolve(configuredPath) === absolutePath;
+  })?.[0];
+
+  const candidates = [
+    configuredName,
+    encodeProjectPath(absolutePath),
+    encodeLegacyProjectPath(absolutePath),
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const projectDir = path.join(os.homedir(), '.claude', 'projects', candidate);
+    try {
+      await fs.access(projectDir);
+      return candidate;
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  return candidates[0] || encodeProjectPath(absolutePath);
 }
 
 /**
@@ -313,6 +348,38 @@ async function extractProjectDirectory(projectName) {
   // Check cache first
   if (projectDirectoryCache.has(projectName)) {
     return projectDirectoryCache.get(projectName);
+  }
+
+  // Workspace-expanded virtual project names use the format "project__ws__<wsId>".
+  // Resolve them directly from the workspaces table so that Files/Git/Shell routes
+  // use the correct worktree path rather than the parent project's root directory.
+  if (projectName.includes('__ws__')) {
+    try {
+      const wsId = Number(projectName.split('__ws__').pop());
+      if (Number.isInteger(wsId) && wsId > 0) {
+        const wsRow = appDb.prepare('SELECT worktree_path FROM workspaces WHERE id = ?').get(wsId);
+        if (wsRow?.worktree_path) {
+          projectDirectoryCache.set(projectName, wsRow.worktree_path);
+          return wsRow.worktree_path;
+        }
+      }
+    } catch (_) {
+      // Fall through to regular lookup if DB unavailable.
+    }
+  }
+
+  // DB-managed projects (Phase 02+): look up by name so that projects created via
+  // the new project wizard resolve correctly without needing a filesystem scan.
+  try {
+    const row = appDb
+      .prepare('SELECT directory_path FROM projects WHERE name = ? AND is_deleted = 0')
+      .get(projectName);
+    if (row?.directory_path) {
+      projectDirectoryCache.set(projectName, row.directory_path);
+      return row.directory_path;
+    }
+  } catch (_) {
+    // appDb may be unavailable in test environments; fall through to filesystem lookup.
   }
 
   // Check project config for originalPath (manually added projects via UI or platform)
@@ -843,9 +910,92 @@ async function getSessions(projectName, limit = 5, offset = 0) {
       limit,
     };
   } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return { sessions: [], hasMore: false, total: 0 };
+    }
+
     console.error(`Error reading sessions for project ${projectName}:`, error);
     return { sessions: [], hasMore: false, total: 0 };
   }
+}
+
+async function getProjectSessionSnapshot(projectPath, options = {}) {
+  const absolutePath = path.resolve(projectPath);
+  const sessionLimit =
+    Number.isInteger(options.sessionLimit) && options.sessionLimit > 0
+      ? options.sessionLimit
+      : Number.MAX_SAFE_INTEGER;
+  const projectName = await resolveProjectStorageName(absolutePath);
+
+  const config = await loadProjectConfig();
+  const matchingConfig = Object.entries(config).find(([name, projectConfig]) => {
+    const configuredPath = projectConfig?.originalPath || projectConfig?.path;
+    return (
+      name === projectName || (configuredPath && path.resolve(configuredPath) === absolutePath)
+    );
+  })?.[1];
+  const customName = matchingConfig?.displayName;
+  const autoDisplayName = await generateDisplayName(projectName, absolutePath);
+
+  const project = {
+    name: projectName,
+    path: absolutePath,
+    displayName: customName || autoDisplayName,
+    fullPath: absolutePath,
+    isCustomName: !!customName,
+    sessions: [],
+    cursorSessions: [],
+    codexSessions: [],
+    geminiSessions: [],
+    sessionMeta: {
+      hasMore: false,
+      total: 0,
+    },
+  };
+
+  try {
+    const sessionResult = await getSessions(projectName, sessionLimit, 0);
+    project.sessions = sessionResult.sessions || [];
+    project.sessionMeta = {
+      hasMore: sessionResult.hasMore,
+      total: sessionResult.total,
+    };
+  } catch (e) {
+    console.warn(`Could not load sessions for project ${projectName}:`, e.message);
+  }
+  applyCustomSessionNames(project.sessions, 'claude');
+
+  try {
+    project.cursorSessions = await getCursorSessions(absolutePath);
+  } catch (e) {
+    console.warn(`Could not load Cursor sessions for project ${projectName}:`, e.message);
+    project.cursorSessions = [];
+  }
+  applyCustomSessionNames(project.cursorSessions, 'cursor');
+
+  try {
+    project.codexSessions = await getCodexSessions(absolutePath);
+  } catch (e) {
+    console.warn(`Could not load Codex sessions for project ${projectName}:`, e.message);
+    project.codexSessions = [];
+  }
+  applyCustomSessionNames(project.codexSessions, 'codex');
+
+  try {
+    const uiSessions = sessionManager.getProjectSessions(absolutePath) || [];
+    const cliSessions = await getGeminiCliSessions(absolutePath);
+    const uiIds = new Set(uiSessions.map((session) => session.id));
+    project.geminiSessions = [
+      ...uiSessions,
+      ...cliSessions.filter((session) => !uiIds.has(session.id)),
+    ];
+  } catch (e) {
+    console.warn(`Could not load Gemini sessions for project ${projectName}:`, e.message);
+    project.geminiSessions = [];
+  }
+  applyCustomSessionNames(project.geminiSessions, 'gemini');
+
+  return project;
 }
 
 async function parseJsonlSessions(filePath) {
@@ -1324,10 +1474,12 @@ async function addProjectManually(projectPath, displayName = null) {
   }
 
   // Generate project name (encode path for use as directory name)
-  const projectName = absolutePath.replace(/[\\/:\s~_]/g, '-');
-
-  // Check if project already exists in config
   const config = await loadProjectConfig();
+  const existingConfigName = Object.entries(config).find(([, projectConfig]) => {
+    const configuredPath = projectConfig?.originalPath || projectConfig?.path;
+    return configuredPath && path.resolve(configuredPath) === absolutePath;
+  })?.[0];
+  const projectName = existingConfigName || encodeProjectPath(absolutePath);
   const projectDir = path.join(os.homedir(), '.claude', 'projects', projectName);
 
   if (config[projectName]) {
@@ -2718,6 +2870,7 @@ async function getGeminiCliSessionMessages(sessionId) {
 
 export {
   getProjects,
+  getProjectSessionSnapshot,
   getSessions,
   getSessionMessages,
   parseJsonlSessions,

@@ -1,13 +1,16 @@
 import express from 'express';
-import os from 'os';
 import path from 'path';
+import fs from 'fs';
 import {
   createProject,
   detectWorktrees,
   getProjectById,
   getProjects,
   listProjectSessions,
+  scanProjectSessions,
+  scanWorkspaceSessions,
   softDeleteProject,
+  syncWorktreesAsWorkspaces,
 } from '../services/projectService.js';
 import {
   createWorkspace,
@@ -18,6 +21,17 @@ import {
 } from '../services/workspaceService.js';
 
 const router = express.Router();
+
+// Track projects scanned in this server session to avoid redundant filesystem scans.
+// On first GET of a project's sessions, we trigger scanProjectSessions() to seed
+// session_state from the filesystem. This ensures the inbox shows existing sessions
+// even if the fire-and-forget scan in createProject() failed or ran before sessions existed.
+const scannedProjects = new Set();
+
+// Track projects whose git worktrees have been synced to DB workspaces in this
+// server session. Syncing is idempotent but involves a git subprocess, so we only
+// run it once per project per server process.
+const syncedWorktreeProjects = new Set();
 
 function parseBoolean(value, defaultValue = false) {
   if (typeof value === 'boolean') {
@@ -63,14 +77,7 @@ function validateDirectoryPath(directoryPath) {
     throw new Error('directoryPath cannot contain path traversal segments');
   }
 
-  const resolvedPath = path.resolve(trimmedPath);
-  const homeDir = path.resolve(os.homedir());
-  const isInsideHome = resolvedPath === homeDir || resolvedPath.startsWith(`${homeDir}${path.sep}`);
-  if (!isInsideHome) {
-    throw new Error('directoryPath must be inside the current user home directory');
-  }
-
-  return resolvedPath;
+  return path.resolve(trimmedPath);
 }
 
 function handleRouteError(res, error) {
@@ -99,12 +106,29 @@ router.post('/', async (req, res) => {
 
     const project = await createProject(
       { name, directoryPath, multiWorkspaceEnabled },
-      { wss: req.app.locals.wss },
+      { wss: req.app.locals.wss }
     );
 
     res.status(201).json(project);
   } catch (error) {
     handleRouteError(res, error);
+  }
+});
+
+router.get('/validate-directory', async (req, res) => {
+  try {
+    const directoryPath = validateDirectoryPath(req.query?.path);
+
+    await fs.promises.access(directoryPath, fs.constants.R_OK);
+    const stats = await fs.promises.stat(directoryPath);
+
+    if (!stats.isDirectory()) {
+      return res.status(400).json({ error: 'Path is not a directory' });
+    }
+
+    return res.status(200).json({ valid: true, path: directoryPath });
+  } catch (error) {
+    return handleRouteError(res, error);
   }
 });
 
@@ -122,9 +146,22 @@ router.get('/', async (req, res) => {
 router.get('/:id(\\d+)', async (req, res) => {
   try {
     const projectId = parseNumericId(req.params.id, 'Project id');
-    const project = await getProjectById(projectId);
+    let project = await getProjectById(projectId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // On first access, sync git worktrees as workspace rows so that all branches
+    // appear as separate streams in the Project Inbox without manual setup.
+    if (!syncedWorktreeProjects.has(projectId) && project.directoryPath) {
+      syncedWorktreeProjects.add(projectId);
+      await syncWorktreesAsWorkspaces(projectId, project.directoryPath).catch((err) => {
+        console.warn(
+          `[project-management] Worktree sync failed for project ${projectId}: ${err.message}`
+        );
+      });
+      // Re-fetch so the response includes any newly created workspace rows.
+      project = (await getProjectById(projectId)) ?? project;
     }
 
     res.status(200).json(project);
@@ -146,13 +183,42 @@ router.delete('/:id(\\d+)', async (req, res) => {
 router.get('/:id(\\d+)/sessions', async (req, res) => {
   try {
     const projectId = parseNumericId(req.params.id, 'Project id');
-    const workspaceId = req.query.workspaceId ? parseNumericId(req.query.workspaceId, 'workspaceId') : null;
-    const sessions = await listProjectSessions(projectId, {
-      status: typeof req.query.status === 'string' ? req.query.status : null,
-      q: typeof req.query.q === 'string' ? req.query.q.trim() : '',
-      workspaceId,
-    });
+    const workspaceId = req.query.workspaceId
+      ? parseNumericId(req.query.workspaceId, 'workspaceId')
+      : null;
+    const status = typeof req.query.status === 'string' ? req.query.status : null;
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
 
+    // Lazy scan: on first access this server session, seed session_state from the
+    // filesystem. This recovers from the fire-and-forget scan in createProject()
+    // failing silently, or sessions being added after project creation.
+    if (!scannedProjects.has(projectId)) {
+      scannedProjects.add(projectId);
+      const project = await getProjectById(projectId);
+      if (project?.directoryPath) {
+        // Await the main project scan so the response includes default-workspace sessions.
+        await scanProjectSessions(projectId, project.directoryPath).catch((err) => {
+          console.warn(
+            `[project-management] Session scan failed for project ${projectId}: ${err.message}`
+          );
+        });
+        // Scan non-default workspace paths in the background — these can be slow
+        // (each calls discoverProjects internally) so we don't block the response.
+        // Sessions from other worktrees will appear in the inbox once the background
+        // scan completes, triggered by a manual refresh or the next WebSocket update.
+        for (const ws of project.workspaces ?? []) {
+          if (!ws.isDefault && ws.worktreePath && ws.worktreePath !== project.directoryPath) {
+            scanWorkspaceSessions(ws.id, ws.worktreePath).catch((err) => {
+              console.warn(
+                `[project-management] Workspace session scan failed for ws ${ws.id}: ${err.message}`
+              );
+            });
+          }
+        }
+      }
+    }
+
+    const sessions = await listProjectSessions(projectId, { status, q, workspaceId });
     res.status(200).json(sessions);
   } catch (error) {
     handleRouteError(res, error);
@@ -216,7 +282,7 @@ router.post('/:id(\\d+)/workspaces/promote', async (req, res) => {
     const workspace = await promoteWorktreeToWorkspace(
       projectId,
       worktreePath,
-      typeof req.body?.worktreeBranch === 'string' ? req.body.worktreeBranch.trim() : undefined,
+      typeof req.body?.worktreeBranch === 'string' ? req.body.worktreeBranch.trim() : undefined
     );
 
     res.status(201).json(workspace);

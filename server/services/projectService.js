@@ -4,9 +4,9 @@ import { spawn } from 'child_process';
 import { db } from '../database/db.js';
 import {
   addProjectManually,
-  getProjects as discoverProjects,
   getGitCommonDir,
   getGitBranch,
+  getProjectSessionSnapshot,
 } from '../projects.js';
 
 const PROJECT_SORTS = {
@@ -117,6 +117,105 @@ function flattenProjectSessions(project) {
   ];
 }
 
+function normalizeSessionText(value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return String(value);
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function normalizeSessionTimestamp(session) {
+  const value =
+    session.lastActivity ||
+    session.updated_at ||
+    session.createdAt ||
+    session.created_at ||
+    new Date().toISOString();
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return String(value);
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  return new Date().toISOString();
+}
+
+function upsertDiscoveredSessions(workspaceId, discoveredProject) {
+  const upsertSession = db.prepare(
+    `INSERT INTO session_state (
+       session_id,
+       workspace_id,
+       provider,
+       status,
+       title,
+       summary,
+       last_activity
+     ) VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(session_id, provider) DO UPDATE SET
+       workspace_id = excluded.workspace_id,
+       title = excluded.title,
+       summary = excluded.summary,
+       last_activity = excluded.last_activity`
+  );
+
+  let scanned = 0;
+  const existingCount = db.prepare('SELECT COUNT(*) AS count FROM session_state').get().count;
+
+  for (const { provider, session } of flattenProjectSessions(discoveredProject)) {
+    scanned += 1;
+    const title = normalizeSessionText(session.title || session.name || session.summary || null);
+    const summary = normalizeSessionText(session.summary || session.name || null);
+    const lastActivity = normalizeSessionTimestamp(session);
+
+    upsertSession.run(
+      normalizeSessionText(session.id),
+      workspaceId,
+      provider,
+      'active',
+      title,
+      summary,
+      lastActivity
+    );
+  }
+
+  const updatedCount = db.prepare('SELECT COUNT(*) AS count FROM session_state').get().count;
+  return { inserted: updatedCount - existingCount, scanned };
+}
+
+async function ensureProjectRegistered(projectPath, displayName) {
+  try {
+    await addProjectManually(projectPath, displayName);
+  } catch (error) {
+    if (!String(error.message).includes('Project already configured')) {
+      throw error;
+    }
+  }
+}
+
 function getSortClause(sort) {
   if (sort === 'favorites') {
     // Favorites are stored in client-side home preferences today, so the backend accepts the
@@ -131,7 +230,7 @@ function getProjectRowById(projectId) {
   return db
     .prepare(
       `SELECT
-         p.*, 
+         p.*,
          COUNT(DISTINCT w.id) AS workspace_count,
          COUNT(DISTINCT CASE WHEN s.status = 'active' THEN s.id END) AS active_session_count
        FROM projects p
@@ -208,6 +307,51 @@ export async function detectWorktrees(directoryPath) {
   }
 }
 
+// Syncs all git worktrees for a project to the workspaces table.
+// Called lazily on first GET /api/projects/:id so that projects created before
+// multi-workspace support was introduced (or imported without worktree data) still
+// populate their workspaces correctly the first time the inbox is opened.
+export async function syncWorktreesAsWorkspaces(projectId, directoryPath) {
+  const worktrees = await detectWorktrees(directoryPath);
+  const nonBareWorktrees = worktrees.filter((wt) => !wt.isBare);
+
+  // Nothing to do when there is only one worktree (the project root itself).
+  if (nonBareWorktrees.length <= 1) return;
+
+  // Multiple worktrees detected — enable multi-workspace mode for this project.
+  db.prepare('UPDATE projects SET multi_workspace_enabled = 1 WHERE id = ?').run(projectId);
+
+  // Point the default workspace at the main worktree (first entry from git worktree list).
+  const mainWorktree = nonBareWorktrees[0];
+  const defaultWs = db
+    .prepare('SELECT id, worktree_path FROM workspaces WHERE project_id = ? AND is_default = 1')
+    .get(projectId);
+  if (defaultWs && !defaultWs.worktree_path) {
+    db.prepare(
+      'UPDATE workspaces SET worktree_path = ?, worktree_branch = ?, name = ? WHERE id = ?'
+    ).run(
+      path.resolve(mainWorktree.path),
+      mainWorktree.branch || null,
+      mainWorktree.branch || 'main',
+      defaultWs.id
+    );
+  }
+
+  // Upsert a workspace row for each additional (non-main) worktree.
+  for (const wt of nonBareWorktrees.slice(1)) {
+    const resolvedPath = path.resolve(wt.path);
+    const existing = db
+      .prepare('SELECT id FROM workspaces WHERE project_id = ? AND worktree_path = ?')
+      .get(projectId, resolvedPath);
+    if (!existing) {
+      const name = wt.branch || path.basename(resolvedPath);
+      db.prepare(
+        'INSERT INTO workspaces (project_id, name, worktree_path, worktree_branch, is_default) VALUES (?, ?, ?, ?, 0)'
+      ).run(projectId, name, resolvedPath, wt.branch || null);
+    }
+  }
+}
+
 export async function scanProjectSessions(projectId, directoryPath) {
   const projectRow = getProjectRowById(projectId);
   if (!projectRow) {
@@ -216,19 +360,9 @@ export async function scanProjectSessions(projectId, directoryPath) {
 
   const resolvedPath = path.resolve(directoryPath || projectRow.directory_path);
 
-  try {
-    await addProjectManually(resolvedPath, projectRow.display_name || projectRow.name);
-  } catch (error) {
-    if (!String(error.message).includes('Project already configured')) {
-      throw error;
-    }
-  }
+  await ensureProjectRegistered(resolvedPath, projectRow.display_name || projectRow.name);
 
-  const discoveredProjects = await discoverProjects();
-  const discoveredProject = discoveredProjects.find((project) => {
-    const candidatePath = project.fullPath || project.path;
-    return candidatePath && path.resolve(candidatePath) === resolvedPath;
-  });
+  const discoveredProject = await getProjectSessionSnapshot(resolvedPath);
 
   if (!discoveredProject) {
     return { inserted: 0, scanned: 0 };
@@ -239,55 +373,44 @@ export async function scanProjectSessions(projectId, directoryPath) {
     throw new Error(`Project ${projectId} does not have a default workspace`);
   }
 
-  const upsertSession = db.prepare(
-    `INSERT INTO session_state (
-       session_id,
-       workspace_id,
-       provider,
-       status,
-       title,
-       summary,
-       last_activity
-     ) VALUES (?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(session_id, provider) DO UPDATE SET
-       workspace_id = excluded.workspace_id,
-       title = excluded.title,
-       summary = excluded.summary,
-       last_activity = excluded.last_activity`
-  );
-
-  let scanned = 0;
-  let inserted = 0;
-  const existingCount = db.prepare('SELECT COUNT(*) AS count FROM session_state').get().count;
-
-  for (const { provider, session } of flattenProjectSessions(discoveredProject)) {
-    scanned += 1;
-    const title = session.title || session.name || session.summary || null;
-    const summary = session.summary || session.name || null;
-    const lastActivity =
-      session.lastActivity ||
-      session.updated_at ||
-      session.createdAt ||
-      session.created_at ||
-      new Date().toISOString();
-
-    upsertSession.run(
-      session.id,
-      defaultWorkspace.id,
-      provider,
-      'active',
-      title,
-      summary,
-      lastActivity
-    );
-  }
-
-  const updatedCount = db.prepare('SELECT COUNT(*) AS count FROM session_state').get().count;
-  inserted = updatedCount - existingCount;
+  const result = upsertDiscoveredSessions(defaultWorkspace.id, discoveredProject);
 
   db.prepare('UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(projectId);
 
-  return { inserted, scanned };
+  return result;
+}
+
+/**
+ * Scan a specific workspace directory for sessions and associate them with
+ * the given workspace ID.  Used after syncWorktreesAsWorkspaces creates new
+ * workspace rows so that sessions from non-default worktrees appear in the
+ * Project Inbox under their own stream.
+ */
+export async function scanWorkspaceSessions(workspaceId, worktreePath) {
+  const resolvedPath = path.resolve(worktreePath);
+
+  if (!fs.existsSync(resolvedPath)) {
+    return { inserted: 0, scanned: 0 };
+  }
+
+  // Identify the project that owns this workspace (needed for addProjectManually).
+  const wsRow = db.prepare('SELECT project_id FROM workspaces WHERE id = ?').get(workspaceId);
+  if (!wsRow) {
+    return { inserted: 0, scanned: 0 };
+  }
+
+  const projectRow = getProjectRowById(wsRow.project_id);
+  const projectLabel = projectRow?.display_name || projectRow?.name || path.basename(resolvedPath);
+
+  await ensureProjectRegistered(resolvedPath, projectLabel);
+
+  const discoveredProject = await getProjectSessionSnapshot(resolvedPath);
+
+  if (!discoveredProject) {
+    return { inserted: 0, scanned: 0 };
+  }
+
+  return upsertDiscoveredSessions(workspaceId, discoveredProject);
 }
 
 export async function createProject(
@@ -364,7 +487,7 @@ export async function getProjects({ sort = 'recent', includeDeleted = false } = 
   const rows = db
     .prepare(
       `SELECT
-         p.*, 
+         p.*,
          COUNT(DISTINCT w.id) AS workspace_count,
          COUNT(DISTINCT CASE WHEN s.status = 'active' THEN s.id END) AS active_session_count
        FROM projects p
@@ -389,7 +512,91 @@ export async function getProjects({ sort = 'recent', includeDeleted = false } = 
     })
   );
 
-  return projects;
+  // Expand multi-workspace projects into per-workspace virtual entries.
+  // Each workspace gets its own entry in the list so the sidebar's
+  // groupProjectsIntoStreams() can group them as separate stream rows (all sharing
+  // the same gitCommonDir).  The default workspace keeps the original project name;
+  // non-default workspaces get a stable synthetic name ("project__ws__id") that
+  // the old routes understand via extractProjectDirectory().
+  //
+  // Deduplication: if another (non-multi-workspace) DB project already points to a
+  // workspace's worktreePath, that project entry takes precedence and we skip the
+  // virtual workspace entry to avoid showing duplicate stream rows.
+  const nonExpandedPaths = new Set(
+    projects
+      .filter((p) => !p.multiWorkspaceEnabled)
+      .map((p) => p.directoryPath && path.resolve(p.directoryPath))
+      .filter(Boolean)
+  );
+
+  const expanded = [];
+  for (const project of projects) {
+    if (!project.multiWorkspaceEnabled) {
+      expanded.push(project);
+      continue;
+    }
+
+    const workspaces = db
+      .prepare('SELECT * FROM workspaces WHERE project_id = ? ORDER BY is_default DESC, id ASC')
+      .all(project.id)
+      .map(mapWorkspaceRow);
+
+    if (workspaces.length <= 1) {
+      // Single workspace — not truly multi-stream yet, emit as-is.
+      expanded.push(project);
+      continue;
+    }
+
+    for (const ws of workspaces) {
+      const wsPath = ws.worktreePath || project.directoryPath;
+      const resolvedWsPath = wsPath && path.resolve(wsPath);
+
+      // Skip if another DB project already covers this worktree path.
+      if (!ws.isDefault && resolvedWsPath && nonExpandedPaths.has(resolvedWsPath)) {
+        continue;
+      }
+
+      // Default workspace reuses the original project name so existing navigation
+      // and session routes continue to work without changes.
+      const virtualName = ws.isDefault ? project.name : `${project.name}__ws__${ws.id}`;
+      const displayName = ws.name || ws.worktreeBranch || path.basename(wsPath);
+      expanded.push({
+        ...project,
+        name: virtualName,
+        displayName: ws.isDefault ? project.displayName || ws.name : displayName,
+        directoryPath: wsPath,
+        fullPath: wsPath,
+        path: wsPath,
+        gitBranch: ws.worktreeBranch || project.gitBranch,
+        // gitCommonDir is the same for all worktrees of the same repo — keep parent value
+        // so groupProjectsIntoStreams() groups them into one multi-stream row.
+        _workspaceId: ws.id,
+        _parentProjectId: project.id,
+        _isWorkspaceExpansion: true,
+      });
+    }
+  }
+
+  const dedupedByPath = new Map();
+  const pathlessProjects = [];
+
+  for (const project of expanded) {
+    const resolvedPath = project.directoryPath ? path.resolve(project.directoryPath) : null;
+    if (!resolvedPath) {
+      pathlessProjects.push(project);
+      continue;
+    }
+
+    const existing = dedupedByPath.get(resolvedPath);
+    if (!existing || project.id > existing.id) {
+      // Duplicate DB project rows can temporarily point at the same worktree path after
+      // re-imports or failed migrations. Keep the newer project record so the sidebar
+      // renders one stream row per worktree instead of duplicating the entire stream set.
+      dedupedByPath.set(resolvedPath, project);
+    }
+  }
+
+  return [...dedupedByPath.values(), ...pathlessProjects];
 }
 
 export async function getProjectById(projectId) {
@@ -444,7 +651,7 @@ export async function listProjectSessions(
   const rows = db
     .prepare(
       `SELECT
-         s.*, 
+         s.*,
          w.name AS workspace_name
        FROM session_state s
        INNER JOIN workspaces w ON w.id = s.workspace_id
