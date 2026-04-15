@@ -1,6 +1,6 @@
 # Design Tokens Reference
 
-> **Auto-generated** from `design/tokens.json`. Do not edit manually.
+> **AI context injection artifact** — auto-generated from `design/tokens.json`. Do not edit manually.
 > Run `npm run build:tokens` to regenerate.
 
 ### Core Colors
@@ -37,20 +37,24 @@
 
 ### Surface Colors
 
-| Pencil Hex | CSS Token                | Tailwind                    | Description                               |
-| ---------- | ------------------------ | --------------------------- | ----------------------------------------- |
-| —          | `--card`                 | `bg-card`                   | Card background                           |
-| —          | `--card-foreground`      | `text-card-foreground`      | Card text                                 |
-| —          | `--popover`              | `bg-popover`                | Popover background                        |
-| —          | `--popover-foreground`   | `text-popover-foreground`   | Popover text                              |
-| —          | `--secondary`            | `bg-secondary`              | Secondary backgrounds                     |
-| —          | `--secondary-foreground` | `text-secondary-foreground` | Secondary text                            |
-| —          | `--accent`               | `bg-accent`                 | Accent backgrounds                        |
-| —          | `--accent-foreground`    | `text-accent-foreground`    | Accent text                               |
-| #07080a    | `--surface-1`            | `bg-surface-1`              | Surface level 1 (app shell)               |
-| #101111    | `--surface-2`            | `bg-surface-2`              | Surface level 2 (selected row / elevated) |
-| #252627    | `--surface-3`            | `bg-surface-3`              | Surface level 3 (bar bg)                  |
-| —          | `--surface-elevated`     | `bg-surface-elevated`       | Elevated surface                          |
+| Pencil Hex | CSS Token                | Tailwind                    | Description                                                  |
+| ---------- | ------------------------ | --------------------------- | ------------------------------------------------------------ |
+| —          | `--card`                 | `bg-card`                   | Card background                                              |
+| —          | `--card-foreground`      | `text-card-foreground`      | Card text                                                    |
+| —          | `--popover`              | `bg-popover`                | Popover background                                           |
+| —          | `--popover-foreground`   | `text-popover-foreground`   | Popover text                                                 |
+| —          | `--secondary`            | `bg-secondary`              | Secondary backgrounds                                        |
+| —          | `--secondary-foreground` | `text-secondary-foreground` | Secondary text                                               |
+| —          | `--accent`               | `bg-accent`                 | Accent backgrounds                                           |
+| —          | `--accent-foreground`    | `text-accent-foreground`    | Accent text                                                  |
+| #07080a    | `--surface-1`            | `bg-surface-1`              | Surface level 1 (app shell)                                  |
+| #101111    | `--surface-2`            | `bg-surface-2`              | Surface level 2 (selected row / elevated)                    |
+| #252627    | `--surface-3`            | `bg-surface-3`              | Surface level 3 (bar bg)                                     |
+| #1b1c1e    | `--surface-elevated`     | `bg-surface-elevated`       | Elevated surface (popovers, modals shell)                    |
+| #0d0e11    | `--surface-inset`        | `bg-surface-inset`          | Inset surface — embedded inputs, filter bar, tab bar inners  |
+| #111214    | `--surface-container`    | `bg-surface-container`      | Container surface — StatusBar, Drawer/Panel, bottom sheets   |
+| #1c1e22    | `--surface-popup`        | `bg-surface-popup`          | Popup surface — ContextMenu, dropdown menus                  |
+| #0e0f16    | `--overlay-bg`           | `bg-overlay`                | Deep overlay background — Search Modal, full-screen overlays |
 
 ### Sidebar Colors
 
@@ -63,27 +67,30 @@
 
 ### Status Colors
 
-| Pencil Hex | CSS Token            | Tailwind                | Description                                           |
-| ---------- | -------------------- | ----------------------- | ----------------------------------------------------- |
-| #FF6363    | `--brand`            | `text-brand`            | Waiting (needs user) dot                              |
-| #e5a700    | `--warning`          | `text-warning`          | Running (autonomous) dot                              |
-| #6a6b6c    | `--muted-foreground` | `text-muted-foreground` | Idle / Fresh dot                                      |
-| #4a6fa5    | —                    | —                       | Frozen dot ⚠️ No CSS token yet — needs --frozen token |
+| Pencil Hex | CSS Token             | Tailwind                | Description                                      |
+| ---------- | --------------------- | ----------------------- | ------------------------------------------------ |
+| #FF6363    | `--brand`             | `text-brand`            | Waiting (needs user) dot                         |
+| #e5a700    | `--warning`           | `text-warning`          | Running (autonomous) dot                         |
+| #6a6b6c    | `--muted-foreground`  | `text-muted-foreground` | Idle / Fresh dot                                 |
+| #4a6fa5    | `--status-frozen`     | `text-status-frozen`    | Frozen dot                                       |
+| #1a2e1a    | `--status-running-bg` | `bg-status-running-bg`  | Running session card background tint (green)     |
+| #2e1a1a    | `--status-error-bg`   | `bg-status-error-bg`    | Error/waiting session card background tint (red) |
+| #1a1c2a    | `--status-frozen-bg`  | `bg-status-frozen-bg`   | Frozen session card background tint (blue)       |
 
 ### Elevation Colors
 
-| Pencil Hex | CSS Token | Tailwind           | Description                          |
-| ---------- | --------- | ------------------ | ------------------------------------ |
-| #1e2018    | —         | —                  | Running session card ring tint       |
-| #201818    | —         | —                  | Waiting/Error session card ring tint |
-| #1d3550    | —         | `border-[#1d3550]` | User message border (blue tint)      |
-| #2a3550    | —         | `border-[#2a3550]` | Frozen notice border (blue tint)     |
+| Pencil Hex | CSS Token                | Tailwind                      | Description                             |
+| ---------- | ------------------------ | ----------------------------- | --------------------------------------- |
+| #1e2018    | —                        | —                             | Running session card ring tint          |
+| #201818    | —                        | —                             | Waiting/Error session card ring tint    |
+| #1d3550    | `--user-msg-border`      | `border-user-msg-border`      | User message border (blue tint)         |
+| #2a3550    | `--frozen-notice-border` | `border-frozen-notice-border` | Frozen notice border (blue-indigo tint) |
 
 ### Gaps Colors
 
-| Pencil Hex | CSS Token | Tailwind         | Description                                                                                                                          |
-| ---------- | --------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| #434345    | —         | `text-[#434345]` | Section labels (PROJECT, RECENT), chevrons, search placeholder ⚠️ Darker than --muted-foreground. Needs --label or --icon-dim token. |
+| Pencil Hex | CSS Token     | Tailwind         | Description                                                    |
+| ---------- | ------------- | ---------------- | -------------------------------------------------------------- |
+| #434345    | `--label-dim` | `text-label-dim` | Section labels (PROJECT, RECENT), chevrons, search placeholder |
 
 ### Border Radius
 

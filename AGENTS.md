@@ -195,7 +195,7 @@ Always use the current working directory (the worktree) for all file reads and e
 ### Token System
 
 - **Single source of truth**: `design/tokens.json` — all Pencil hex ↔ CSS token ↔ Tailwind class mappings
-- **Reference table**: `design/TOKENS.md` — auto-generated from `tokens.json`; run `npm run build:tokens` to regenerate; never edit manually
+- **Reference table**: `design/TOKENS.md` — auto-generated session context artifact; run `npm run build:tokens` to regenerate; never edit manually
 - **CSS variables**: `src/index.css` — HSL-based, dual theme (`:root` light + `.dark`)
 - **Tailwind bridge**: `tailwind.config.js` — maps CSS vars to utilities via `hsl(var(--xxx))`
 
@@ -208,17 +208,15 @@ When adding or changing a design token:
 
 ### Canvas Node Index
 
-- **Single source of truth**: `design/main.pen.index` — all Pencil node IDs, frame statuses, component variant IDs, and brief cross-references
-- **Reference view**: `design/CANVAS-MAP.md` — auto-generated from `main.pen.index`; run `npm run build:canvas` to regenerate; never edit manually
-- **AI tools** query `main.pen.index` directly for node IDs; do not rely on phase planning docs for node ID lookups
+- **Single source of truth**: `design/canvas.json` — all Pencil node IDs, frame statuses, component variant IDs, and brief cross-references
+- **AI tools** query `canvas.json` directly for node IDs; do not rely on phase planning docs for node ID lookups
 
 When adding or renaming a top-level Pencil frame or component:
 
-1. Update `design/main.pen.index` — add/edit the relevant entry, bump `$version`, set `$updated`
-2. Run `npm run build:canvas` to regenerate `CANVAS-MAP.md`
-3. Commit both files: `style(design): update canvas index vX.Y`
+1. Update `design/canvas.json` — add/edit the relevant entry, bump `$version`, set `$updated`
+2. Commit: `style(design): update canvas index vX.Y`
 
-Internal nodes (children of a frame, e.g. sub-components, group headers) are documented in the brief's Node Reference table only — not in `main.pen.index`.
+Internal nodes (children of a frame, e.g. sub-components, group headers) are documented in the brief's Node Reference table only — not in `canvas.json`.
 
 ### Pencil ↔ Code Consistency
 

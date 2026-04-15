@@ -101,9 +101,10 @@ Plan: 1 of 8
 
 ### Quick Tasks Completed
 
-| #          | Description                              | Date       | Commit  | Status   | Directory                                                                     |
-| ---------- | ---------------------------------------- | ---------- | ------- | -------- | ----------------------------------------------------------------------------- |
-| 260412-k5s | 当前要发布桌面端运行，用什么方式打包合适 | 2026-04-12 | 519bda8 | Verified | [260412-k5s-desktop-packaging](.planning/quick/260412-k5s-desktop-packaging/) |
+| #          | Description                                  | Date       | Commit  | Status   | Directory                                                                                                                   |
+| ---------- | -------------------------------------------- | ---------- | ------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 260412-k5s | 当前要发布桌面端运行，用什么方式打包合适     | 2026-04-12 | 519bda8 | Verified | [260412-k5s-desktop-packaging](.planning/quick/260412-k5s-desktop-packaging/)                                               |
+| 260415-g8q | Design System Refactor + chorus-design Skill | 2026-04-15 | c08504b | Verified | [260415-g8q-design-system-refactor-chorus-design-ski](.planning/quick/260415-g8q-design-system-refactor-chorus-design-ski/) |
 
 ### Todo
 
@@ -130,4 +131,4 @@ Plan: 1 of 8
 
 ---
 
-_State updated: 2026-04-12 - Completed quick task 260412-k5s: 当前要发布桌面端运行，用什么方式打包合适_
+_State updated: 2026-04-15 - Completed quick task 260415-g8q: Design System Refactor + chorus-design Skill_

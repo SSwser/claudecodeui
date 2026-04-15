@@ -1,7 +1,7 @@
 {
   "$version": "4.5",
   "$updated": "2026-04-14",
-  "$description": "Machine-readable SSOT for Pencil canvas node IDs, statuses, and design ↔ code relationships. Filename convention: <pen-file>.index. Run `npm run build:canvas` to regenerate CANVAS-MAP.md. Never hand-edit CANVAS-MAP.md — edit this file instead.",
+  "$description": "Machine-readable SSOT for Pencil canvas node IDs, statuses, and design ↔ code relationships. AI tools query this file directly for node IDs.",
   "$file": "design/main.pen",
   "$schema": {
     "status": {
