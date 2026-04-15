@@ -22,14 +22,14 @@ import type { ReleaseInfo } from '../../../types/sharedTypes';
 const landingViewModel: LandingPageViewModel = {
   filters: {
     search: 'Raycast styling rollout',
-    project: 'cloudcli',
+    project: 'chorus',
     workspace: 'design-system',
     sessionType: 'all',
   },
   favoriteWorkspaces: [
     {
       id: 'workspace-1',
-      projectName: 'cloudcli',
+      projectName: 'chorus',
       displayName: 'Desktop UX Worktree',
       path: 'F:/workspace/dev/claudecodeui',
       sessionCount: 12,
@@ -46,7 +46,7 @@ const landingViewModel: LandingPageViewModel = {
     {
       id: 'session-card-1',
       sessionId: 'session-123',
-      projectName: 'cloudcli',
+      projectName: 'chorus',
       title: 'Visual system migration',
       provider: 'Claude Code',
       status: 'active',
@@ -55,7 +55,7 @@ const landingViewModel: LandingPageViewModel = {
     {
       id: 'session-card-2',
       sessionId: 'session-456',
-      projectName: 'cloudcli',
+      projectName: 'chorus',
       title: 'Settings shell cleanup',
       provider: 'Codex',
       status: 'idle',
@@ -67,8 +67,8 @@ const landingViewModel: LandingPageViewModel = {
       id: 'recent-1',
       sessionId: 'recent-session-1',
       title: 'Chat composer sweep',
-      projectName: 'cloudcli',
-      displayProjectName: 'CloudCLI UI',
+      projectName: 'chorus',
+      displayProjectName: 'Chorus',
       provider: 'Claude Code',
       status: 'active',
       lastActivityLabel: '2 minutes ago',
@@ -79,8 +79,8 @@ const landingViewModel: LandingPageViewModel = {
       id: 'recent-2',
       sessionId: 'recent-session-2',
       title: 'Version upgrade panel',
-      projectName: 'cloudcli',
-      displayProjectName: 'CloudCLI UI',
+      projectName: 'chorus',
+      displayProjectName: 'Chorus',
       provider: 'Gemini',
       status: 'paused',
       lastActivityLabel: '15 minutes ago',
@@ -90,7 +90,7 @@ const landingViewModel: LandingPageViewModel = {
   ],
   projectOptions: [
     { value: 'all', label: 'All projects' },
-    { value: 'cloudcli', label: 'CloudCLI UI' },
+    { value: 'chorus', label: 'Chorus' },
     { value: 'plugins', label: 'Plugin Sandbox' },
   ],
   workspaceOptions: [
@@ -106,19 +106,19 @@ const appTabs: AppShellTab[] = [
     kind: 'session',
     label: 'Design rollout',
     sessionId: 'session-design',
-    projectName: 'CloudCLI UI',
+    projectName: 'Chorus',
   },
   {
     id: 'session-settings',
     kind: 'session',
     label: 'Settings shell',
     sessionId: 'session-settings',
-    projectName: 'CloudCLI UI',
+    projectName: 'Chorus',
   },
 ];
 
 const releaseInfo: ReleaseInfo = {
-  title: 'CloudCLI UI 1.29.0',
+  title: 'Chorus 1.29.0',
   body: '- Added a stable visual regression fixture route\n- Unified tokens, typography, and component shells around DESIGN.md\n- Tightened screenshot naming and update workflow',
   htmlUrl: 'https://github.com/siteboon/claudecodeui/releases/tag/v1.29.0',
   publishedAt: '2026-04-11T10:30:00.000Z',
@@ -157,7 +157,7 @@ function AuthScene() {
   return (
     <div className="min-h-screen bg-background px-6 py-10">
       <AuthScreenLayout
-        title="Sign in to CloudCLI UI"
+        title="Sign in to Chorus"
         description="Stable fixture state for visual baselines. No network round-trips, no auth dependency."
         footerText="Design fixture route · auth shell"
       >
@@ -166,7 +166,7 @@ function AuthScene() {
             <label className="text-sm font-medium tracking-body text-muted-foreground">
               Workspace email
             </label>
-            <Input value="designer@cloudcli.ai" readOnly />
+            <Input value="designer@chorus.dev" readOnly />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium tracking-body text-muted-foreground">

@@ -1,0 +1,69 @@
+{
+  "wizard": {
+    "title": "创建项目",
+    "description": "用三步建立新的项目收件箱：先命名，再指定目录，最后决定是否启用多工作区管理。",
+    "steps": {
+      "1": "基础信息",
+      "2": "目录",
+      "3": "工作区"
+    },
+    "actions": {
+      "cancel": "取消",
+      "back": "返回",
+      "next": "下一步",
+      "create": "创建项目",
+      "creating": "创建中...",
+      "cloning": "克隆中..."
+    },
+    "errors": {
+      "createFailed": "创建项目失败。"
+    },
+    "basics": {
+      "label": "项目名称",
+      "placeholder": "结账流程重构",
+      "help": "给项目一个清晰、简短的工作名称，后续仍可修改显示名称。",
+      "errors": {
+        "required": "项目名称不能为空。",
+        "short": "项目名称至少需要 3 个字符。",
+        "long": "项目名称不能超过 100 个字符。"
+      }
+    },
+    "directory": {
+      "directoryLabel": "本地目录",
+      "directoryPlaceholder": "C:\\Users\\you\\projects\\checkout",
+      "directoryHelp": "可以选择一个已有的本地文件夹，也可以指定仓库克隆后的目标目录。",
+      "gitUrlLabel": "Git 仓库 URL",
+      "gitUrlPlaceholder": "https://github.com/org/repo.git",
+      "gitUrlHelp": "可选。如果填写，向导会先克隆仓库，再把克隆后的目录注册为项目目录。",
+      "browse": "浏览",
+      "browsePrompt": "请输入本地文件夹路径",
+      "errors": {
+        "required": "必须提供本地目录。",
+        "missingLocalPath": "该本地目录不存在。请使用“浏览”选择或创建目录，或提供 git 仓库 URL 让系统先克隆。"
+      },
+      "validation": {
+        "validating": "正在检查目录是否存在...",
+        "exists": "目录已找到，可以继续。",
+        "missing": "目录不存在。请使用“浏览”选择或创建一个可用的本地目录。",
+        "cloneTargetMissing": "目录暂时不存在；如果下一步会先克隆仓库，这没有问题。"
+      }
+    },
+    "workspace": {
+      "title": "启用多工作区管理",
+      "description": "如果这个项目需要在 Phase 2 的 Inbox 和 Git 流程里暴露多个基于 git worktree 的工作区，请打开此开关。",
+      "warningTitle": "此操作不可撤销。",
+      "warningBody": "该开关会永久改变项目的管理方式。只有在确实需要一个项目内并行 worktree 工作流时才建议开启。",
+      "enabledDetails": "启用后，活动工作区会作为命名的 worktree 上下文出现在 Inbox 头部、会话卡片和 Git 工具中。"
+    },
+    "summary": {
+      "title": "确认配置",
+      "name": "项目名称",
+      "directory": "目录",
+      "repository": "仓库",
+      "workspaces": "多工作区",
+      "none": "无",
+      "enabled": "已启用",
+      "disabled": "未启用"
+    }
+  }
+}

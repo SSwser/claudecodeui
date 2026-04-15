@@ -72,7 +72,7 @@ export function useAppTabs({
   onRequestClearSession,
 }: UseAppTabsArgs) {
   const { preferences, setShellTabs, setActiveShellTabId } = useHomePreferences();
-  const [rootViewMode, setRootViewMode] = useState<RootViewMode>('landing');
+  const [rootViewMode, setRootViewMode] = useState<RootViewMode>('home');
 
   const sessionCatalog = useMemo(() => {
     const catalog = new Map<string, SessionCatalogEntry>();
@@ -130,7 +130,9 @@ export function useAppTabs({
         : null;
     }
 
-    const activeTab = normalizedPreferenceTabs.find((tab) => tab.id === preferences.activeShellTabId);
+    const activeTab = normalizedPreferenceTabs.find(
+      (tab) => tab.id === preferences.activeShellTabId
+    );
     if (activeTab?.sessionId) {
       return activeTab.sessionId;
     }
@@ -161,7 +163,10 @@ export function useAppTabs({
       ? preferences.activeShellTabId
       : '';
 
-    if (serializePreferenceTabs(normalizedPreferenceTabs) !== serializePreferenceTabs(preferences.shellTabs)) {
+    if (
+      serializePreferenceTabs(normalizedPreferenceTabs) !==
+      serializePreferenceTabs(preferences.shellTabs)
+    ) {
       setShellTabs(normalizedPreferenceTabs);
     }
 
@@ -256,8 +261,16 @@ export function useAppTabs({
     }
   }, [sessionId, setActiveShellTabId]);
 
-  const openLandingView = useCallback(() => {
-    setRootViewMode('landing');
+  const openHomeView = useCallback(() => {
+    setRootViewMode('home');
+    setActiveShellTabId('');
+    onRequestClearSession();
+  }, [onRequestClearSession, setActiveShellTabId]);
+
+  const openRootEmptyView = useCallback(() => {
+    // Returning to the root route must keep the main shell interactive, otherwise entry flows
+    // such as "New Session" get trapped behind the retired landing screen.
+    setRootViewMode('empty');
     setActiveShellTabId('');
     onRequestClearSession();
   }, [onRequestClearSession, setActiveShellTabId]);
@@ -308,7 +321,7 @@ export function useAppTabs({
       return;
     }
 
-    openLandingView();
+    openHomeView();
     navigate('/');
   };
 
@@ -318,7 +331,8 @@ export function useAppTabs({
     rootViewMode,
     setRootViewMode,
     startupRestoreSessionId,
-    openLandingView,
+    openHomeView,
+    openRootEmptyView,
     openEmptyShell,
     selectShellTab,
     closeShellTab,
