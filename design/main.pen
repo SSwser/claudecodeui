@@ -1,5 +1,5 @@
 {
-  "version": "2.10",
+  "version": "2.11",
   "children": [
     {
       "type": "frame",
@@ -1144,6 +1144,7 @@
                       "type": "frame",
                       "id": "pEDCs",
                       "name": "Project View",
+                      "clip": true,
                       "width": 1440,
                       "height": 900,
                       "fill": "$cc--background",
@@ -3055,7 +3056,7 @@
                               "layout": "vertical",
                               "padding": [
                                 4,
-                                0
+                                16
                               ],
                               "children": [
                                 {
@@ -3068,7 +3069,7 @@
                                   "gap": 6,
                                   "padding": [
                                     4,
-                                    16
+                                    0
                                   ],
                                   "alignItems": "center",
                                   "children": [
@@ -3278,7 +3279,7 @@
                                   "gap": 6,
                                   "padding": [
                                     4,
-                                    16
+                                    0
                                   ],
                                   "alignItems": "center",
                                   "children": [
@@ -3884,7 +3885,7 @@
                                   "gap": 6,
                                   "padding": [
                                     4,
-                                    16
+                                    0
                                   ],
                                   "alignItems": "center",
                                   "children": [
@@ -4079,7 +4080,7 @@
                                   "gap": 6,
                                   "padding": [
                                     4,
-                                    16
+                                    0
                                   ],
                                   "alignItems": "center",
                                   "children": [
@@ -4265,7 +4266,7 @@
                                   "gap": 6,
                                   "padding": [
                                     4,
-                                    16
+                                    0
                                   ],
                                   "alignItems": "center",
                                   "children": [
@@ -19282,6 +19283,84 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "frame",
+              "id": "Shy3W",
+              "name": "Ctx / Sidebar Project Menu · Refresh Status",
+              "width": 220,
+              "fill": "$cc--surface-elevated",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 4,
+              "padding": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mQbTx",
+                  "name": "refreshItem",
+                  "width": "fill_container",
+                  "fill": "$cc--surface-3",
+                  "cornerRadius": 8,
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "caonY",
+                      "name": "staleRefreshIcon",
+                      "width": 14,
+                      "height": 14,
+                      "iconFontName": "refresh-cw",
+                      "iconFontFamily": "lucide",
+                      "fill": "$cc--foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vKksC",
+                      "name": "staleRefreshText",
+                      "fill": "$cc--foreground",
+                      "content": "Check stream status",
+                      "lineHeight": 1.2,
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "letterSpacing": 0.2
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "3nMrb",
+                  "name": "renameItem",
+                  "width": "fill_container",
+                  "cornerRadius": 8,
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "0p7MH",
+                      "name": "staleRenameText",
+                      "fill": "$cc--muted-foreground",
+                      "content": "Rename project",
+                      "lineHeight": 1.2,
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "letterSpacing": 0.2
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -19611,6 +19690,456 @@
                   "fontFamily": "Geist Mono",
                   "fontSize": 9,
                   "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "FWgjC",
+      "x": -1155,
+      "y": 3783,
+      "name": "Exploration / Stale Stream States",
+      "width": 860,
+      "fill": "$cc--surface-1",
+      "cornerRadius": 16,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 20,
+      "children": [
+        {
+          "type": "text",
+          "id": "jxoiP",
+          "name": "staleTitle",
+          "fill": "$cc--foreground",
+          "content": "Stale Stream Resolution",
+          "lineHeight": 1.2,
+          "fontFamily": "Inter",
+          "fontSize": 20,
+          "fontWeight": "600",
+          "letterSpacing": 0.2
+        },
+        {
+          "type": "text",
+          "id": "oPe1C",
+          "name": "staleNote",
+          "fill": "$cc--muted-foreground",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Startup scan marks externally removed worktrees as unavailable. Clicking the row reveals an inline decision panel instead of session history.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 13,
+          "fontWeight": "500",
+          "letterSpacing": 0.2
+        },
+        {
+          "type": "frame",
+          "id": "z178O",
+          "name": "staleGallery",
+          "width": "fill_container",
+          "gap": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "UHbmy",
+              "name": "Scenario / Collapsed Row",
+              "width": 260,
+              "fill": "$cc--surface-2",
+              "cornerRadius": 14,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gegkS",
+                  "name": "staleCardATitle",
+                  "fill": "$cc--muted-foreground",
+                  "content": "Unavailable row",
+                  "lineHeight": 1.3,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.3
+                },
+                {
+                  "type": "frame",
+                  "id": "k5Tuw",
+                  "name": "staleRowA",
+                  "width": "fill_container",
+                  "fill": "$cc--sidebar-bg",
+                  "cornerRadius": 10,
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Dc5pW",
+                      "name": "staleDotA",
+                      "width": 8,
+                      "height": 8,
+                      "fill": "$cc--muted-foreground",
+                      "cornerRadius": 4
+                    },
+                    {
+                      "type": "text",
+                      "id": "nAFbj",
+                      "name": "staleTextA",
+                      "fill": "$cc--muted-foreground",
+                      "content": "feat/phase-02",
+                      "lineHeight": 1.3,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500",
+                      "letterSpacing": 0.2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ak9gZ",
+                      "name": "staleBadgeA",
+                      "height": 22,
+                      "fill": "$cc--surface-3",
+                      "cornerRadius": 999,
+                      "padding": [
+                        4,
+                        8
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "H4Hrn",
+                          "name": "staleBadgeAText",
+                          "fill": "$cc--muted-foreground",
+                          "content": "Unavailable",
+                          "lineHeight": 1.1,
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.2
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "AyKeN",
+                  "name": "staleMetaA",
+                  "fill": "$cc--muted-foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Greyed and muted in the list. Code can add the final line-through treatment, but the row already reads as unavailable in the canvas.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                  "letterSpacing": 0.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "5yQjW",
+              "name": "Scenario / Inline Decision",
+              "width": 270,
+              "fill": "$cc--surface-2",
+              "cornerRadius": 14,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AVqaP",
+                  "name": "staleCardBTitle",
+                  "fill": "$cc--muted-foreground",
+                  "content": "Inline decision",
+                  "lineHeight": 1.3,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.3
+                },
+                {
+                  "type": "frame",
+                  "id": "7tE7R",
+                  "name": "staleRowB",
+                  "width": "fill_container",
+                  "fill": "$cc--sidebar-bg",
+                  "cornerRadius": 10,
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "i2r07",
+                      "name": "staleDotB",
+                      "width": 8,
+                      "height": 8,
+                      "fill": "$cc--muted-foreground",
+                      "cornerRadius": 4
+                    },
+                    {
+                      "type": "text",
+                      "id": "z8PRe",
+                      "name": "staleTextB",
+                      "fill": "$cc--muted-foreground",
+                      "content": "feat/phase-02",
+                      "lineHeight": 1.3,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500",
+                      "letterSpacing": 0.2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "mmvNh",
+                      "name": "staleBadgeB",
+                      "height": 22,
+                      "fill": "$cc--surface-3",
+                      "cornerRadius": 999,
+                      "padding": [
+                        4,
+                        8
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "HjExc",
+                          "name": "staleBadgeBText",
+                          "fill": "$cc--muted-foreground",
+                          "content": "Unavailable",
+                          "lineHeight": 1.1,
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.2
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "7ZPWg",
+                  "name": "stalePanel",
+                  "width": 228,
+                  "fill": "$cc--sidebar-bg",
+                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wgqWi",
+                      "name": "stalePanelTitle",
+                      "fill": "$cc--foreground",
+                      "content": "Worktree removed",
+                      "lineHeight": 1.3,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.2
+                    },
+                    {
+                      "type": "text",
+                      "id": "8HQfI",
+                      "name": "stalePanelBody",
+                      "fill": "$cc--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "This stream's worktree no longer exists. Archive keeps history for a later restore flow. Delete removes the stream and its sessions now.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "letterSpacing": 0.2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "eAq8G",
+                      "name": "staleActions",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "6mJZu",
+                          "name": "staleArchive",
+                          "height": 34,
+                          "fill": "$cc--surface-2",
+                          "cornerRadius": 999,
+                          "padding": [
+                            8,
+                            12
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "u25Oy",
+                              "name": "staleArchiveText",
+                              "fill": "$cc--foreground",
+                              "content": "Archive",
+                              "lineHeight": 1.2,
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.2
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "AgLMI",
+                          "name": "staleDelete",
+                          "height": 34,
+                          "cornerRadius": 999,
+                          "padding": [
+                            8,
+                            12
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "JL6Oy",
+                              "name": "staleDeleteText",
+                              "fill": "$cc--destructive",
+                              "content": "Delete",
+                              "lineHeight": 1.2,
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ePmKq",
+              "name": "Scenario / Refresh Context Menu",
+              "width": 220,
+              "fill": "$cc--surface-2",
+              "cornerRadius": 14,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rUvCh",
+                  "name": "staleCardCTitle",
+                  "fill": "$cc--muted-foreground",
+                  "content": "Manual refresh",
+                  "lineHeight": 1.3,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.3
+                },
+                {
+                  "type": "frame",
+                  "id": "lJu50",
+                  "name": "staleMenu",
+                  "width": "fill_container",
+                  "fill": "$cc--surface-elevated",
+                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ae8f3",
+                      "name": "staleRefreshItem",
+                      "width": "fill_container",
+                      "fill": "$cc--surface-3",
+                      "cornerRadius": 8,
+                      "gap": 8,
+                      "padding": [
+                        8,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "nj4nQ",
+                          "name": "staleRefreshIcon",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "refresh-cw",
+                          "iconFontFamily": "lucide",
+                          "fill": "$cc--foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "DuxLe",
+                          "name": "staleRefreshText",
+                          "fill": "$cc--foreground",
+                          "content": "Check stream status",
+                          "lineHeight": 1.2,
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.2
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RPpyf",
+                      "name": "staleRenameItem",
+                      "width": "fill_container",
+                      "cornerRadius": 8,
+                      "gap": 8,
+                      "padding": [
+                        8,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LhPvw",
+                          "name": "staleRenameText",
+                          "fill": "$cc--muted-foreground",
+                          "content": "Rename project",
+                          "lineHeight": 1.2,
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.2
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }

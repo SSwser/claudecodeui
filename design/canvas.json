@@ -1,6 +1,6 @@
 {
-  "$version": "4.5",
-  "$updated": "2026-04-14",
+  "$version": "4.6",
+  "$updated": "2026-04-16",
   "$description": "Machine-readable SSOT for Pencil canvas node IDs, statuses, and design ↔ code relationships. AI tools query this file directly for node IDs.",
   "$file": "design/main.pen",
   "$schema": {
@@ -153,7 +153,7 @@
         },
         {
           "nodeId": "x23KK",
-          "name": "Cmp / Stream Card States · 5 groups · 11 variants",
+          "name": "Cmp / Stream Card States · 6 groups · 13 variants",
           "status": "wip",
           "type": "component",
           "brief": "02-DESIGN-BRIEF-SIDEBAR.md#23-states",
@@ -204,8 +204,25 @@
                 "4ItZR": "Skeleton",
                 "N2YzK": "Empty"
               }
+            },
+            "exceptional": {
+              "frameId": "KKdsd",
+              "label": "Exceptional States",
+              "note": "Rows requiring explicit user resolution after external worktree removal",
+              "variants": {
+                "jC1zI": "StaleCollapsed",
+                "UmJP4": "StaleExpanded"
+              }
             }
           }
+        },
+        {
+          "nodeId": "FWgjC",
+          "name": "Exploration / Stale Stream States",
+          "status": "wip",
+          "type": "frame",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md#71-stale-stream-resolution",
+          "implPath": null
         },
         {
           "nodeId": "mLw4m",
@@ -390,10 +407,18 @@
         },
         {
           "nodeId": "kK9NY",
-          "name": "Overlay / Context Menu",
+          "name": "Overlay / Context Menu · Sidebar Project",
           "status": "wip",
           "type": "overlay",
-          "brief": "02-DESIGN-BRIEF-MAIN-CANVAS.md#24-session-card",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md#5-manual-status-refresh",
+          "implPath": null
+        },
+        {
+          "nodeId": "Shy3W",
+          "name": "Overlay / Context Menu · Refresh Status",
+          "status": "wip",
+          "type": "overlay",
+          "brief": "02-DESIGN-BRIEF-SIDEBAR.md#5-manual-status-refresh",
           "implPath": null
         }
       ]
