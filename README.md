@@ -73,7 +73,7 @@ For Chinese-speaking users, we recommend saying the English name directly, close
 - **File Explorer** - Interactive file tree with syntax highlighting and live editing
 - **Git Explorer** - View, stage and commit your changes. You can also switch branches
 - **Session Management** - Resume conversations, manage multiple sessions, and track history
-- **Plugin System** - Extend CloudCLI with custom plugins — add new tabs, backend services, and integrations. [Build your own →](https://github.com/cloudcli-ai/cloudcli-plugin-starter)
+- **Plugin System** - Extend Chorus with custom plugins — add new tabs, backend services, and integrations. [Build your own →](https://github.com/chorus-dev/chorus-plugin-starter)
 - **TaskMaster AI Integration** _(Optional)_ - Advanced project management with AI-powered task planning, PRD parsing, and workflow automation
 - **Model Compatibility** - Works with Claude, GPT, and Gemini model families (see [`shared/modelConstants.js`](shared/modelConstants.js) for the full list of supported models)
 
@@ -83,26 +83,26 @@ For Chinese-speaking users, we recommend saying the English name directly, close
 
 The fastest way to get started — no local setup required. Get a fully managed, containerized development environment accessible from the web, mobile app, API, or your favorite IDE.
 
-**[Get started with CloudCLI Cloud](https://cloudcli.ai)**
+**[Get started with Chorus Cloud](https://chorus.dev)**
 
 ### Self-Hosted (Open source)
 
 Try Chorus instantly with **npx** (requires **Node.js** v22+):
 
 ```
-npx @anthropic-ai/chorus
+npx @chorus-ai/chorus
 ```
 
 Or install **globally** for regular use:
 
 ```
-npm install -g @anthropic-ai/chorus
+npm install -g @chorus-ai/chorus
 chorus
 ```
 
 Open `http://localhost:3001` — all your existing sessions are discovered automatically.
 
-Visit the **[documentation →](https://cloudcli.ai/docs)** for more full configuration options, PM2, remote server setup and more
+Visit the **[documentation →](https://chorus.dev/docs)** for more full configuration options, PM2, remote server setup and more
 
 ---
 
@@ -110,11 +110,11 @@ Visit the **[documentation →](https://cloudcli.ai/docs)** for more full config
 
 Chorus is the open source UI layer that powers Chorus Cloud. You can self-host it on your own machine, or use Chorus Cloud which builds on top of it with a full managed cloud environment, team features, and deeper integrations.
 
-|                              | CloudCLI UI (Self-hosted)                                                   | CloudCLI Cloud                                                                      |
+|                              | Chorus (Self-hosted)                                                        | Chorus Cloud                                                                        |
 | ---------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | **Best for**                 | Developers who want a full UI for local agent sessions on their own machine | Teams and developers who want agents running in the cloud, accessible from anywhere |
 | **How you access it**        | Browser via `[yourip]:port`                                                 | Browser, any IDE, REST API, n8n                                                     |
-| **Setup**                    | `npx @cloudcli-ai/cloudcli`                                                 | No setup required                                                                   |
+| **Setup**                    | `npx @chorus-ai/chorus`                                                     | No setup required                                                                   |
 | **Machine needs to stay on** | Yes                                                                         | No                                                                                  |
 | **Mobile access**            | Any browser on your network                                                 | Any device, native app coming                                                       |
 | **Sessions available**       | All sessions auto-discovered from `~/.claude`                               | All sessions within your cloud environment                                          |
@@ -228,7 +228,7 @@ GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later) — see [LIC
 
 This project is open source and free to use, modify, and distribute under the AGPL-3.0-or-later license. If you modify this software and run it as a network service, you must make your modified source code available to users of that service.
 
-CloudCLI UI - (https://cloudcli.ai).
+Chorus - (https://chorus.dev).
 
 ## Acknowledgments
 

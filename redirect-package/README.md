@@ -1,13 +1,13 @@
 <div align="center">
 
-> ## This package has moved to [`@anthropic-ai/chorus`](https://www.npmjs.com/package/@anthropic-ai/chorus)
+> ## This package has moved to [`@chorus-ai/chorus`](https://www.npmjs.com/package/@chorus-ai/chorus)
 >
 > ```bash
-> npm install -g @anthropic-ai/chorus
+> npm install -g @chorus-ai/chorus
 > ```
 >
 > This package (`@siteboon/claude-code-ui`) is now a thin wrapper that installs the new package automatically.
-> For new installations, use `@anthropic-ai/chorus` directly.
+> For new installations, use `@chorus-ai/chorus` directly.
 
 </div>
 
@@ -88,13 +88,13 @@ The fastest way to get started — no local setup required. Get a fully managed,
 Try Chorus instantly with **npx** (requires **Node.js** v22+):
 
 ```
-npx @anthropic-ai/chorus
+npx @chorus-ai/chorus
 ```
 
 Or install **globally** for regular use:
 
 ```
-npm install -g @anthropic-ai/chorus
+npm install -g @chorus-ai/chorus
 chorus
 ```
 
@@ -112,7 +112,7 @@ Chorus is the open source UI layer that powers Chorus Cloud. You can self-host i
 | ---------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | **Best for**                 | Developers who want a full UI for local agent sessions on their own machine | Teams and developers who want agents running in the cloud, accessible from anywhere |
 | **How you access it**        | Browser via `[yourip]:port`                                                 | Browser, any IDE, REST API, n8n                                                     |
-| **Setup**                    | `npx @anthropic-ai/chorus`                                                  | No setup required                                                                   |
+| **Setup**                    | `npx @chorus-ai/chorus`                                                     | No setup required                                                                   |
 | **Machine needs to stay on** | Yes                                                                         | No                                                                                  |
 | **Mobile access**            | Any browser on your network                                                 | Any device, native app coming                                                       |
 | **Sessions available**       | All sessions auto-discovered from `~/.claude`                               | All sessions within your cloud environment                                          |

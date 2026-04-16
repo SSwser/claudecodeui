@@ -9,11 +9,11 @@ if ! pgrep -f "server/index.js" > /dev/null 2>&1; then
   disown
 
   # Check for updates in the background (non-blocking)
-  nohup npm update -g @anthropic-ai/chorus > /tmp/chorus-update.log 2>&1 &
+  nohup npm update -g @chorus-ai/chorus > /tmp/chorus-update.log 2>&1 &
   disown
 
   echo ""
-  echo "  Claude Code UI is starting on port 3001..."
+  echo "  Chorus is starting on port 3001..."
   echo ""
   echo "  To access the web UI, forward the port:"
   echo "    sbx ports \$(hostname) --publish 3001:3001"

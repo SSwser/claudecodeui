@@ -1,2 +1,2 @@
-export * from '@anthropic-ai/chorus';
-export { default } from '@anthropic-ai/chorus';
+export * from '@chorus-ai/chorus';
+export { default } from '@chorus-ai/chorus';

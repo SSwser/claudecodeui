@@ -218,7 +218,7 @@ function isNewerVersion(v1, v2) {
 async function checkForUpdates(silent = false) {
   try {
     const { execSync } = await import('child_process');
-    const latestVersion = execSync('npm show @anthropic-ai/chorus version', {
+    const latestVersion = execSync('npm show @chorus-ai/chorus version', {
       encoding: 'utf8',
     }).trim();
     const currentVersion = packageJson.version;
@@ -255,11 +255,11 @@ async function updatePackage() {
     }
 
     console.log(`${c.info('[INFO]')} Updating from ${currentVersion} to ${latestVersion}...`);
-    execSync('npm update -g @anthropic-ai/chorus', { stdio: 'inherit' });
+    execSync('npm update -g @chorus-ai/chorus', { stdio: 'inherit' });
     console.log(`${c.ok('[OK]')} Update complete! Restart chorus to use the new version.`);
   } catch (e) {
     console.error(`${c.error('[ERROR]')} Update failed: ${e.message}`);
-    console.log(`${c.tip('[TIP]')} Try running manually: npm update -g @anthropic-ai/chorus`);
+    console.log(`${c.tip('[TIP]')} Try running manually: npm update -g @chorus-ai/chorus`);
   }
 }
 

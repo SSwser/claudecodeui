@@ -1,7 +1,7 @@
 {
   "name": "@siteboon/claude-code-ui",
   "version": "2.0.0",
-  "description": "This package has moved to @anthropic-ai/chorus",
+  "description": "This package has moved to @chorus-ai/chorus",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -36,8 +36,8 @@
   ],
   "author": "Chorus Contributors",
   "dependencies": {
-    "@anthropic-ai/chorus": "*"
+    "@chorus-ai/chorus": "*"
   },
-  "deprecated": "This package has been renamed to @anthropic-ai/chorus. Please install @anthropic-ai/chorus instead.",
+  "deprecated": "This package has been renamed to @chorus-ai/chorus. Please install @chorus-ai/chorus instead.",
   "license": "AGPL-3.0-or-later"
 }

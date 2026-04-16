@@ -90,13 +90,13 @@
 启动 Chorus，只需一行 `npx`（需要 Node.js v22+）：
 
 ```bash
-npx @anthropic-ai/chorus
+npx @chorus-ai/chorus
 ```
 
 或进行全局安装，便于日常使用：
 
 ```bash
-npm install -g @anthropic-ai/chorus
+npm install -g @chorus-ai/chorus
 chorus
 ```
 
@@ -114,7 +114,7 @@ Chorus 是 Chorus Cloud 的开源 UI 层。你可以在本地机器上自托管�
 | -------------------- | ------------------------------------------ | ---------------------------------------------------- |
 | **适合对象**         | 需要为本地代理会话提供完整 UI 的开发者     | 需要部署在云端，随时从任何地方访问代理的团队与开发者 |
 | **访问方式**         | 通过 `[yourip]:port` 在浏览器中访问        | 浏览器、任意 IDE、REST API、n8n                      |
-| **设置**             | `npx @anthropic-ai/chorus`                 | 无需设置                                             |
+| **设置**             | `npx @chorus-ai/chorus`                    | 无需设置                                             |
 | **机器需保持开机吗** | 是                                         | 否                                                   |
 | **移动端访问**       | 网络内任意浏览器                           | 任意设备（原生应用即将推出）                         |
 | **可用会话**         | 自动发现 `~/.claude` 中的所有会话          | 云端环境内的会话                                     |

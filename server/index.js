@@ -513,7 +513,7 @@ app.post('/api/system/update', authenticateToken, async (req, res) => {
     const updateCommand =
       installMode === 'git'
         ? 'git checkout main && git pull && npm install'
-        : 'npm install -g @anthropic-ai/chorus@latest';
+        : 'npm install -g @chorus-ai/chorus@latest';
 
     const child = spawn('sh', ['-c', updateCommand], {
       cwd: installMode === 'git' ? projectRoot : os.homedir(),

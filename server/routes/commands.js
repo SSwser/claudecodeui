@@ -58,7 +58,7 @@ async function scanCommandsDirectory(dir, baseDir, namespace) {
             relativePath,
             description,
             namespace,
-            metadata: frontmatter
+            metadata: frontmatter,
           });
         } catch (err) {
           console.error(`Error parsing command file ${fullPath}:`, err.message);
@@ -83,50 +83,50 @@ const builtInCommands = [
     name: '/help',
     description: 'Show help documentation for Claude Code',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
+    metadata: { type: 'builtin' },
   },
   {
     name: '/clear',
     description: 'Clear the conversation history',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
+    metadata: { type: 'builtin' },
   },
   {
     name: '/model',
     description: 'Switch or view the current AI model',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
+    metadata: { type: 'builtin' },
   },
   {
     name: '/cost',
     description: 'Display token usage and cost information',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
+    metadata: { type: 'builtin' },
   },
   {
     name: '/memory',
     description: 'Open CLAUDE.md memory file for editing',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
+    metadata: { type: 'builtin' },
   },
   {
     name: '/config',
     description: 'Open settings and configuration',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
+    metadata: { type: 'builtin' },
   },
   {
     name: '/status',
     description: 'Show system status and version information',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
+    metadata: { type: 'builtin' },
   },
   {
     name: '/rewind',
     description: 'Rewind the conversation to a previous state',
     namespace: 'builtin',
-    metadata: { type: 'builtin' }
-  }
+    metadata: { type: 'builtin' },
+  },
 ];
 
 /**
@@ -139,9 +139,13 @@ const builtInHandlers = {
 
 ## Built-in Commands
 
-${builtInCommands.map(cmd => `### ${cmd.name}
+${builtInCommands
+  .map(
+    (cmd) => `### ${cmd.name}
 ${cmd.description}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ## Custom Commands
 
@@ -167,8 +171,8 @@ Custom commands can be created in:
       action: 'help',
       data: {
         content: helpText,
-        format: 'markdown'
-      }
+        format: 'markdown',
+      },
     };
   },
 
@@ -177,17 +181,17 @@ Custom commands can be created in:
       type: 'builtin',
       action: 'clear',
       data: {
-        message: 'Conversation history cleared'
-      }
+        message: 'Conversation history cleared',
+      },
     };
   },
 
   '/model': async (args, context) => {
     // Read available models from centralized constants
     const availableModels = {
-      claude: CLAUDE_MODELS.OPTIONS.map(o => o.value),
-      cursor: CURSOR_MODELS.OPTIONS.map(o => o.value),
-      codex: CODEX_MODELS.OPTIONS.map(o => o.value)
+      claude: CLAUDE_MODELS.OPTIONS.map((o) => o.value),
+      cursor: CURSOR_MODELS.OPTIONS.map((o) => o.value),
+      codex: CODEX_MODELS.OPTIONS.map((o) => o.value),
     };
 
     const currentProvider = context?.provider || 'claude';
@@ -199,13 +203,12 @@ Custom commands can be created in:
       data: {
         current: {
           provider: currentProvider,
-          model: currentModel
+          model: currentModel,
         },
         available: availableModels,
-        message: args.length > 0
-          ? `Switching to model: ${args[0]}`
-          : `Current model: ${currentModel}`
-      }
+        message:
+          args.length > 0 ? `Switching to model: ${args[0]}` : `Current model: ${currentModel}`,
+      },
     };
   },
 
@@ -220,12 +223,13 @@ Custom commands can be created in:
           ? CODEX_MODELS.DEFAULT
           : CLAUDE_MODELS.DEFAULT);
 
-    const used = Number(tokenUsage.used ?? tokenUsage.totalUsed ?? tokenUsage.total_tokens ?? 0) || 0;
+    const used =
+      Number(tokenUsage.used ?? tokenUsage.totalUsed ?? tokenUsage.total_tokens ?? 0) || 0;
     const total =
       Number(
         tokenUsage.total ??
           tokenUsage.contextWindow ??
-          parseInt(process.env.CONTEXT_WINDOW || '160000', 10),
+          parseInt(process.env.CONTEXT_WINDOW || '160000', 10)
       ) || 160000;
     const percentage = total > 0 ? Number(((used / total) * 100).toFixed(1)) : 0;
 
@@ -235,7 +239,7 @@ Custom commands can be created in:
           tokenUsage.input ??
           tokenUsage.cumulativeInputTokens ??
           tokenUsage.promptTokens ??
-          0,
+          0
       ) || 0;
     const outputTokens =
       Number(
@@ -243,7 +247,7 @@ Custom commands can be created in:
           tokenUsage.output ??
           tokenUsage.cumulativeOutputTokens ??
           tokenUsage.completionTokens ??
-          0,
+          0
       ) || 0;
     const cacheTokens =
       Number(
@@ -251,12 +255,14 @@ Custom commands can be created in:
           tokenUsage.cacheCreationTokens ??
           tokenUsage.cacheTokens ??
           tokenUsage.cachedTokens ??
-          0,
+          0
       ) || 0;
 
     // If we only have total used tokens, treat them as input for display/estimation.
     const inputTokens =
-      inputTokensRaw > 0 || outputTokens > 0 || cacheTokens > 0 ? inputTokensRaw + cacheTokens : used;
+      inputTokensRaw > 0 || outputTokens > 0 || cacheTokens > 0
+        ? inputTokensRaw + cacheTokens
+        : used;
 
     // Rough default rates by provider (USD / 1M tokens).
     const pricingByProvider = {
@@ -293,7 +299,7 @@ Custom commands can be created in:
     // Read version from package.json
     const packageJsonPath = path.join(path.dirname(__dirname), '..', 'package.json');
     let version = 'unknown';
-    let packageName = 'claude-code-ui';
+    let packageName = '@chorus-ai/chorus';
 
     try {
       const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
@@ -306,9 +312,8 @@ Custom commands can be created in:
     const uptime = process.uptime();
     const uptimeMinutes = Math.floor(uptime / 60);
     const uptimeHours = Math.floor(uptimeMinutes / 60);
-    const uptimeFormatted = uptimeHours > 0
-      ? `${uptimeHours}h ${uptimeMinutes % 60}m`
-      : `${uptimeMinutes}m`;
+    const uptimeFormatted =
+      uptimeHours > 0 ? `${uptimeHours}h ${uptimeMinutes % 60}m` : `${uptimeMinutes}m`;
 
     return {
       type: 'builtin',
@@ -321,8 +326,8 @@ Custom commands can be created in:
         model: context?.model || 'claude-sonnet-4.5',
         provider: context?.provider || 'claude',
         nodeVersion: process.version,
-        platform: process.platform
-      }
+        platform: process.platform,
+      },
     };
   },
 
@@ -335,8 +340,8 @@ Custom commands can be created in:
         action: 'memory',
         data: {
           error: 'No project selected',
-          message: 'Please select a project to access its CLAUDE.md file'
-        }
+          message: 'Please select a project to access its CLAUDE.md file',
+        },
       };
     }
 
@@ -359,8 +364,8 @@ Custom commands can be created in:
         exists,
         message: exists
           ? `Opening CLAUDE.md at ${claudeMdPath}`
-          : `CLAUDE.md not found at ${claudeMdPath}. Create it to store project-specific instructions.`
-      }
+          : `CLAUDE.md not found at ${claudeMdPath}. Create it to store project-specific instructions.`,
+      },
     };
   },
 
@@ -369,8 +374,8 @@ Custom commands can be created in:
       type: 'builtin',
       action: 'config',
       data: {
-        message: 'Opening settings...'
-      }
+        message: 'Opening settings...',
+      },
     };
   },
 
@@ -383,8 +388,8 @@ Custom commands can be created in:
         action: 'rewind',
         data: {
           error: 'Invalid steps parameter',
-          message: 'Usage: /rewind [number] - Rewind conversation by N steps (default: 1)'
-        }
+          message: 'Usage: /rewind [number] - Rewind conversation by N steps (default: 1)',
+        },
       };
     }
 
@@ -393,10 +398,10 @@ Custom commands can be created in:
       action: 'rewind',
       data: {
         steps,
-        message: `Rewinding conversation by ${steps} step${steps > 1 ? 's' : ''}...`
-      }
+        message: `Rewinding conversation by ${steps} step${steps > 1 ? 's' : ''}...`,
+      },
     };
-  }
+  },
 };
 
 /**
@@ -422,15 +427,11 @@ router.post('/list', async (req, res) => {
     // Scan user-level commands (~/.claude/commands/)
     const homeDir = os.homedir();
     const userCommandsDir = path.join(homeDir, '.claude', 'commands');
-    const userCommands = await scanCommandsDirectory(
-      userCommandsDir,
-      userCommandsDir,
-      'user'
-    );
+    const userCommands = await scanCommandsDirectory(userCommandsDir, userCommandsDir, 'user');
     allCommands.push(...userCommands);
 
     // Separate built-in and custom commands
-    const customCommands = allCommands.filter(cmd => cmd.namespace !== 'builtin');
+    const customCommands = allCommands.filter((cmd) => cmd.namespace !== 'builtin');
 
     // Sort commands alphabetically by name
     customCommands.sort((a, b) => a.name.localeCompare(b.name));
@@ -438,13 +439,13 @@ router.post('/list', async (req, res) => {
     res.json({
       builtIn: builtInCommands,
       custom: customCommands,
-      count: allCommands.length
+      count: allCommands.length,
     });
   } catch (error) {
     console.error('Error listing commands:', error);
     res.status(500).json({
       error: 'Failed to list commands',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -459,17 +460,19 @@ router.post('/load', async (req, res) => {
 
     if (!commandPath) {
       return res.status(400).json({
-        error: 'Command path is required'
+        error: 'Command path is required',
       });
     }
 
     // Security: Prevent path traversal
     const resolvedPath = path.resolve(commandPath);
-    if (!resolvedPath.startsWith(path.resolve(os.homedir())) &&
-        !resolvedPath.includes('.claude/commands')) {
+    if (
+      !resolvedPath.startsWith(path.resolve(os.homedir())) &&
+      !resolvedPath.includes('.claude/commands')
+    ) {
       return res.status(403).json({
         error: 'Access denied',
-        message: 'Command must be in .claude/commands directory'
+        message: 'Command must be in .claude/commands directory',
       });
     }
 
@@ -480,20 +483,20 @@ router.post('/load', async (req, res) => {
     res.json({
       path: commandPath,
       metadata,
-      content: commandContent
+      content: commandContent,
     });
   } catch (error) {
     if (error.code === 'ENOENT') {
       return res.status(404).json({
         error: 'Command not found',
-        message: `Command file not found: ${req.body.commandPath}`
+        message: `Command file not found: ${req.body.commandPath}`,
       });
     }
 
     console.error('Error loading command:', error);
     res.status(500).json({
       error: 'Failed to load command',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -510,7 +513,7 @@ router.post('/execute', async (req, res) => {
 
     if (!commandName) {
       return res.status(400).json({
-        error: 'Command name is required'
+        error: 'Command name is required',
       });
     }
 
@@ -521,14 +524,14 @@ router.post('/execute', async (req, res) => {
         const result = await handler(args, context);
         return res.json({
           ...result,
-          command: commandName
+          command: commandName,
         });
       } catch (error) {
         console.error(`Error executing built-in command ${commandName}:`, error);
         return res.status(500).json({
           error: 'Command execution failed',
           message: error.message,
-          command: commandName
+          command: commandName,
         });
       }
     }
@@ -536,7 +539,7 @@ router.post('/execute', async (req, res) => {
     // Handle custom commands
     if (!commandPath) {
       return res.status(400).json({
-        error: 'Command path is required for custom commands'
+        error: 'Command path is required for custom commands',
       });
     }
 
@@ -555,7 +558,7 @@ router.post('/execute', async (req, res) => {
       if (!(isUnder(userBase) || (projectBase && isUnder(projectBase)))) {
         return res.status(403).json({
           error: 'Access denied',
-          message: 'Command must be in .claude/commands directory'
+          message: 'Command must be in .claude/commands directory',
         });
       }
     }
@@ -580,20 +583,20 @@ router.post('/execute', async (req, res) => {
       content: processedContent,
       metadata,
       hasFileIncludes: processedContent.includes('@'),
-      hasBashCommands: processedContent.includes('!')
+      hasBashCommands: processedContent.includes('!'),
     });
   } catch (error) {
     if (error.code === 'ENOENT') {
       return res.status(404).json({
         error: 'Command not found',
-        message: `Command file not found: ${req.body.commandPath}`
+        message: `Command file not found: ${req.body.commandPath}`,
       });
     }
 
     console.error('Error executing command:', error);
     res.status(500).json({
       error: 'Failed to execute command',
-      message: error.message
+      message: error.message,
     });
   }
 });

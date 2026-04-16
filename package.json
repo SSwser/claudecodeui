@@ -1,5 +1,5 @@
 {
-  "name": "@anthropic-ai/chorus",
+  "name": "@chorus-ai/chorus",
   "version": "1.28.0",
   "description": "Cloud-native AI work orchestration platform",
   "type": "module",

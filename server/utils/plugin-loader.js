@@ -3,8 +3,28 @@ import path from 'path';
 import os from 'os';
 import { spawn } from 'child_process';
 
-const PLUGINS_DIR = path.join(os.homedir(), '.claude-code-ui', 'plugins');
-const PLUGINS_CONFIG_PATH = path.join(os.homedir(), '.claude-code-ui', 'plugins.json');
+const CHORUS_HOME_DIR = path.join(os.homedir(), '.chorus');
+const LEGACY_HOME_DIR = path.join(os.homedir(), '.claude-code-ui');
+const PRIMARY_PLUGINS_DIR = path.join(CHORUS_HOME_DIR, 'plugins');
+const LEGACY_PLUGINS_DIR = path.join(LEGACY_HOME_DIR, 'plugins');
+const PRIMARY_PLUGINS_CONFIG_PATH = path.join(CHORUS_HOME_DIR, 'plugins.json');
+const LEGACY_PLUGINS_CONFIG_PATH = path.join(LEGACY_HOME_DIR, 'plugins.json');
+
+// New installs should use the Chorus home directory, but we still read the legacy
+// folder so existing plugin setups keep working after the brand rename.
+function getPluginSearchDirs() {
+  return [PRIMARY_PLUGINS_DIR, LEGACY_PLUGINS_DIR];
+}
+
+function getPluginsConfigPath() {
+  if (fs.existsSync(PRIMARY_PLUGINS_CONFIG_PATH)) {
+    return PRIMARY_PLUGINS_CONFIG_PATH;
+  }
+  if (fs.existsSync(LEGACY_PLUGINS_CONFIG_PATH)) {
+    return LEGACY_PLUGINS_CONFIG_PATH;
+  }
+  return PRIMARY_PLUGINS_CONFIG_PATH;
+}
 
 const REQUIRED_MANIFEST_FIELDS = ['name', 'displayName', 'entry'];
 
@@ -24,16 +44,17 @@ const ALLOWED_TYPES = ['react', 'module'];
 const ALLOWED_SLOTS = ['tab'];
 
 export function getPluginsDir() {
-  if (!fs.existsSync(PLUGINS_DIR)) {
-    fs.mkdirSync(PLUGINS_DIR, { recursive: true });
+  if (!fs.existsSync(PRIMARY_PLUGINS_DIR)) {
+    fs.mkdirSync(PRIMARY_PLUGINS_DIR, { recursive: true });
   }
-  return PLUGINS_DIR;
+  return PRIMARY_PLUGINS_DIR;
 }
 
 export function getPluginsConfig() {
+  const configPath = getPluginsConfigPath();
   try {
-    if (fs.existsSync(PLUGINS_CONFIG_PATH)) {
-      return JSON.parse(fs.readFileSync(PLUGINS_CONFIG_PATH, 'utf-8'));
+    if (fs.existsSync(configPath)) {
+      return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
     }
   } catch {
     // Corrupted config, start fresh
@@ -42,11 +63,12 @@ export function getPluginsConfig() {
 }
 
 export function savePluginsConfig(config) {
-  const dir = path.dirname(PLUGINS_CONFIG_PATH);
+  const configPath = getPluginsConfigPath();
+  const dir = path.dirname(configPath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   }
-  fs.writeFileSync(PLUGINS_CONFIG_PATH, JSON.stringify(config, null, 2), { mode: 0o600 });
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), { mode: 0o600 });
 }
 
 export function validateManifest(manifest) {
@@ -62,15 +84,24 @@ export function validateManifest(manifest) {
 
   // Sanitize name — only allow alphanumeric, hyphens, underscores
   if (!/^[a-zA-Z0-9_-]+$/.test(manifest.name)) {
-    return { valid: false, error: 'Plugin name must only contain letters, numbers, hyphens, and underscores' };
+    return {
+      valid: false,
+      error: 'Plugin name must only contain letters, numbers, hyphens, and underscores',
+    };
   }
 
   if (manifest.type && !ALLOWED_TYPES.includes(manifest.type)) {
-    return { valid: false, error: `Invalid plugin type: ${manifest.type}. Must be one of: ${ALLOWED_TYPES.join(', ')}` };
+    return {
+      valid: false,
+      error: `Invalid plugin type: ${manifest.type}. Must be one of: ${ALLOWED_TYPES.join(', ')}`,
+    };
   }
 
   if (manifest.slot && !ALLOWED_SLOTS.includes(manifest.slot)) {
-    return { valid: false, error: `Invalid plugin slot: ${manifest.slot}. Must be one of: ${ALLOWED_SLOTS.join(', ')}` };
+    return {
+      valid: false,
+      error: `Invalid plugin slot: ${manifest.slot}. Must be one of: ${ALLOWED_SLOTS.join(', ')}`,
+    };
   }
 
   // Validate entry is a relative path without traversal
@@ -79,13 +110,20 @@ export function validateManifest(manifest) {
   }
 
   if (manifest.server !== undefined && manifest.server !== null) {
-    if (typeof manifest.server !== 'string' || manifest.server.includes('..') || path.isAbsolute(manifest.server)) {
+    if (
+      typeof manifest.server !== 'string' ||
+      manifest.server.includes('..') ||
+      path.isAbsolute(manifest.server)
+    ) {
       return { valid: false, error: 'Server entry must be a relative path string without ".."' };
     }
   }
 
   if (manifest.permissions !== undefined) {
-    if (!Array.isArray(manifest.permissions) || !manifest.permissions.every(p => typeof p === 'string')) {
+    if (
+      !Array.isArray(manifest.permissions) ||
+      !manifest.permissions.every((p) => typeof p === 'string')
+    ) {
       return { valid: false, error: 'Permissions must be an array of strings' };
     }
   }
@@ -122,7 +160,9 @@ function runBuildIfNeeded(dir, packageJsonPath, onSuccess, onError) {
     onError(new Error('npm run build timed out'));
   }, BUILD_TIMEOUT_MS);
 
-  buildProcess.stderr.on('data', (data) => { stderr += data.toString(); });
+  buildProcess.stderr.on('data', (data) => {
+    stderr += data.toString();
+  });
 
   buildProcess.on('close', (code) => {
     if (settled) return;
@@ -143,79 +183,81 @@ function runBuildIfNeeded(dir, packageJsonPath, onSuccess, onError) {
 }
 
 export function scanPlugins() {
-  const pluginsDir = getPluginsDir();
   const config = getPluginsConfig();
   const plugins = [];
-
-  let entries;
-  try {
-    entries = fs.readdirSync(pluginsDir, { withFileTypes: true });
-  } catch {
-    return plugins;
-  }
-
   const seenNames = new Set();
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    // Skip transient temp directories from in-progress installs
-    if (entry.name.startsWith('.tmp-')) continue;
-
-    const manifestPath = path.join(pluginsDir, entry.name, 'manifest.json');
-    if (!fs.existsSync(manifestPath)) continue;
-
+  for (const pluginsDir of getPluginSearchDirs()) {
+    let entries;
     try {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-      const validation = validateManifest(manifest);
-      if (!validation.valid) {
-        console.warn(`[Plugins] Skipping ${entry.name}: ${validation.error}`);
-        continue;
-      }
+      entries = fs.readdirSync(pluginsDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
 
-      // Skip duplicate manifest names
-      if (seenNames.has(manifest.name)) {
-        console.warn(`[Plugins] Skipping ${entry.name}: duplicate plugin name "${manifest.name}"`);
-        continue;
-      }
-      seenNames.add(manifest.name);
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      // Skip transient temp directories from in-progress installs
+      if (entry.name.startsWith('.tmp-')) continue;
 
-      // Try to read git remote URL
-      let repoUrl = null;
+      const manifestPath = path.join(pluginsDir, entry.name, 'manifest.json');
+      if (!fs.existsSync(manifestPath)) continue;
+
       try {
-        const gitConfigPath = path.join(pluginsDir, entry.name, '.git', 'config');
-        if (fs.existsSync(gitConfigPath)) {
-          const gitConfig = fs.readFileSync(gitConfigPath, 'utf-8');
-          const match = gitConfig.match(/url\s*=\s*(.+)/);
-          if (match) {
-            repoUrl = match[1].trim().replace(/\.git$/, '');
-            // Convert SSH URLs to HTTPS
-            if (repoUrl.startsWith('git@')) {
-              repoUrl = repoUrl.replace(/^git@([^:]+):/, 'https://$1/');
-            }
-            // Strip embedded credentials (e.g. https://user:pass@host/...)
-            repoUrl = sanitizeRepoUrl(repoUrl);
-          }
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+        const validation = validateManifest(manifest);
+        if (!validation.valid) {
+          console.warn(`[Plugins] Skipping ${entry.name}: ${validation.error}`);
+          continue;
         }
-      } catch { /* ignore */ }
 
-      plugins.push({
-        name: manifest.name,
-        displayName: manifest.displayName,
-        version: manifest.version || '0.0.0',
-        description: manifest.description || '',
-        author: manifest.author || '',
-        icon: manifest.icon || 'Puzzle',
-        type: manifest.type || 'module',
-        slot: manifest.slot || 'tab',
-        entry: manifest.entry,
-        server: manifest.server || null,
-        permissions: manifest.permissions || [],
-        enabled: config[manifest.name]?.enabled !== false, // enabled by default
-        dirName: entry.name,
-        repoUrl,
-      });
-    } catch (err) {
-      console.warn(`[Plugins] Failed to read manifest for ${entry.name}:`, err.message);
+        // Prefer the first seen name so the new Chorus directory wins over the legacy one.
+        if (seenNames.has(manifest.name)) {
+          console.warn(
+            `[Plugins] Skipping ${entry.name}: duplicate plugin name "${manifest.name}"`
+          );
+          continue;
+        }
+        seenNames.add(manifest.name);
+
+        let repoUrl = null;
+        try {
+          const gitConfigPath = path.join(pluginsDir, entry.name, '.git', 'config');
+          if (fs.existsSync(gitConfigPath)) {
+            const gitConfig = fs.readFileSync(gitConfigPath, 'utf-8');
+            const match = gitConfig.match(/url\s*=\s*(.+)/);
+            if (match) {
+              repoUrl = match[1].trim().replace(/\.git$/, '');
+              if (repoUrl.startsWith('git@')) {
+                repoUrl = repoUrl.replace(/^git@([^:]+):/, 'https://$1/');
+              }
+              repoUrl = sanitizeRepoUrl(repoUrl);
+            }
+          }
+        } catch {
+          // ignore repo URL lookup failures
+        }
+
+        plugins.push({
+          name: manifest.name,
+          displayName: manifest.displayName,
+          version: manifest.version || '0.0.0',
+          description: manifest.description || '',
+          author: manifest.author || '',
+          icon: manifest.icon || 'Puzzle',
+          type: manifest.type || 'module',
+          slot: manifest.slot || 'tab',
+          entry: manifest.entry,
+          server: manifest.server || null,
+          permissions: manifest.permissions || [],
+          enabled: config[manifest.name]?.enabled !== false,
+          dirName: entry.name,
+          baseDir: pluginsDir,
+          repoUrl,
+        });
+      } catch (err) {
+        console.warn(`[Plugins] Failed to read manifest for ${entry.name}:`, err.message);
+      }
     }
   }
 
@@ -224,9 +266,9 @@ export function scanPlugins() {
 
 export function getPluginDir(name) {
   const plugins = scanPlugins();
-  const plugin = plugins.find(p => p.name === name);
+  const plugin = plugins.find((p) => p.name === name);
   if (!plugin) return null;
-  return path.join(getPluginsDir(), plugin.dirName);
+  return path.join(plugin.baseDir, plugin.dirName);
 }
 
 export function resolvePluginAssetPath(name, assetPath) {
@@ -280,7 +322,9 @@ export function installPluginFromGit(url) {
     const tempDir = fs.mkdtempSync(path.join(pluginsDir, `.tmp-${repoName}-`));
 
     const cleanupTemp = () => {
-      try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch {}
+      try {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      } catch {}
     };
 
     const finalize = (manifest) => {
@@ -298,7 +342,9 @@ export function installPluginFromGit(url) {
     });
 
     let stderr = '';
-    gitProcess.stderr.on('data', (data) => { stderr += data.toString(); });
+    gitProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
 
     gitProcess.on('close', (code) => {
       if (code !== 0) {
@@ -328,10 +374,14 @@ export function installPluginFromGit(url) {
       }
 
       // Reject if another installed plugin already uses this name
-      const existing = scanPlugins().find(p => p.name === manifest.name);
+      const existing = scanPlugins().find((p) => p.name === manifest.name);
       if (existing) {
         cleanupTemp();
-        return reject(new Error(`A plugin named "${manifest.name}" is already installed (in "${existing.dirName}")`));
+        return reject(
+          new Error(
+            `A plugin named "${manifest.name}" is already installed (in "${existing.dirName}")`
+          )
+        );
       }
 
       // Run npm install if package.json exists.
@@ -348,7 +398,15 @@ export function installPluginFromGit(url) {
             cleanupTemp();
             return reject(new Error(`npm install for ${repoName} failed (exit code ${npmCode})`));
           }
-          runBuildIfNeeded(tempDir, packageJsonPath, () => finalize(manifest), (err) => { cleanupTemp(); reject(err); });
+          runBuildIfNeeded(
+            tempDir,
+            packageJsonPath,
+            () => finalize(manifest),
+            (err) => {
+              cleanupTemp();
+              reject(err);
+            }
+          );
         });
 
         npmProcess.on('error', (err) => {
@@ -381,7 +439,9 @@ export function updatePluginFromGit(name) {
     });
 
     let stderr = '';
-    gitProcess.stderr.on('data', (data) => { stderr += data.toString(); });
+    gitProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
 
     gitProcess.on('close', (code) => {
       if (code !== 0) {
@@ -413,7 +473,12 @@ export function updatePluginFromGit(name) {
           if (npmCode !== 0) {
             return reject(new Error(`npm install for ${name} failed (exit code ${npmCode})`));
           }
-          runBuildIfNeeded(pluginDir, packageJsonPath, () => resolve(manifest), (err) => reject(err));
+          runBuildIfNeeded(
+            pluginDir,
+            packageJsonPath,
+            () => resolve(manifest),
+            (err) => reject(err)
+          );
         });
         npmProcess.on('error', (err) => reject(err));
       } else {
