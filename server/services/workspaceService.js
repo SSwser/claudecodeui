@@ -52,6 +52,10 @@ function mapWorkspaceRow(row) {
     name: row.name,
     worktreePath: row.worktree_path,
     worktreeBranch: row.worktree_branch,
+    status: row.status || 'active',
+    isStale: Boolean(row.is_stale),
+    staleDetectedAt: row.stale_detected_at || null,
+    archivedAt: row.archived_at || null,
     isDefault: Boolean(row.is_default),
     createdAt: row.created_at,
   };
@@ -124,6 +128,7 @@ export async function getWorkspaces(projectId) {
       `SELECT *
        FROM workspaces
        WHERE project_id = ?
+         AND status = 'active'
        ORDER BY is_default DESC, created_at ASC, id ASC`
     )
     .all(projectId)
@@ -169,6 +174,50 @@ export async function deleteWorkspace(workspaceId, deleteWorktree = false) {
 
   db.prepare('DELETE FROM workspaces WHERE id = ?').run(workspaceId);
   return { success: true };
+}
+
+export async function archiveWorkspace(workspaceId) {
+  const workspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(workspaceId);
+  if (!workspace) {
+    throw new Error(`Workspace ${workspaceId} not found`);
+  }
+
+  if (workspace.is_default) {
+    throw new Error('Default workspace cannot be archived');
+  }
+
+  if (!workspace.worktree_path) {
+    throw new Error('Only worktree-backed workspaces can be archived');
+  }
+
+  if (workspace.status === 'archived') {
+    return { success: true };
+  }
+
+  const archiveTx = db.transaction(() => {
+    db.prepare(
+      `UPDATE workspaces
+       SET status = 'archived',
+           is_stale = 0,
+           stale_detected_at = NULL,
+           archived_at = CURRENT_TIMESTAMP
+       WHERE id = ?`
+    ).run(workspaceId);
+
+    // Stream archival hides the stale row from the active sidebar while preserving
+    // session history for a future restore/history surface.
+    db.prepare(
+      `UPDATE session_state
+       SET status = CASE WHEN status = 'deleted' THEN status ELSE 'archived' END,
+           archived_at = CASE WHEN status = 'deleted' THEN archived_at ELSE CURRENT_TIMESTAMP END
+       WHERE workspace_id = ?`
+    ).run(workspaceId);
+  });
+
+  archiveTx();
+
+  const archivedWorkspace = db.prepare('SELECT * FROM workspaces WHERE id = ?').get(workspaceId);
+  return mapWorkspaceRow(archivedWorkspace);
 }
 
 export async function promoteWorktreeToWorkspace(projectId, worktreePath, worktreeBranch) {
