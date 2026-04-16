@@ -1,7 +1,7 @@
 import { FolderPlus, GitFork } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import MobileMenuButton from './MobileMenuButton';
-import GlobalRecentsSection from '@/components/home/view/GlobalRecentsSection';
+import GlobalRecentSection from '@/components/home/view/GlobalRecentSection';
 import AppLoadingScreen from '@/shared/view/ui/AppLoadingScreen';
 import type { MainContentStateViewProps } from '@/components/main-content/types/types';
 
@@ -26,7 +26,7 @@ export default function MainContentStateView({
             <MobileMenuButton onMenuClick={onMenuClick} compact />
           </div>
         )}
-        <GlobalRecentsSection
+        <GlobalRecentSection
           data={landingPageData}
           onOpenSession={onLandingActions.onOpenSession}
           onToggleSessionFavorite={onLandingActions.onToggleSessionFavorite}

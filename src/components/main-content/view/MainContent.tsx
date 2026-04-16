@@ -22,6 +22,15 @@ type TaskMasterContextValue = {
   setCurrentProject?: ((project: Project) => void) | null;
 };
 
+function getWorkspacePathLabel(pathValue?: string) {
+  if (!pathValue) {
+    return undefined;
+  }
+
+  const segments = pathValue.replace(/\\/g, '/').split('/').filter(Boolean);
+  return segments[segments.length - 1];
+}
+
 type TasksSettingsContextValue = {
   tasksEnabled: boolean;
   isTaskMasterInstalled: boolean | null;
@@ -173,6 +182,14 @@ function MainContent({
                 initialWorkspaceId={
                   typeof selectedProject._workspaceId === 'number'
                     ? selectedProject._workspaceId
+                    : undefined
+                }
+                initialWorkspaceIsStale={
+                  selectedProject._workspaceId != null && Boolean(selectedProject.isStale)
+                }
+                initialWorkspaceLabel={
+                  typeof selectedProject._workspaceId === 'number'
+                    ? getWorkspacePathLabel(selectedProject.fullPath || selectedProject.path)
                     : undefined
                 }
                 searchQuery={pvSearch}

@@ -58,6 +58,10 @@ export interface Project {
     name: string;
     worktreePath: string | null;
     worktreeBranch: string | null;
+    status?: 'active' | 'archived';
+    isStale?: boolean;
+    staleDetectedAt?: string | null;
+    archivedAt?: string | null;
     isDefault: boolean;
     createdAt: string;
   }>;
@@ -74,6 +78,9 @@ export interface Project {
   /** Current git branch name for this project's working directory.
    *  Used as the branch chip label in StreamRow subtitle. */
   gitBranch?: string | null;
+  /** True when the selected expanded workspace no longer exists in the live git worktree list.
+   *  The sidebar keeps the row visible so the user can explicitly archive or delete it. */
+  isStale?: boolean;
   [key: string]: unknown;
 }
 

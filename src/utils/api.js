@@ -1,4 +1,4 @@
-import { IS_PLATFORM } from "../constants/config";
+import { IS_PLATFORM } from '../constants/config';
 
 // Utility function for authenticated API calls
 export const authenticatedFetch = (url, options = {}) => {
@@ -35,16 +35,18 @@ export const api = {
   // Auth endpoints (no token required)
   auth: {
     status: () => fetch('/api/auth/status'),
-    login: (username, password) => fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    }),
-    register: (username, password) => fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    }),
+    login: (username, password) =>
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      }),
+    register: (username, password) =>
+      fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      }),
     user: () => authenticatedFetch('/api/auth/user'),
     logout: () => authenticatedFetch('/api/auth/logout', { method: 'POST' }),
   },
@@ -52,10 +54,30 @@ export const api = {
   // Protected endpoints
   // config endpoint removed - no longer needed (frontend uses window.location)
   projects: () => authenticatedFetch('/api/projects'),
+  projectById: (projectId) => authenticatedFetch(`/api/projects/${projectId}`),
+  checkProjectStreamStatus: (projectId) =>
+    authenticatedFetch(`/api/projects/${projectId}/check-stream-status`, {
+      method: 'POST',
+    }),
+  archiveWorkspace: (projectId, workspaceId) =>
+    authenticatedFetch(`/api/projects/${projectId}/workspaces/${workspaceId}/archive`, {
+      method: 'POST',
+    }),
+  deleteWorkspace: (projectId, workspaceId, deleteWorktree = false) =>
+    authenticatedFetch(
+      `/api/projects/${projectId}/workspaces/${workspaceId}${deleteWorktree ? '?deleteWorktree=true' : ''}`,
+      {
+        method: 'DELETE',
+      }
+    ),
   sessions: (projectName, limit = 5, offset = 0) =>
     authenticatedFetch(`/api/projects/${projectName}/sessions?limit=${limit}&offset=${offset}`),
   // Unified endpoint — all providers through one URL
-  unifiedSessionMessages: (sessionId, provider = 'claude', { projectName = '', projectPath = '', limit = null, offset = 0 } = {}) => {
+  unifiedSessionMessages: (
+    sessionId,
+    provider = 'claude',
+    { projectName = '', projectPath = '', limit = null, offset = 0 } = {}
+  ) => {
     const params = new URLSearchParams();
     params.append('provider', provider);
     if (projectName) params.append('projectName', projectName);
@@ -65,7 +87,9 @@ export const api = {
       params.append('offset', String(offset));
     }
     const queryString = params.toString();
-    return authenticatedFetch(`/api/sessions/${encodeURIComponent(sessionId)}/messages${queryString ? `?${queryString}` : ''}`);
+    return authenticatedFetch(
+      `/api/sessions/${encodeURIComponent(sessionId)}/messages${queryString ? `?${queryString}` : ''}`
+    );
   },
   renameProject: (projectName, displayName) =>
     authenticatedFetch(`/api/projects/${projectName}/rename`, {
@@ -110,7 +134,9 @@ export const api = {
       body: JSON.stringify(workspaceData),
     }),
   readFile: (projectName, filePath) =>
-    authenticatedFetch(`/api/projects/${projectName}/file?filePath=${encodeURIComponent(filePath)}`),
+    authenticatedFetch(
+      `/api/projects/${projectName}/file?filePath=${encodeURIComponent(filePath)}`
+    ),
   saveFile: (projectName, filePath, content) =>
     authenticatedFetch(`/api/projects/${projectName}/file`, {
       method: 'PUT',
@@ -175,8 +201,7 @@ export const api = {
       }),
 
     // Get available PRD templates
-    getTemplates: () =>
-      authenticatedFetch('/api/taskmaster/prd-templates'),
+    getTemplates: () => authenticatedFetch('/api/taskmaster/prd-templates'),
 
     // Apply a PRD template
     applyTemplate: (projectName, { templateId, fileName, customizations }) =>
@@ -226,20 +251,23 @@ export const api = {
   get: (endpoint) => authenticatedFetch(`/api${endpoint}`),
 
   // Generic POST method for any endpoint
-  post: (endpoint, body) => authenticatedFetch(`/api${endpoint}`, {
-    method: 'POST',
-    ...(body instanceof FormData ? { body } : { body: JSON.stringify(body) }),
-  }),
+  post: (endpoint, body) =>
+    authenticatedFetch(`/api${endpoint}`, {
+      method: 'POST',
+      ...(body instanceof FormData ? { body } : { body: JSON.stringify(body) }),
+    }),
 
   // Generic PUT method for any endpoint
-  put: (endpoint, body) => authenticatedFetch(`/api${endpoint}`, {
-    method: 'PUT',
-    body: JSON.stringify(body),
-  }),
+  put: (endpoint, body) =>
+    authenticatedFetch(`/api${endpoint}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
 
   // Generic DELETE method for any endpoint
-  delete: (endpoint, options = {}) => authenticatedFetch(`/api${endpoint}`, {
-    method: 'DELETE',
-    ...options,
-  }),
+  delete: (endpoint, options = {}) =>
+    authenticatedFetch(`/api${endpoint}`, {
+      method: 'DELETE',
+      ...options,
+    }),
 };

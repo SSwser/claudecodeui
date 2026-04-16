@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { VersionUpgradeModal } from '@/components/version-upgrade/view/VersionUpgradeModal';
+import ProjectInbox from '@/components/project-inbox/view/ProjectInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/shared/view/ui/Badge';
@@ -416,6 +417,50 @@ function SettingsScene() {
   );
 }
 
+function ProjectInboxStaleScene() {
+  return (
+    <SceneShell
+      eyebrow="Fixture · Project Inbox"
+      title="Stale stream resolution overlay"
+      description="This scene mounts the real ProjectInbox with a stale initial workspace so browser tests can verify the panel appears before project data finishes loading."
+    >
+      <div className="overflow-hidden rounded-large border border-border/70 bg-card shadow-ring">
+        <ProjectInbox
+          projectId={4}
+          projectName="chorus"
+          projectDisplayName="Chorus Repo"
+          initialWorkspaceId={15}
+          initialWorkspaceIsStale
+          initialWorkspaceLabel="claudecodeui-phase-02"
+          onOpenSession={noop}
+          onCreateSession={noop}
+        />
+      </div>
+    </SceneShell>
+  );
+}
+
+function ProjectInboxSessionScene() {
+  return (
+    <SceneShell
+      eyebrow="Fixture · Project Inbox"
+      title="Stream session loading"
+      description="This scene mounts the real ProjectInbox with a live workspace so browser tests can verify sessions load correctly for the selected stream."
+    >
+      <div className="overflow-hidden rounded-large border border-border/70 bg-card shadow-ring">
+        <ProjectInbox
+          projectId={4}
+          projectName="chorus"
+          projectDisplayName="Chorus Repo"
+          initialWorkspaceId={12}
+          onOpenSession={noop}
+          onCreateSession={noop}
+        />
+      </div>
+    </SceneShell>
+  );
+}
+
 type SceneName =
   | 'overview'
   | 'landing'
@@ -424,6 +469,8 @@ type SceneName =
   | 'dialog'
   | 'chat'
   | 'settings'
+  | 'project-inbox-stale'
+  | 'project-inbox-session'
   | 'upgrade';
 
 const scenes: Array<{ id: Exclude<SceneName, 'overview'>; label: string; icon: React.ReactNode }> =
@@ -434,6 +481,16 @@ const scenes: Array<{ id: Exclude<SceneName, 'overview'>; label: string; icon: R
     { id: 'dialog', label: 'Dialog panel', icon: <Wand2 className="h-4 w-4" /> },
     { id: 'chat', label: 'Chat controls', icon: <Sparkles className="h-4 w-4" /> },
     { id: 'settings', label: 'Settings shell', icon: <Settings2 className="h-4 w-4" /> },
+    {
+      id: 'project-inbox-stale',
+      label: 'Project inbox stale overlay',
+      icon: <AlertTriangle className="h-4 w-4" />,
+    },
+    {
+      id: 'project-inbox-session',
+      label: 'Project inbox session load',
+      icon: <Sparkles className="h-4 w-4" />,
+    },
     { id: 'upgrade', label: 'Upgrade modal', icon: <MoonStar className="h-4 w-4" /> },
   ];
 
@@ -474,6 +531,10 @@ export default function VisualRegressionFixtures() {
         return <ChatScene />;
       case 'settings':
         return <SettingsScene />;
+      case 'project-inbox-stale':
+        return <ProjectInboxStaleScene />;
+      case 'project-inbox-session':
+        return <ProjectInboxSessionScene />;
       case 'upgrade':
         return (
           <div className="min-h-screen bg-background">

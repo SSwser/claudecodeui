@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { useCallback, useRef } from 'react';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
-import type { ChatMessage } from '../../types/types';
-import type { Project, ProjectSession, SessionProvider } from '../../../../types/app';
-import { getIntrinsicMessageKey } from '../../utils/messageKeys';
 import MessageComponent from './MessageComponent';
 import ProviderSelectionEmptyState from './ProviderSelectionEmptyState';
 import AssistantThinkingIndicator from './AssistantThinkingIndicator';
+import type { ChatMessage } from '@/components/chat/types/types';
+import type { Project, ProjectSession, SessionProvider } from '@/types/app';
+import { getIntrinsicMessageKey } from '@/components/chat/utils/messageKeys';
 
 interface ChatMessagesPaneProps {
   scrollContainerRef: RefObject<HTMLDivElement>;
@@ -191,7 +191,7 @@ export default function ChatMessagesPane({
 
           {/* Floating "Load all messages" overlay */}
           {(showLoadAllOverlay || isLoadingAllMessages || loadAllJustFinished) && (
-            <div className="pointer-events-none sticky top-2 z-20 flex justify-center">
+            <div className="pointer-events-none sticky z-20 flex justify-center">
               {loadAllJustFinished ? (
                 <div className="flex items-center space-x-2 rounded-full border border-success/25 bg-success px-4 py-1.5 text-xs font-medium text-success-foreground shadow-md">
                   <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
