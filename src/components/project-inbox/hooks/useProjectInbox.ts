@@ -25,15 +25,15 @@ function resolveWorkspaceId(
   preferredWorkspaceId: number | undefined,
   currentWorkspaceId: number | null
 ) {
+  if (currentWorkspaceId && workspaces.some((workspace) => workspace.id === currentWorkspaceId)) {
+    return currentWorkspaceId;
+  }
+
   if (
     preferredWorkspaceId &&
     workspaces.some((workspace) => workspace.id === preferredWorkspaceId)
   ) {
     return preferredWorkspaceId;
-  }
-
-  if (currentWorkspaceId && workspaces.some((workspace) => workspace.id === currentWorkspaceId)) {
-    return currentWorkspaceId;
   }
 
   return workspaces.find((workspace) => workspace.isDefault)?.id ?? workspaces[0]?.id ?? null;
@@ -68,11 +68,6 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
   const [statusFilter, setStatusFilter] = useState<InboxStatusFilter>('all');
   const [sortOrder, setSortOrder] = useState<InboxSortOrder>('recent');
   const fetchSeqRef = useRef(0);
-  const selectedWorkspaceIdRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    selectedWorkspaceIdRef.current = selectedWorkspaceId;
-  }, [selectedWorkspaceId]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -84,6 +79,16 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
     };
   }, [searchQuery]);
 
+  const resolvedWorkspaceId = useMemo(
+    () => resolveWorkspaceId(workspaces, initialWorkspaceId, selectedWorkspaceId),
+    [initialWorkspaceId, selectedWorkspaceId, workspaces]
+  );
+
+  const selectedWorkspace = useMemo(
+    () => workspaces.find((workspace) => workspace.id === resolvedWorkspaceId) ?? null,
+    [resolvedWorkspaceId, workspaces]
+  );
+
   const fetchProject = useCallback(async () => {
     const response = await authenticatedFetch(`/api/projects/${projectId}`);
     if (!response.ok) {
@@ -91,38 +96,22 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
     }
 
     const data = (await response.json()) as ProjectInboxProject;
-    const nextWorkspaces = data.workspaces ?? [];
-    const nextWorkspaceId = resolveWorkspaceId(
-      nextWorkspaces,
-      initialWorkspaceId,
-      selectedWorkspaceIdRef.current
-    );
 
     setProject(data);
-    setWorkspaces(nextWorkspaces);
-
-    return nextWorkspaceId;
-  }, [projectId, initialWorkspaceId]);
-
-  useEffect(() => {
-    const nextWorkspaceId = resolveWorkspaceId(
-      workspaces,
-      initialWorkspaceId,
-      selectedWorkspaceIdRef.current
-    );
-
-    if (nextWorkspaceId !== selectedWorkspaceIdRef.current) {
-      setSelectedWorkspaceId(nextWorkspaceId);
-    }
-  }, [initialWorkspaceId, workspaces]);
+    setWorkspaces(data.workspaces ?? []);
+  }, [projectId]);
 
   const fetchSessions = useCallback(
-    async (workspaceIdOverride?: number | null) => {
+    async (workspaceId: number | null, workspace: ProjectInboxWorkspace | null) => {
       const requestId = fetchSeqRef.current + 1;
       fetchSeqRef.current = requestId;
 
+      if (workspace?.isStale) {
+        setRawSessions([]);
+        return;
+      }
+
       const params = new URLSearchParams();
-      const workspaceId = workspaceIdOverride ?? selectedWorkspaceIdRef.current;
 
       if (workspaceId) {
         params.set('workspaceId', String(workspaceId));
@@ -134,8 +123,9 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
         params.set('q', debouncedQuery);
       }
 
+      const queryString = params.toString();
       const response = await authenticatedFetch(
-        `/api/projects/${projectId}/sessions${params.size ? `?${params.toString()}` : ''}`
+        `/api/projects/${projectId}/sessions${queryString ? `?${queryString}` : ''}`
       );
       if (!response.ok) {
         throw new Error('Failed to load sessions');
@@ -148,7 +138,7 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
 
       setRawSessions(data);
     },
-    [debouncedQuery, projectId, selectedWorkspaceId, statusFilter]
+    [debouncedQuery, projectId, statusFilter]
   );
 
   const refresh = useCallback(async () => {
@@ -156,18 +146,47 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
     setError(null);
 
     try {
-      const nextWorkspaceId = await fetchProject();
-      await fetchSessions(nextWorkspaceId);
+      await fetchProject();
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : 'Failed to load inbox');
-    } finally {
       setIsLoading(false);
     }
-  }, [fetchProject, fetchSessions]);
+  }, [fetchProject]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!project) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadSessions = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        await fetchSessions(resolvedWorkspaceId, selectedWorkspace);
+      } catch (sessionError) {
+        if (!isCancelled) {
+          setError(sessionError instanceof Error ? sessionError.message : 'Failed to load inbox');
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadSessions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [fetchSessions, project, resolvedWorkspaceId, selectedWorkspace]);
 
   useEffect(() => {
     if (!latestMessage) {
@@ -183,7 +202,7 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
         );
 
         if (!hasMatch) {
-          void fetchSessions();
+          void fetchSessions(resolvedWorkspaceId, selectedWorkspace);
           return previousSessions;
         }
 
@@ -201,9 +220,9 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
       latestMessage.type === 'projects_updated' ||
       latestMessage.type === 'websocket-reconnected'
     ) {
-      void fetchSessions();
+      void refresh();
     }
-  }, [fetchSessions, latestMessage]);
+  }, [fetchSessions, latestMessage, refresh, resolvedWorkspaceId, selectedWorkspace]);
 
   const sessions = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -226,6 +245,7 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
   return {
     project,
     workspaces,
+    selectedWorkspace,
     sessions,
     rawSessions,
     isLoading,
@@ -237,7 +257,7 @@ export function useProjectInbox({ projectId, initialWorkspaceId }: UseProjectInb
     setStatusFilter,
     sortOrder,
     setSortOrder,
-    selectedWorkspaceId,
+    selectedWorkspaceId: resolvedWorkspaceId,
     setSelectedWorkspaceId,
   };
 }

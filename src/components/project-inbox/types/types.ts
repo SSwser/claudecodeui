@@ -9,6 +9,12 @@ export type ProjectInboxProps = {
    *  sidebar when the user clicks a specific stream row in a multi-workspace
    *  project so the inbox immediately shows that worktree's sessions. */
   initialWorkspaceId?: number;
+  /** When the selected stream is already known to be stale, show the stale
+   *  resolution panel up front instead of waiting for the project load cycle. */
+  initialWorkspaceIsStale?: boolean;
+  /** Label for the stale stream when the inbox is still loading project data.
+   *  This is typically the folder name from the path, not the git branch. */
+  initialWorkspaceLabel?: string;
   /** Controlled search query lifted to MainContent so the ghost search in
    *  the tabs row and the inbox list stay in sync. When provided the inbox
    *  uses this value instead of its internal state. */
@@ -39,6 +45,10 @@ export type ProjectInboxWorkspace = {
   isDefault: boolean;
   worktreeBranch: string | null;
   worktreePath: string | null;
+  status?: 'active' | 'archived';
+  isStale?: boolean;
+  staleDetectedAt?: string | null;
+  archivedAt?: string | null;
 };
 
 export type ProjectInboxProject = {

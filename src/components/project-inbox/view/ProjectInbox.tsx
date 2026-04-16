@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FolderSearch, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useProjectInbox } from '../hooks/useProjectInbox';
 import type { ProjectInboxProps } from '../types/types';
 import ProjectInboxHeader from './ProjectInboxHeader';
@@ -16,6 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  StateOverlay,
+  StateOverlayActions,
+  StateOverlayDescription,
+  StateOverlayEyebrow,
+  StateOverlayPanel,
+  StateOverlayTitle,
+} from '@/components/ui/state-overlay';
 import { ScrollArea } from '@/shared/view/ui';
 import { api } from '@/utils/api';
 import type { ProjectSession } from '@/types/app';
@@ -86,6 +95,8 @@ export default function ProjectInbox({
   projectName,
   projectDisplayName: _projectDisplayName,
   initialWorkspaceId,
+  initialWorkspaceIsStale = false,
+  initialWorkspaceLabel,
   searchQuery: controlledSearchQuery,
   onSearchQueryChange: _onControlledSearchQueryChange,
   onOpenSession,
@@ -95,6 +106,7 @@ export default function ProjectInbox({
   const {
     project,
     workspaces,
+    selectedWorkspace,
     sessions,
     rawSessions,
     isLoading,
@@ -124,11 +136,80 @@ export default function ProjectInbox({
   >(null);
   const [renameValue, setRenameValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [streamAction, setStreamAction] = useState<'archive' | 'delete' | null>(null);
 
   const resolvedProjectName = useMemo(
     () => projectName || project?.name,
     [project?.name, projectName]
   );
+
+  const staleWorkspacePrompt = useMemo(() => {
+    const workspace = selectedWorkspace?.isStale
+      ? selectedWorkspace
+      : initialWorkspaceIsStale && initialWorkspaceId
+        ? {
+            id: initialWorkspaceId,
+            name: initialWorkspaceLabel || 'Stale stream',
+            isDefault: false,
+            worktreeBranch: null,
+            worktreePath: null,
+            isStale: true,
+          }
+        : null;
+
+    if (!workspace) {
+      return null;
+    }
+
+    return workspace;
+  }, [initialWorkspaceId, initialWorkspaceIsStale, initialWorkspaceLabel, selectedWorkspace]);
+
+  const showStaleResolutionPanel = Boolean(staleWorkspacePrompt?.id);
+
+  const navigate = useNavigate();
+
+  const resolveStaleWorkspace = async (action: 'archive' | 'delete') => {
+    const targetWorkspaceId = selectedWorkspace?.id ?? initialWorkspaceId ?? null;
+    if (!targetWorkspaceId) {
+      return;
+    }
+
+    setStreamAction(action);
+    setActionError(null);
+
+    try {
+      const response =
+        action === 'archive'
+          ? await api.archiveWorkspace(projectId, targetWorkspaceId)
+          : await api.deleteWorkspace(projectId, targetWorkspaceId);
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(
+          payload.error ||
+            (action === 'archive' ? 'Failed to archive stream' : 'Failed to delete stream')
+        );
+      }
+
+      if (action === 'delete') {
+        await (window.refreshProjects?.() ?? Promise.resolve());
+        navigate('/');
+        return;
+      }
+
+      await Promise.all([refresh(), window.refreshProjects?.() ?? Promise.resolve()]);
+    } catch (streamError) {
+      setActionError(
+        streamError instanceof Error
+          ? streamError.message
+          : action === 'archive'
+            ? 'Failed to archive stream'
+            : 'Failed to delete stream'
+      );
+    } finally {
+      setStreamAction(null);
+    }
+  };
 
   const openRenameDialog = (session: SessionState & { workspaceName?: string | null }) => {
     setActionError(null);
@@ -187,30 +268,32 @@ export default function ProjectInbox({
         onCreateSession={onCreateSession}
       />
 
-      <div className="min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1 overflow-hidden">
         {actionError || error ? (
           <div className="bg-destructive/5 px-5 py-3 text-[11px] text-destructive">
             {actionError || error}
           </div>
         ) : null}
 
-        <div className="border-b border-border-subtle px-5 py-3">
-          <SearchBar
-            projectId={projectId}
-            sessions={rawSessions}
-            onSelectSession={(sessionId, provider) => {
-              const matchedSession = rawSessions.find(
-                (session) => session.sessionId === sessionId && session.provider === provider
-              );
+        {showStaleResolutionPanel ? null : (
+          <div className="border-b border-border-subtle px-5 py-3">
+            <SearchBar
+              projectId={projectId}
+              sessions={rawSessions}
+              onSelectSession={(sessionId, provider) => {
+                const matchedSession = rawSessions.find(
+                  (session) => session.sessionId === sessionId && session.provider === provider
+                );
 
-              if (!matchedSession) {
-                return;
-              }
+                if (!matchedSession) {
+                  return;
+                }
 
-              onOpenSession(toProjectSession(matchedSession, resolvedProjectName));
-            }}
-          />
-        </div>
+                onOpenSession(toProjectSession(matchedSession, resolvedProjectName));
+              }}
+            />
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex h-full items-center justify-center text-[13px] text-dim-foreground">
@@ -267,6 +350,49 @@ export default function ProjectInbox({
             </div>
           </ScrollArea>
         )}
+
+        <StateOverlay
+          open={showStaleResolutionPanel}
+          layer="surface"
+          tone="strong"
+          blur="sm"
+          padding="default"
+        >
+          <StateOverlayPanel size="lg" className="max-w-[440px] border-border-subtle">
+            <div className="space-y-2">
+              <StateOverlayEyebrow>{staleWorkspacePrompt?.name}</StateOverlayEyebrow>
+              <StateOverlayTitle>Worktree removed</StateOverlayTitle>
+              <StateOverlayDescription>
+                This stream&apos;s worktree no longer exists on disk. Archive removes it from the
+                sidebar but keeps its session history. Delete removes the stream and all linked
+                sessions.
+              </StateOverlayDescription>
+            </div>
+
+            <StateOverlayActions className="mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={Boolean(streamAction)}
+                onClick={() => {
+                  void resolveStaleWorkspace('archive');
+                }}
+              >
+                {streamAction === 'archive' ? 'Archiving...' : 'Archive'}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={Boolean(streamAction)}
+                onClick={() => {
+                  void resolveStaleWorkspace('delete');
+                }}
+              >
+                {streamAction === 'delete' ? 'Deleting...' : 'Delete'}
+              </Button>
+            </StateOverlayActions>
+          </StateOverlayPanel>
+        </StateOverlay>
       </div>
 
       <Dialog open={Boolean(renameTarget)} onOpenChange={(open) => !open && setRenameTarget(null)}>
