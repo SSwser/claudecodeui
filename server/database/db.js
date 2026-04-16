@@ -51,6 +51,10 @@ const phaseTwoSchemaStatements = [
       name TEXT NOT NULL DEFAULT 'default',
       worktree_path TEXT,
       worktree_branch TEXT,
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'archived')),
+      is_stale BOOLEAN NOT NULL DEFAULT 0,
+      stale_detected_at DATETIME,
+      archived_at DATETIME,
       is_default BOOLEAN DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
@@ -226,6 +230,34 @@ const runMigrations = () => {
       db.exec(statement.sql);
     }
 
+    const workspaceColumns = db.prepare('PRAGMA table_info(workspaces)').all();
+    const workspaceColumnNames = new Set(workspaceColumns.map((column) => column.name));
+
+    if (!workspaceColumnNames.has('status')) {
+      console.log('Running migration: Adding workspaces.status column');
+      db.exec("ALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT 'active'");
+    }
+
+    if (!workspaceColumnNames.has('is_stale')) {
+      console.log('Running migration: Adding workspaces.is_stale column');
+      db.exec('ALTER TABLE workspaces ADD COLUMN is_stale BOOLEAN NOT NULL DEFAULT 0');
+    }
+
+    if (!workspaceColumnNames.has('stale_detected_at')) {
+      console.log('Running migration: Adding workspaces.stale_detected_at column');
+      db.exec('ALTER TABLE workspaces ADD COLUMN stale_detected_at DATETIME');
+    }
+
+    if (!workspaceColumnNames.has('archived_at')) {
+      console.log('Running migration: Adding workspaces.archived_at column');
+      db.exec('ALTER TABLE workspaces ADD COLUMN archived_at DATETIME');
+    }
+
+    db.exec("UPDATE workspaces SET status = 'active' WHERE status IS NULL OR TRIM(status) = ''");
+    db.exec('UPDATE workspaces SET is_stale = 0 WHERE is_stale IS NULL');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_workspaces_status ON workspaces(status)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_workspaces_stale ON workspaces(project_id, is_stale)');
+
     try {
       console.log('Running migration: Ensuring session_search FTS5 table');
       runFts5Migration(db);
@@ -245,8 +277,8 @@ const initializeDatabase = async () => {
   try {
     const initSQL = fs.readFileSync(INIT_SQL_PATH, 'utf8');
     db.exec(initSQL);
-    console.log('Database initialized successfully');
     runMigrations();
+    console.log('Database initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error.message);
     throw error;

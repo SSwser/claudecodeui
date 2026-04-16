@@ -86,8 +86,150 @@ function mapWorkspaceRow(row) {
     name: row.name,
     worktreePath: row.worktree_path,
     worktreeBranch: row.worktree_branch,
+    status: row.status || 'active',
+    isStale: Boolean(row.is_stale),
+    staleDetectedAt: row.stale_detected_at || null,
+    archivedAt: row.archived_at || null,
     isDefault: Boolean(row.is_default),
     createdAt: row.created_at,
+  };
+}
+
+function getRepoRootFromGitCommonDir(gitCommonDir) {
+  if (!gitCommonDir) {
+    return null;
+  }
+
+  const resolvedGitCommonDir = path.resolve(gitCommonDir);
+  if (path.basename(resolvedGitCommonDir).toLowerCase() !== '.git') {
+    return null;
+  }
+
+  return path.dirname(resolvedGitCommonDir);
+}
+
+function getCanonicalProjectDisplayName(project) {
+  const repoRoot = getRepoRootFromGitCommonDir(project.gitCommonDir);
+  if (!repoRoot) {
+    return project.displayName || project.name;
+  }
+
+  const resolvedProjectPath = project.directoryPath ? path.resolve(project.directoryPath) : null;
+  if (resolvedProjectPath === repoRoot && project.displayName) {
+    return project.displayName;
+  }
+
+  return path.basename(repoRoot) || project.displayName || project.name;
+}
+
+function getWorkspacePathName(worktreePath) {
+  if (!worktreePath) {
+    return null;
+  }
+
+  const resolvedPath = path.resolve(worktreePath);
+  return path.basename(resolvedPath) || null;
+}
+
+function getWorkspaceDisplayName({ name, worktreePath, worktreeBranch }) {
+  const pathName = getWorkspacePathName(worktreePath);
+
+  if (name && name !== worktreeBranch && name !== pathName) {
+    return name;
+  }
+
+  return pathName || worktreeBranch || name || 'workspace';
+}
+
+function shouldSyncWorkspaceName(currentName, worktreePath, worktreeBranch) {
+  const pathName = getWorkspacePathName(worktreePath);
+  if (!pathName) {
+    return false;
+  }
+
+  return !currentName || currentName === worktreeBranch || currentName === pathName;
+}
+
+function getProjectPathPriority(project) {
+  let priority = 0;
+
+  if (project._isWorkspaceExpansion) {
+    priority += 4;
+  }
+
+  if (project.multiWorkspaceEnabled) {
+    priority += 2;
+  }
+
+  if (project.gitCommonDir) {
+    priority += 1;
+  }
+
+  return priority;
+}
+
+function hasLiveWorktreePath(liveWorktreePaths, candidatePath) {
+  if (!liveWorktreePaths || liveWorktreePaths.size === 0 || !candidatePath) {
+    return true;
+  }
+
+  return liveWorktreePaths.has(path.resolve(candidatePath));
+}
+
+function getStaleWorkspaceRows(workspaces, liveWorktreePaths) {
+  return workspaces.filter(
+    (workspace) =>
+      Boolean(workspace.worktreePath) &&
+      workspace.status === 'active' &&
+      !workspace.isDefault &&
+      !hasLiveWorktreePath(liveWorktreePaths, workspace.worktreePath)
+  );
+}
+
+function formatWorkspaceLogLabel(workspace) {
+  const workspacePath = workspace.worktreePath ? path.resolve(workspace.worktreePath) : 'unknown';
+  return `${workspace.id}:${workspace.name} -> ${workspacePath}`;
+}
+
+function logStaleWorkspaceEvent(
+  action,
+  { projectId, directoryPath },
+  staleWorkspaces,
+  liveWorktreePaths,
+  logger = console
+) {
+  if (!staleWorkspaces.length) {
+    return;
+  }
+
+  const livePaths =
+    Array.from(liveWorktreePaths || [])
+      .sort()
+      .join(', ') || 'unavailable';
+  const stalePaths = staleWorkspaces.map(formatWorkspaceLogLabel).join('; ');
+  const message = `[projectService] ${action} ${staleWorkspaces.length} stale worktree workspace(s) for project ${projectId} (${path.resolve(directoryPath)}). Live worktrees: ${livePaths}. Stale rows: ${stalePaths}`;
+
+  if (action.startsWith('Cleared') || action.startsWith('Archived')) {
+    (logger.info || logger.log).call(logger, message);
+    return;
+  }
+
+  (logger.warn || logger.log).call(logger, message);
+}
+
+function buildLiveWorktreeState(directoryPath, worktrees = []) {
+  const resolvedDirectoryPath = path.resolve(directoryPath);
+  const liveWorktrees = worktrees
+    .filter((worktree) => !worktree.isBare)
+    .map((worktree) => ({
+      ...worktree,
+      path: path.resolve(worktree.path),
+    }));
+
+  return {
+    directoryPath: resolvedDirectoryPath,
+    liveWorktrees,
+    liveWorktreePaths: new Set(liveWorktrees.map((worktree) => worktree.path)),
   };
 }
 
@@ -307,12 +449,115 @@ export async function detectWorktrees(directoryPath) {
   }
 }
 
+export async function inspectStaleWorkspaceRows(projectId, directoryPath, { worktrees } = {}) {
+  const liveWorktreeState = buildLiveWorktreeState(
+    directoryPath,
+    worktrees ?? (await detectWorktrees(directoryPath))
+  );
+  const workspaces = db
+    .prepare(
+      `SELECT *
+       FROM workspaces
+       WHERE project_id = ?
+         AND worktree_path IS NOT NULL
+         AND status = 'active'
+       ORDER BY is_default DESC, id ASC`
+    )
+    .all(projectId)
+    .map(mapWorkspaceRow);
+  const staleWorkspaces = getStaleWorkspaceRows(workspaces, liveWorktreeState.liveWorktreePaths);
+  const staleWorkspaceIds = new Set(staleWorkspaces.map((workspace) => workspace.id));
+  const liveWorkspaces = workspaces.filter((workspace) => !staleWorkspaceIds.has(workspace.id));
+
+  return {
+    projectId,
+    directoryPath: liveWorktreeState.directoryPath,
+    liveWorktrees: liveWorktreeState.liveWorktrees,
+    liveWorktreePaths: liveWorktreeState.liveWorktreePaths,
+    liveWorkspaces,
+    staleWorkspaces,
+  };
+}
+
+export async function syncWorkspaceStaleState(
+  projectId,
+  directoryPath,
+  { dryRun = false, logger = console, worktrees } = {}
+) {
+  const result = await inspectStaleWorkspaceRows(projectId, directoryPath, { worktrees });
+  const staleWorkspaceIds = new Set(result.staleWorkspaces.map((workspace) => workspace.id));
+  const newlyStaleWorkspaces = result.staleWorkspaces.filter((workspace) => !workspace.isStale);
+  const clearedWorkspaces = result.liveWorkspaces.filter(
+    (workspace) => workspace.isStale && !staleWorkspaceIds.has(workspace.id)
+  );
+
+  if (!result.staleWorkspaces.length && !clearedWorkspaces.length) {
+    return {
+      ...result,
+      dryRun,
+      markedCount: 0,
+      clearedCount: 0,
+    };
+  }
+
+  if (newlyStaleWorkspaces.length > 0) {
+    logStaleWorkspaceEvent(
+      dryRun ? 'Detected' : 'Marked',
+      result,
+      newlyStaleWorkspaces,
+      result.liveWorktreePaths,
+      logger
+    );
+  }
+
+  if (clearedWorkspaces.length > 0) {
+    logStaleWorkspaceEvent(
+      dryRun ? 'Would clear' : 'Cleared',
+      result,
+      clearedWorkspaces,
+      result.liveWorktreePaths,
+      logger
+    );
+  }
+
+  if (!dryRun) {
+    const markStaleStatement = db.prepare(
+      `UPDATE workspaces
+       SET is_stale = 1,
+           stale_detected_at = COALESCE(stale_detected_at, CURRENT_TIMESTAMP)
+       WHERE id = ?`
+    );
+    const clearStaleStatement = db.prepare(
+      `UPDATE workspaces
+       SET is_stale = 0,
+           stale_detected_at = NULL
+       WHERE id = ?`
+    );
+
+    for (const workspace of result.staleWorkspaces) {
+      markStaleStatement.run(workspace.id);
+    }
+
+    for (const workspace of clearedWorkspaces) {
+      clearStaleStatement.run(workspace.id);
+    }
+  }
+
+  return {
+    ...result,
+    dryRun,
+    markedCount: dryRun ? 0 : newlyStaleWorkspaces.length,
+    clearedCount: dryRun ? 0 : clearedWorkspaces.length,
+  };
+}
+
 // Syncs all git worktrees for a project to the workspaces table.
 // Called lazily on first GET /api/projects/:id so that projects created before
 // multi-workspace support was introduced (or imported without worktree data) still
 // populate their workspaces correctly the first time the inbox is opened.
 export async function syncWorktreesAsWorkspaces(projectId, directoryPath) {
-  const worktrees = await detectWorktrees(directoryPath);
+  const resolvedDirectoryPath = path.resolve(directoryPath);
+  const worktrees = await detectWorktrees(resolvedDirectoryPath);
   const nonBareWorktrees = worktrees.filter((wt) => !wt.isBare);
 
   // Nothing to do when there is only one worktree (the project root itself).
@@ -324,15 +569,37 @@ export async function syncWorktreesAsWorkspaces(projectId, directoryPath) {
   // Point the default workspace at the main worktree (first entry from git worktree list).
   const mainWorktree = nonBareWorktrees[0];
   const defaultWs = db
-    .prepare('SELECT id, worktree_path FROM workspaces WHERE project_id = ? AND is_default = 1')
+    .prepare(
+      'SELECT id, name, worktree_path, worktree_branch FROM workspaces WHERE project_id = ? AND is_default = 1'
+    )
     .get(projectId);
   if (defaultWs && !defaultWs.worktree_path) {
+    const defaultName = getWorkspaceDisplayName({
+      name: defaultWs.name,
+      worktreePath: mainWorktree.path,
+      worktreeBranch: mainWorktree.branch || null,
+    });
+
     db.prepare(
       'UPDATE workspaces SET worktree_path = ?, worktree_branch = ?, name = ? WHERE id = ?'
-    ).run(
-      path.resolve(mainWorktree.path),
+    ).run(path.resolve(mainWorktree.path), mainWorktree.branch || null, defaultName, defaultWs.id);
+  } else if (
+    defaultWs &&
+    shouldSyncWorkspaceName(
+      defaultWs.name,
+      mainWorktree.path,
+      defaultWs.worktree_branch || mainWorktree.branch
+    )
+  ) {
+    const defaultName = getWorkspaceDisplayName({
+      name: defaultWs.name,
+      worktreePath: mainWorktree.path,
+      worktreeBranch: mainWorktree.branch || null,
+    });
+
+    db.prepare('UPDATE workspaces SET name = ?, worktree_branch = ? WHERE id = ?').run(
+      defaultName,
       mainWorktree.branch || null,
-      mainWorktree.branch || 'main',
       defaultWs.id
     );
   }
@@ -340,14 +607,31 @@ export async function syncWorktreesAsWorkspaces(projectId, directoryPath) {
   // Upsert a workspace row for each additional (non-main) worktree.
   for (const wt of nonBareWorktrees.slice(1)) {
     const resolvedPath = path.resolve(wt.path);
+    const desiredName = getWorkspaceDisplayName({
+      name: null,
+      worktreePath: resolvedPath,
+      worktreeBranch: wt.branch || null,
+    });
     const existing = db
-      .prepare('SELECT id FROM workspaces WHERE project_id = ? AND worktree_path = ?')
+      .prepare(
+        'SELECT id, name, worktree_branch FROM workspaces WHERE project_id = ? AND worktree_path = ?'
+      )
       .get(projectId, resolvedPath);
     if (!existing) {
-      const name = wt.branch || path.basename(resolvedPath);
       db.prepare(
         'INSERT INTO workspaces (project_id, name, worktree_path, worktree_branch, is_default) VALUES (?, ?, ?, ?, 0)'
-      ).run(projectId, name, resolvedPath, wt.branch || null);
+      ).run(projectId, desiredName, resolvedPath, wt.branch || null);
+      continue;
+    }
+
+    if (
+      shouldSyncWorkspaceName(existing.name, resolvedPath, existing.worktree_branch || wt.branch)
+    ) {
+      db.prepare('UPDATE workspaces SET name = ?, worktree_branch = ? WHERE id = ?').run(
+        desiredName,
+        wt.branch || null,
+        existing.id
+      );
     }
   }
 }
@@ -358,7 +642,16 @@ export async function scanProjectSessions(projectId, directoryPath) {
     throw new Error(`Project ${projectId} not found`);
   }
 
-  const resolvedPath = path.resolve(directoryPath || projectRow.directory_path);
+  const defaultWorkspace = getDefaultWorkspace(projectId);
+  const scanSourcePath =
+    defaultWorkspace?.worktree_path || directoryPath || projectRow.directory_path;
+
+  // Multi-workspace projects can be created from a non-main worktree. Once we
+  // promote the root repo to the default workspace, inbox session discovery must
+  // follow that workspace path instead of the original project row path.
+  // Otherwise the default stream is scanned against the wrong worktree and shows
+  // an empty inbox even though the root Claude storage contains sessions.
+  const resolvedPath = path.resolve(scanSourcePath);
 
   await ensureProjectRegistered(resolvedPath, projectRow.display_name || projectRow.name);
 
@@ -368,7 +661,6 @@ export async function scanProjectSessions(projectId, directoryPath) {
     return { inserted: 0, scanned: 0 };
   }
 
-  const defaultWorkspace = getDefaultWorkspace(projectId);
   if (!defaultWorkspace) {
     throw new Error(`Project ${projectId} does not have a default workspace`);
   }
@@ -512,58 +804,108 @@ export async function getProjects({ sort = 'recent', includeDeleted = false } = 
     })
   );
 
+  const repoSourcesByCommonDir = new Map();
+  for (const project of projects) {
+    if (!project.gitCommonDir || repoSourcesByCommonDir.has(project.gitCommonDir)) {
+      continue;
+    }
+
+    repoSourcesByCommonDir.set(project.gitCommonDir, project.directoryPath);
+  }
+
+  const liveWorktreesByCommonDir = new Map(
+    await Promise.all(
+      [...repoSourcesByCommonDir.entries()].map(async ([gitCommonDir, directoryPath]) => {
+        return [gitCommonDir, await detectWorktrees(directoryPath)];
+      })
+    )
+  );
+
+  const liveWorktreePathsByCommonDir = new Map(
+    [...liveWorktreesByCommonDir.entries()].map(([gitCommonDir, worktrees]) => [
+      gitCommonDir,
+      buildLiveWorktreeState(repoSourcesByCommonDir.get(gitCommonDir), worktrees).liveWorktreePaths,
+    ])
+  );
+
+  const multiWorkspaceCommonDirs = new Set(
+    projects
+      .filter((project) => project.multiWorkspaceEnabled && project.gitCommonDir)
+      .map((project) => project.gitCommonDir)
+  );
+
   // Expand multi-workspace projects into per-workspace virtual entries.
   // Each workspace gets its own entry in the list so the sidebar's
   // groupProjectsIntoStreams() can group them as separate stream rows (all sharing
-  // the same gitCommonDir).  The default workspace keeps the original project name;
-  // non-default workspaces get a stable synthetic name ("project__ws__id") that
-  // the old routes understand via extractProjectDirectory().
+  // the same gitCommonDir). The default workspace keeps the original internal
+  // project name for routing, but its visible label is normalized from the main
+  // repository root so projects created from a worktree don't inherit the wrong
+  // branch/worktree name as the repo title.
   //
-  // Deduplication: if another (non-multi-workspace) DB project already points to a
-  // workspace's worktreePath, that project entry takes precedence and we skip the
-  // virtual workspace entry to avoid showing duplicate stream rows.
-  const nonExpandedPaths = new Set(
-    projects
-      .filter((p) => !p.multiWorkspaceEnabled)
-      .map((p) => p.directoryPath && path.resolve(p.directoryPath))
-      .filter(Boolean)
-  );
+  // Legacy standalone worktree projects are suppressed once a multi-workspace
+  // parent exists for the same repo. The expanded workspace entries become the
+  // canonical sidebar source, which keeps the stream count aligned with live
+  // `git worktree list` output instead of stale DB rows.
 
   const expanded = [];
   for (const project of projects) {
+    const resolvedProjectPath = project.directoryPath ? path.resolve(project.directoryPath) : null;
+    const liveWorktreePaths = project.gitCommonDir
+      ? liveWorktreePathsByCommonDir.get(project.gitCommonDir)
+      : null;
+    const isLegacyStandaloneWorktree = Boolean(
+      !project.multiWorkspaceEnabled &&
+      project.gitCommonDir &&
+      resolvedProjectPath &&
+      multiWorkspaceCommonDirs.has(project.gitCommonDir) &&
+      liveWorktreePaths?.has(resolvedProjectPath)
+    );
+
+    if (isLegacyStandaloneWorktree) {
+      continue;
+    }
+
     if (!project.multiWorkspaceEnabled) {
       expanded.push(project);
       continue;
     }
+
+    await syncWorkspaceStaleState(project.id, project.directoryPath, {
+      logger: console,
+      worktrees: project.gitCommonDir
+        ? liveWorktreesByCommonDir.get(project.gitCommonDir)
+        : undefined,
+    });
 
     const workspaces = db
       .prepare('SELECT * FROM workspaces WHERE project_id = ? ORDER BY is_default DESC, id ASC')
       .all(project.id)
       .map(mapWorkspaceRow);
 
-    if (workspaces.length <= 1) {
+    const activeWorkspaces = workspaces.filter((workspace) => workspace.status === 'active');
+
+    if (activeWorkspaces.length <= 1) {
       // Single workspace — not truly multi-stream yet, emit as-is.
       expanded.push(project);
       continue;
     }
 
-    for (const ws of workspaces) {
+    for (const ws of activeWorkspaces) {
       const wsPath = ws.worktreePath || project.directoryPath;
-      const resolvedWsPath = wsPath && path.resolve(wsPath);
-
-      // Skip if another DB project already covers this worktree path.
-      if (!ws.isDefault && resolvedWsPath && nonExpandedPaths.has(resolvedWsPath)) {
-        continue;
-      }
 
       // Default workspace reuses the original project name so existing navigation
       // and session routes continue to work without changes.
       const virtualName = ws.isDefault ? project.name : `${project.name}__ws__${ws.id}`;
-      const displayName = ws.name || ws.worktreeBranch || path.basename(wsPath);
+      const displayName = getWorkspaceDisplayName({
+        name: ws.name,
+        worktreePath: wsPath,
+        worktreeBranch: ws.worktreeBranch,
+      });
+      const canonicalProjectDisplayName = getCanonicalProjectDisplayName(project);
       expanded.push({
         ...project,
         name: virtualName,
-        displayName: ws.isDefault ? project.displayName || ws.name : displayName,
+        displayName: ws.isDefault ? canonicalProjectDisplayName : displayName,
         directoryPath: wsPath,
         fullPath: wsPath,
         path: wsPath,
@@ -573,6 +915,9 @@ export async function getProjects({ sort = 'recent', includeDeleted = false } = 
         _workspaceId: ws.id,
         _parentProjectId: project.id,
         _isWorkspaceExpansion: true,
+        isStale: ws.isStale,
+        _workspaceStatus: ws.status,
+        _staleDetectedAt: ws.staleDetectedAt,
       });
     }
   }
@@ -588,10 +933,15 @@ export async function getProjects({ sort = 'recent', includeDeleted = false } = 
     }
 
     const existing = dedupedByPath.get(resolvedPath);
-    if (!existing || project.id > existing.id) {
+    if (
+      !existing ||
+      getProjectPathPriority(project) > getProjectPathPriority(existing) ||
+      (getProjectPathPriority(project) === getProjectPathPriority(existing) &&
+        project.id > existing.id)
+    ) {
       // Duplicate DB project rows can temporarily point at the same worktree path after
-      // re-imports or failed migrations. Keep the newer project record so the sidebar
-      // renders one stream row per worktree instead of duplicating the entire stream set.
+      // re-imports or failed migrations. Prefer canonical workspace expansions over
+      // legacy standalone rows so the sidebar renders one stream row per live worktree.
       dedupedByPath.set(resolvedPath, project);
     }
   }
@@ -610,6 +960,7 @@ export async function getProjectById(projectId) {
       `SELECT *
        FROM workspaces
        WHERE project_id = ?
+         AND status = 'active'
        ORDER BY is_default DESC, created_at ASC, id ASC`
     )
     .all(projectId)

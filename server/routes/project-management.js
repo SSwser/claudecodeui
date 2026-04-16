@@ -10,9 +10,11 @@ import {
   scanProjectSessions,
   scanWorkspaceSessions,
   softDeleteProject,
+  syncWorkspaceStaleState,
   syncWorktreesAsWorkspaces,
 } from '../services/projectService.js';
 import {
+  archiveWorkspace,
   createWorkspace,
   deleteWorkspace,
   getWorkspaces,
@@ -164,6 +166,15 @@ router.get('/:id(\\d+)', async (req, res) => {
       project = (await getProjectById(projectId)) ?? project;
     }
 
+    if (project.directoryPath) {
+      await syncWorkspaceStaleState(projectId, project.directoryPath).catch((err) => {
+        console.warn(
+          `[project-management] Stale workspace scan failed for project ${projectId}: ${err.message}`
+        );
+      });
+      project = (await getProjectById(projectId)) ?? project;
+    }
+
     res.status(200).json(project);
   } catch (error) {
     handleRouteError(res, error);
@@ -263,6 +274,17 @@ router.patch('/:id(\\d+)/workspaces/:wsId(\\d+)', async (req, res) => {
   }
 });
 
+router.post('/:id(\\d+)/workspaces/:wsId(\\d+)/archive', async (req, res) => {
+  try {
+    parseNumericId(req.params.id, 'Project id');
+    const workspaceId = parseNumericId(req.params.wsId, 'Workspace id');
+    const workspace = await archiveWorkspace(workspaceId);
+    res.status(200).json(workspace);
+  } catch (error) {
+    handleRouteError(res, error);
+  }
+});
+
 router.delete('/:id(\\d+)/workspaces/:wsId(\\d+)', async (req, res) => {
   try {
     parseNumericId(req.params.id, 'Project id');
@@ -270,6 +292,30 @@ router.delete('/:id(\\d+)/workspaces/:wsId(\\d+)', async (req, res) => {
     const deleteWorktree = parseBoolean(req.query.deleteWorktree, false);
     await deleteWorkspace(workspaceId, deleteWorktree);
     res.status(200).json({ success: true });
+  } catch (error) {
+    handleRouteError(res, error);
+  }
+});
+
+router.post('/:id(\\d+)/check-stream-status', async (req, res) => {
+  try {
+    const projectId = parseNumericId(req.params.id, 'Project id');
+    const project = await getProjectById(projectId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const result = await syncWorkspaceStaleState(projectId, project.directoryPath, {
+      logger: console,
+    });
+    const refreshedProject = (await getProjectById(projectId)) ?? project;
+
+    res.status(200).json({
+      project: refreshedProject,
+      staleWorkspaces: result.staleWorkspaces,
+      markedCount: result.markedCount,
+      clearedCount: result.clearedCount,
+    });
   } catch (error) {
     handleRouteError(res, error);
   }

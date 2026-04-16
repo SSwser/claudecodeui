@@ -98,64 +98,6 @@ CREATE TABLE IF NOT EXISTS app_config (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Projects (soft-delete via is_deleted flag)
-CREATE TABLE IF NOT EXISTS projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    display_name TEXT,
-    directory_path TEXT NOT NULL,
-    multi_workspace_enabled BOOLEAN DEFAULT 0,
-    is_deleted BOOLEAN DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_path
-    ON projects(directory_path)
-    WHERE is_deleted = 0;
-
--- Workspaces belong to projects and can optionally map to git worktrees.
-CREATE TABLE IF NOT EXISTS workspaces (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL,
-    name TEXT NOT NULL DEFAULT 'default',
-    worktree_path TEXT,
-    worktree_branch TEXT,
-    is_default BOOLEAN DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_workspaces_project ON workspaces(project_id);
-
--- Session state stores lifecycle metadata separate from provider-specific transcripts.
-CREATE TABLE IF NOT EXISTS session_state (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    session_id TEXT NOT NULL,
-    workspace_id INTEGER NOT NULL,
-    provider TEXT NOT NULL DEFAULT 'claude',
-    status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'frozen', 'archived', 'deleted')),
-    title TEXT,
-    summary TEXT,
-    last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
-    frozen_at DATETIME,
-    archived_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_session_state_workspace ON session_state(workspace_id);
-CREATE INDEX IF NOT EXISTS idx_session_state_status ON session_state(status);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_session_state_lookup ON session_state(session_id, provider);
-
--- FTS5 contentless-delete index keeps search data normalized while still supporting DELETE.
-CREATE VIRTUAL TABLE IF NOT EXISTS session_search USING fts5(
-    provider UNINDEXED,
-    session_id UNINDEXED,
-    title,
-    content,
-    content='',
-    contentless_delete=1,
-    tokenize='unicode61',
-    prefix='2 3'
-);
+-- Phase 2 project/workspace/session tables intentionally live in db.js migrations.
+-- Existing installations may already have older versions of those tables; recreating
+-- indexes here before ALTER migrations run can fail during startup upgrades.
