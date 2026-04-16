@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import GlobalRecentsSection from './GlobalRecentsSection';
+import GlobalRecentSection from './GlobalRecentSection';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -22,10 +22,10 @@ afterEach(() => {
   cleanup();
 });
 
-describe('GlobalRecentsSection', () => {
+describe('GlobalRecentSection', () => {
   it('disables New Session when there are no projects', () => {
     render(
-      <GlobalRecentsSection
+      <GlobalRecentSection
         data={baseData}
         onOpenSession={vi.fn()}
         onToggleSessionFavorite={vi.fn()}
@@ -42,7 +42,7 @@ describe('GlobalRecentsSection', () => {
     const onCreateSession = vi.fn();
 
     render(
-      <GlobalRecentsSection
+      <GlobalRecentSection
         data={{ ...baseData, projectCount: 1 }}
         onOpenSession={vi.fn()}
         onToggleSessionFavorite={vi.fn()}

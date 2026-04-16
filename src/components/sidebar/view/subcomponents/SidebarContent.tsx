@@ -1,9 +1,8 @@
 import type { TFunction } from 'i18next';
 import SidebarFooter from './SidebarFooter';
-import GlobalRecentsSection from './GlobalRecentsSection';
 import SidebarHeader from './SidebarHeader';
 import SidebarProjectListSection from './SidebarProjectListSection';
-import WorkspaceIndicator from './WorkspaceIndicator';
+import GlobalRecentSection from '@/components/sidebar/view/subcomponents/GlobalRecentSection';
 import { ScrollArea } from '@/shared/view/ui';
 import type { LoadingProgress, Project } from '@/types/app';
 import type { ReleaseInfo } from '@/types/sharedTypes';
@@ -22,7 +21,6 @@ type SidebarContentProps = {
   sidebarProjects: SidebarProjectListItem[];
   groupedProjects: SidebarProjectGroup[];
   searchFilter: string;
-  activeWorkspaceName: string | null;
   onSearchFilterChange: (value: string) => void;
   onClearSearchFilter: () => void;
   onCreateProject: () => void;
@@ -35,7 +33,7 @@ type SidebarContentProps = {
   onCancelEditingProject: () => void;
   onSaveProjectName: (projectName: string) => void;
   onDeleteProject: (project: Project) => void;
-  onRefreshProject?: () => void;
+  onRefreshProject?: (project: Project) => void;
   onNewSession?: (project: Project) => void;
   onRecentSessionSelect: (recentSession: SidebarRecentSession) => void;
   onNavigateToHistory: () => void;
@@ -65,13 +63,11 @@ type SidebarContentProps = {
 export default function SidebarContent({
   isLoading,
   loadingProgress,
-  projects,
   selectedProject,
   recentSessions,
   sidebarProjects,
   groupedProjects,
   searchFilter,
-  activeWorkspaceName,
   onSearchFilterChange,
   onClearSearchFilter,
   onCreateProject,
@@ -103,6 +99,7 @@ export default function SidebarContent({
         searchFilter={searchFilter}
         onSearchFilterChange={onSearchFilterChange}
         onClearSearchFilter={onClearSearchFilter}
+        onCreateProject={onCreateProject}
         onCollapseSidebar={onCollapseSidebar}
         t={t}
       />
@@ -127,19 +124,16 @@ export default function SidebarContent({
           onDeleteProject={onDeleteProject}
           onRefreshProject={onRefreshProject}
           onNewSession={onNewSession}
-          onCreateProject={onCreateProject}
         />
       </ScrollArea>
 
       {/* Pinned at bottom: RECENT + bottom stack */}
       <div className="flex-shrink-0">
-        <GlobalRecentsSection
+        <GlobalRecentSection
           sessions={recentSessions}
           onSessionSelect={onRecentSessionSelect}
           onNavigateToHistory={onNavigateToHistory}
         />
-
-        {activeWorkspaceName ? <WorkspaceIndicator workspaceName={activeWorkspaceName} /> : null}
 
         <SidebarFooter
           updateAvailable={updateAvailable}

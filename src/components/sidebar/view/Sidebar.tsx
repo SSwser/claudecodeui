@@ -6,6 +6,7 @@ import type { SidebarProps } from '../types/types';
 import SidebarCollapsed from './subcomponents/SidebarCollapsed';
 import SidebarContent from './subcomponents/SidebarContent';
 import SidebarModals from './subcomponents/SidebarModals';
+import { api } from '@/utils/api';
 import { useDeviceSettings } from '@/hooks/useDeviceSettings';
 import { useVersionCheck } from '@/hooks/useVersionCheck';
 import { useUiPreferences } from '@/hooks/useUiPreferences';
@@ -85,7 +86,6 @@ function Sidebar({
     sidebarProjects,
     groupedProjects,
     recentSessions,
-    activeWorkspaceName,
     startEditing,
     cancelEditing,
     saveProjectName,
@@ -153,6 +153,15 @@ function Sidebar({
     window.location.reload();
   };
 
+  const handleRefreshProject = async (project: Project) => {
+    if (!project.id) {
+      return;
+    }
+
+    await api.checkProjectStreamStatus(project.id);
+    await refreshProjects();
+  };
+
   return (
     <>
       <SidebarModals
@@ -193,7 +202,6 @@ function Sidebar({
           sidebarProjects={sidebarProjects}
           groupedProjects={groupedProjects}
           searchFilter={searchFilter}
-          activeWorkspaceName={activeWorkspaceName}
           onSearchFilterChange={setSearchFilter}
           onClearSearchFilter={() => setSearchFilter('')}
           onCreateProject={() => setShowNewProject(true)}
@@ -208,7 +216,7 @@ function Sidebar({
             void saveProjectName(projectName);
           }}
           onDeleteProject={requestProjectDelete}
-          onRefreshProject={() => void refreshProjects()}
+          onRefreshProject={(project) => void handleRefreshProject(project)}
           onNewSession={(project) => handleProjectSelect(project)}
           onRecentSessionSelect={(recentSession) => {
             openSessionFromSidebar(recentSession.session, recentSession.project);

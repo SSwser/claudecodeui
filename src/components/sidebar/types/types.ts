@@ -54,6 +54,7 @@ export type SidebarProjectListItem = {
   workspaceName: string;
   /** Git branch name for the branch chip in StreamRow subtitle. */
   branch?: string;
+  isStale?: boolean;
   hasActiveSessions: boolean;
   /** True when ≥1 session in this project is waiting for user input.
    *  Drives the red dot (running-waiting) in StreamRow.

@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import StreamRow from './StreamRow';
 import StreamDividerHeader from './StreamDividerHeader';
@@ -25,9 +24,8 @@ type SidebarProjectListSectionProps = {
   onCancelEditingProject: () => void;
   onSaveProjectName: (projectName: string) => void;
   onDeleteProject: (project: Project) => void;
-  onRefreshProject?: () => void;
+  onRefreshProject?: (project: Project) => void;
   onNewSession?: (project: Project) => void;
-  onCreateProject: () => void;
 };
 
 export default function SidebarProjectListSection({
@@ -48,7 +46,6 @@ export default function SidebarProjectListSection({
   onDeleteProject,
   onRefreshProject,
   onNewSession,
-  onCreateProject,
 }: SidebarProjectListSectionProps) {
   const { t } = useTranslation('sidebar');
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(() => new Set());
@@ -59,13 +56,20 @@ export default function SidebarProjectListSection({
         return group.main;
       }
 
-      if (group.main.project.name === selectedProject.name) {
+      const selectedStream =
+        group.main.project.name === selectedProject.name
+          ? group.main
+          : group.children.find((child) => child.project.name === selectedProject.name);
+
+      if (!selectedStream) {
         return group.main;
       }
 
-      return (
-        group.children.find((child) => child.project.name === selectedProject.name) ?? group.main
-      );
+      // Keep the repo title anchored to the group's main stream when collapsed.
+      // Only the branch chip and activity state should follow the active child stream.
+      return selectedStream === group.main
+        ? group.main
+        : { ...selectedStream, displayName: group.main.displayName };
     },
     [selectedProject]
   );
@@ -98,7 +102,11 @@ export default function SidebarProjectListSection({
    * Render a single stream row, handling editing and context-menu states.
    * `extraStreamCount` is passed only for multi-stream collapsed rows (§3.2).
    */
-  const renderStreamRow = (projectItem: SidebarProjectListItem, extraStreamCount?: number) => {
+  const renderStreamRow = (
+    projectItem: SidebarProjectListItem,
+    extraStreamCount?: number,
+    expandProjectName?: string
+  ) => {
     const { project } = projectItem;
     const isSelected = selectedProject?.name === project.name;
     const isDeleting = deletingProjects.has(project.name);
@@ -132,19 +140,22 @@ export default function SidebarProjectListSection({
         project={project}
         onRename={() => onStartEditingProject(project)}
         onDelete={() => onDeleteProject(project)}
-        onRefresh={() => onRefreshProject?.()}
+        onRefresh={() => onRefreshProject?.(project)}
         onNewSession={() => onNewSession?.(project)}
       >
         <div className={cn(isDeleting && 'pointer-events-none opacity-50')}>
           <StreamRow
             name={projectItem.displayName}
             branch={projectItem.branch}
+            isStale={projectItem.isStale}
             status={
-              projectItem.hasWaitingSessions
-                ? 'running-waiting'
-                : projectItem.hasActiveSessions
-                  ? 'running'
-                  : 'idle'
+              projectItem.isStale
+                ? 'idle'
+                : projectItem.hasWaitingSessions
+                  ? 'running-waiting'
+                  : projectItem.hasActiveSessions
+                    ? 'running'
+                    : 'idle'
             }
             isSelected={isSelected}
             extraStreamCount={extraStreamCount}
@@ -153,7 +164,7 @@ export default function SidebarProjectListSection({
               extraStreamCount != null
                 ? (e) => {
                     e.stopPropagation();
-                    toggleExpand(project.name);
+                    toggleExpand(expandProjectName || project.name);
                   }
                 : undefined
             }
@@ -165,25 +176,9 @@ export default function SidebarProjectListSection({
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
-      {/* Projects section header — 36px, border-bottom #16181a */}
-      <div className="flex h-9 flex-shrink-0 items-center justify-between border-b border-border-subtle px-[14px]">
-        <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-label-dim">
-          {t('projects.title')}
-        </span>
-        <button
-          type="button"
-          onClick={onCreateProject}
-          className="flex h-4 w-4 items-center justify-center rounded bg-surface-3 text-white transition-colors hover:bg-border"
-          aria-label={t('projects.newProject')}
-        >
-          <Plus className="h-[13px] w-[13px]" />
-        </button>
-      </div>
-
-      {/* Stream list */}
       <div className="min-h-0 flex-1">
         {projects.length === 0 ? (
-          <div className="px-4 py-4 text-xs text-dim-foreground">{emptyMessage}</div>
+          <div className="px-[14px] py-4 text-[11px] text-label-dim">{emptyMessage}</div>
         ) : (
           groupedProjects.map((group) => {
             const { main, children } = group;
@@ -208,7 +203,11 @@ export default function SidebarProjectListSection({
             }
 
             // §3.1 / §3.2 — Single-stream or collapsed multi-stream
-            return renderStreamRow(collapsedProject, isMultiStream ? children.length : undefined);
+            return renderStreamRow(
+              collapsedProject,
+              isMultiStream ? children.length : undefined,
+              isMultiStream ? main.project.name : undefined
+            );
           })
         )}
       </div>

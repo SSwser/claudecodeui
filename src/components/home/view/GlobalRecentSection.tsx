@@ -4,7 +4,7 @@ import RecentSessionsList from './RecentSessionsList';
 import type { LandingPageData } from '@/components/main-content/types/types';
 import { Button } from '@/components/ui/button';
 
-type GlobalRecentsSectionProps = {
+type GlobalRecentSectionProps = {
   data: LandingPageData;
   onOpenSession: (sessionId: string) => void;
   onToggleSessionFavorite: (sessionId: string) => void;
@@ -12,13 +12,13 @@ type GlobalRecentsSectionProps = {
   onCreateSession: () => void;
 };
 
-export default function GlobalRecentsSection({
+export default function GlobalRecentSection({
   data,
   onOpenSession,
   onToggleSessionFavorite,
   onCreateProject,
   onCreateSession,
-}: GlobalRecentsSectionProps) {
+}: GlobalRecentSectionProps) {
   const { t } = useTranslation('common');
   const canCreateSession = data.projectCount > 0;
 

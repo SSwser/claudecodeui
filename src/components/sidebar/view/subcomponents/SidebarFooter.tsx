@@ -24,10 +24,10 @@ export default function SidebarFooter({
 }: SidebarFooterProps) {
   return (
     <div className="flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
-      {/* Update chip — conditional, h=30px, bg #0a1209 */}
       {updateAvailable && (
         <button
-          className="flex h-[30px] w-full items-center justify-between bg-success/10 px-[14px] text-left text-[11px] text-success transition-colors hover:brightness-110"
+          type="button"
+          className="flex h-[30px] w-full items-center justify-between bg-success/10 px-[14px] text-left text-[11px] text-success transition-colors hover:bg-success/15"
           onClick={onShowVersionModal}
         >
           <span>↑ Update available {latestVersion ? `v${latestVersion}` : ''}</span>
@@ -35,15 +35,17 @@ export default function SidebarFooter({
         </button>
       )}
 
-      {/* Plugins row — 36px, gap 5px */}
-      <button className="flex h-9 w-full items-center gap-[5px] px-[14px] text-dim-foreground transition-colors hover:bg-canvas">
+      <button
+        type="button"
+        className="flex h-9 w-full items-center gap-[5px] px-[14px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+      >
         <Plug className="h-3.5 w-3.5" />
         <span className="text-[12px]">Plugins</span>
       </button>
 
-      {/* Settings row — 36px, gap 5px */}
       <button
-        className="flex h-9 w-full items-center gap-[5px] px-[14px] text-dim-foreground transition-colors hover:bg-canvas"
+        type="button"
+        className="flex h-9 w-full items-center gap-[5px] px-[14px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
         onClick={onShowSettings}
       >
         <Settings className="h-3.5 w-3.5" />

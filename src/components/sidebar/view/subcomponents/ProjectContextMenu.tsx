@@ -127,7 +127,7 @@ export default function ProjectContextMenu({
       {
         key: 'refresh',
         icon: RefreshCw,
-        label: t('projectContext.refresh', 'Refresh'),
+        label: t('projectContext.checkStreamStatus', 'Check stream status'),
         onSelect: onRefresh,
         showDividerBefore: true,
       },

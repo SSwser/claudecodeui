@@ -381,6 +381,7 @@ export function useSidebarController({
           displayName: project.displayName || project.name,
           workspaceName: getWorkspaceLabel(project),
           branch: project.gitBranch ?? undefined,
+          isStale: Boolean(project.isStale),
           hasActiveSessions,
           // TODO: compute from session data once the session model exposes a
           // "waiting for user input" flag. Until then this is always false to
@@ -455,14 +456,6 @@ export function useSidebarController({
       .slice(0, 10)
       .map(({ lastActivity: _lastActivity, ...recentSession }) => recentSession);
   }, [currentTime, favoriteSessionIds, normalizedSearch, projects, t]);
-
-  const activeWorkspaceName = useMemo(() => {
-    if (!isMultiWorkspaceEnabled(selectedProject)) {
-      return null;
-    }
-
-    return selectedProject ? getWorkspaceLabel(selectedProject) : null;
-  }, [selectedProject]);
 
   const startEditing = useCallback((project: Project) => {
     setEditingProject(project.name);
@@ -619,7 +612,6 @@ export function useSidebarController({
     sidebarProjects,
     groupedProjects,
     recentSessions,
-    activeWorkspaceName,
     startEditing,
     cancelEditing,
     saveProjectName,
